@@ -20,7 +20,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const activityId = await ctx.db.insert('activities', {
-      text: args.activity,
+      activity: args.activity,
     });
   },
 });

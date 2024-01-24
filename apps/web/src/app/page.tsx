@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { api } from 'backend/convex/_generated/api';
+import { api } from '@workspace/backend/convex/_generated/api';
 import { useMutation, useQuery } from 'convex/react';
 export default function Home() {
   const activities = useQuery(api.activities.get);
