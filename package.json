@@ -5,6 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "yarn workspace @workspace/backend dev & yarn workspace @workspace/web dev & yarn workspace @workspace/mobile ios",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
