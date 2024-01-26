@@ -32,3 +32,10 @@ export const get = query({
     return activities;
   },
 });
+export const count = query({
+  args: {},
+  handler: async (ctx, args) => {
+    const activities = await ctx.db.query('activities').collect();
+    return activities.length;
+  },
+});
