@@ -1,34 +1,18 @@
-import { StatusBar } from 'expo-status-bar';
-import { Platform, Pressable, Text, View } from 'react-native';
-import { api } from '@workspace/backend/convex/_generated/api';
+import { Platform, Text, View } from 'react-native';
 import { useMutation, useQuery } from 'convex/react';
-import ConvexClientProvider from '../ConvexClientProvider';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import Button from '../components/atoms/Button';
-import { BabyBottleIcon } from '../components/atoms/icons/BabyBottle';
-import { DiaperChangeIcon } from '../components/atoms/icons/DiaperChange';
+import AppNav from '../components/organisms/AppNav';
+import Page from '../components/organisms/Page';
+import { useActivities } from '../providers/AppDataProvider';
+import { api } from '../services/api';
+
 function App() {
-  const activities = useQuery(api.activities.get);
+  const activities = useActivities();
   const count = useQuery(api.activities.count);
   const createActivity = useMutation(api.activities.create);
   const iconName = Platform.OS === 'ios' ? 'ios-search' : 'md-search';
 
   return (
-    <View className="p-2">
-      <Text className="text-xl font-bold mt-5">Baby Tracker</Text>
-      <View>
-        <View className="flex flex-row">
-          <Button onPress={() => console.log('hi')}>
-            <Icon name="rocket" size={30} />
-          </Button>
-          <Button onPress={() => console.log('hi')}>
-            <BabyBottleIcon size={30} />
-          </Button>
-          <Button onPress={() => console.log('hi')}>
-            <DiaperChangeIcon size={30} />
-          </Button>
-        </View>
-      </View>
+    <Page title="Baby Tracker">
       <View className="p-4">
         <Text>{count + ' activities'}</Text>
         <Text>
@@ -37,21 +21,7 @@ function App() {
             : JSON.stringify(activities, null, 2)}
         </Text>
       </View>
-      {/* <View className="flex-1 items-center mt-5 bg-white"> */}
-      {/* </View> */}
-      <StatusBar style="auto" />
-    </View>
+    </Page>
   );
 }
-
-function withConvex(Component) {
-  return function Wrapper(props) {
-    return (
-      <ConvexClientProvider>
-        <Component {...props} />
-      </ConvexClientProvider>
-    );
-  };
-}
-
-export default withConvex(App);
+export default App;

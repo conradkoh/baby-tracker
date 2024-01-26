@@ -1,4 +1,4 @@
-import Icon from 'react-native-vector-icons/FontAwesome6';
+import { EmojiIcon } from '../EmojiIcon';
 export function DiaperChangeIcon({ size }) {
-  return <Icon name="baby" size={size} />;
+  return <EmojiIcon>💩</EmojiIcon>;
 }
