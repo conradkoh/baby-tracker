@@ -3,11 +3,12 @@ import { View } from 'react-native';
 import ConvexClientProvider from '../ConvexClientProvider';
 import { Slot } from 'expo-router';
 import AppDataProvider from '../providers/AppDataProvider';
+import { NativeWindStyleSheet } from 'nativewind';
 export default function RootLayout() {
   return (
     <ConvexClientProvider>
       <AppDataProvider>
-        <View className="mt-4">
+        <View>
           <Slot />
         </View>
       </AppDataProvider>
@@ -15,3 +16,8 @@ export default function RootLayout() {
     </ConvexClientProvider>
   );
 }
+
+//Attempt to fix stale / caching issues in nativewind styles
+NativeWindStyleSheet.setOutput({
+  default: 'native',
+});

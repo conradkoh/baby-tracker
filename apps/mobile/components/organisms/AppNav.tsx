@@ -1,24 +1,27 @@
-import { Pressable, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { BabyBottleIcon } from '../atoms/icons/BabyBottle';
 import { HomeIcon } from '../atoms/icons/Home';
-import { Link } from 'expo-router';
 import { router } from 'expo-router';
-import Button from '../atoms/Button';
+import IconButton from '../atoms/Button/Icon';
 import { DiaperChangeIcon } from '../atoms/icons/DiaperChange';
+import { SettingsIcon } from '../atoms/icons/Settings';
 
 export default function AppNav() {
   return (
     <>
-      <View className="flex flex-row">
-        <Button onPress={() => router.push('/')}>
-          <HomeIcon size={30} />
-        </Button>
-        <Button onPress={() => router.push('/feed/create')}>
-          <BabyBottleIcon size={30} />
-        </Button>
-        <Button onPress={() => router.push('/diaper-change/create')}>
-          <DiaperChangeIcon size={30} />
-        </Button>
+      <View className="flex flex-row space-x-3">
+        <IconButton onPress={() => router.push('/')}>
+          <HomeIcon />
+        </IconButton>
+        <IconButton onPress={() => router.push('/feed/create')}>
+          <BabyBottleIcon />
+        </IconButton>
+        <IconButton onPress={() => router.push('/diaper-change/create')}>
+          <DiaperChangeIcon />
+        </IconButton>
+        <IconButton onPress={() => router.push('/settings')}>
+          <SettingsIcon />
+        </IconButton>
       </View>
     </>
   );

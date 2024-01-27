@@ -1,4 +1,4 @@
 import { EmojiIcon } from '../EmojiIcon';
-export function DiaperChangeIcon({ size }) {
+export function DiaperChangeIcon() {
   return <EmojiIcon>💩</EmojiIcon>;
 }

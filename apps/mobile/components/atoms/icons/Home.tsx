@@ -1,4 +1,4 @@
 import { EmojiIcon } from '../EmojiIcon';
-export function HomeIcon({ size }) {
+export function HomeIcon() {
   return <EmojiIcon>🏠</EmojiIcon>;
 }
