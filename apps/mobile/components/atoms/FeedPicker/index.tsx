@@ -16,9 +16,12 @@ const viewValues = new Map([
   ['latch', 'Latch'],
   ['formula', 'Formula'],
 ]);
-const FeedPicker = () => {
+const FeedPicker = (props: {
+  value: string;
+  onChange: (v: string) => void;
+}) => {
   const [visible, setVisible] = useState(false);
-  const [selectedValue, setSelectedValue] = useState('expressed');
+  // const [selectedValue, setSelectedValue] = useState('expressed');
 
   return (
     <>
@@ -28,7 +31,7 @@ const FeedPicker = () => {
           style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
         >
           <Pressable onPress={() => setVisible(true)}>
-            <Text>{viewValues.get(selectedValue)}</Text>
+            <Text>{viewValues.get(props.value)}</Text>
           </Pressable>
         </View>
       </View>
@@ -49,8 +52,8 @@ const FeedPicker = () => {
               </TouchableOpacity>
             )}
             <Picker
-              selectedValue={selectedValue}
-              onValueChange={(itemValue) => setSelectedValue(itemValue)}
+              selectedValue={props.value}
+              onValueChange={(itemValue) => props.onChange(itemValue)}
               style={{ width: '100%' }}
             >
               <Picker.Item

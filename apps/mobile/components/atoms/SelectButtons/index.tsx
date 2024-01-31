@@ -1,5 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
-import { variants } from '../../../app/styles/variants';
+import { View } from 'react-native';
 import { Item } from './Item';
 
 export function SelectButtons(p: {

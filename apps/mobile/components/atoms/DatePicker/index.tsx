@@ -27,23 +27,23 @@ export function DatePicker() {
 
   return (
     <SafeAreaView>
-      {/* <Button onPress={showDatepicker} title="Show date picker!" />
-      <Button onPress={showTimepicker} title="Show time picker!" /> */}
+      <Button onPress={showDatepicker} title="Show date picker!" />
+      <Button onPress={showTimepicker} title="Show time picker!" />
       <Text>selected: {date.toLocaleString()}</Text>
-      {/* {show && (
-        )} */}
-      <DateTimePicker
+      {show && (
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={date}
+          mode={mode}
+          is24Hour={true}
+          onChange={onChange}
+        />
+      )}
+      {/* <DateTimePicker
         testID="dateTimePicker"
         value={date}
         mode={'datetime'}
         // is24Hour={true}
-        onChange={onChange}
-      />
-      {/* <DateTimePicker
-        testID="dateTimePicker"
-        value={date}
-        mode={mode}
-        is24Hour={true}
         onChange={onChange}
       /> */}
     </SafeAreaView>

@@ -9,6 +9,9 @@ export const create = mutation({
       feed: v.optional(
         v.object({
           type: v.string(), //latch, expressed, formula
+          volume: v.object({
+            ml: v.number(),
+          }),
         })
       ),
       diaper_change: v.optional(

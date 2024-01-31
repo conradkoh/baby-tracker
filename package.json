@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "yarn workspace @workspace/backend dev & yarn workspace @workspace/web dev & yarn workspace @workspace/mobile ios",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,11 @@
   "workspaces": [
     "apps/*",
     "services/*"
-  ]
+  ],
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/parser": "^6.20.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
 }

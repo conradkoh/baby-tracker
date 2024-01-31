@@ -35,7 +35,7 @@ const pageContext = createContext<{
   setBottomEl: (v) => void;
   reset: () => void;
 }>({
-  setBottomEl: (v) => {
+  setBottomEl: () => {
     throw new Error('failed to get page context before calling setBottomEl');
   },
   reset: () => {

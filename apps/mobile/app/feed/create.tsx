@@ -16,11 +16,14 @@ import { useEffect, useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import FeedPicker from '../../components/atoms/FeedPicker';
+import { useMutation } from 'convex/react';
+import { api } from '../../services/api';
 export default function CreateFeedPage() {
   const [feedType, setFeedType] = useState<string>('expressed');
   const [date, setDate] = useState(new Date());
   const [vol, setVol] = useState(50);
   const volInputRef = useRef<TextInput>();
+  const createActivity = useMutation(api.activities.create);
   // const ml;
   return (
     <Page title="Create Feed">
@@ -28,16 +31,19 @@ export default function CreateFeedPage() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <>
             <View
-              className="mt-2 w-1/2"
+              className="mt-2 w-1/2 rounded-lg"
               style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
             >
-              <FeedPicker />
+              <FeedPicker value={feedType} onChange={setFeedType} />
             </View>
-            <View className="mt-2 flex flex-row justify-center">
+            <View
+              className="mt-2 flex flex-row justify-center"
+              style={{ transform: [{ scale: 0.8 }] }}
+            >
               <DateTimePicker value={date} mode="datetime" />
             </View>
             <TouchableOpacity
-              className="mt-2 p-2 w-1/2 flex-row justify-center rounded"
+              className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
               style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
               onPress={() => volInputRef.current.focus()}
             >
@@ -47,9 +53,10 @@ export default function CreateFeedPage() {
                 placeholder="Volume (ml)"
                 value={'' + vol}
                 onChangeText={(v) => {
-                  let newVol = parseFloat(v);
+                  const newVol = parseFloat(v);
                   if (isFinite(newVol)) {
                     setVol(newVol);
+                    console.log({ newVol });
                   }
                 }}
                 onFocus={() => {
@@ -69,7 +76,19 @@ export default function CreateFeedPage() {
             timestamp: date.getTime(),
             vol,
           };
-          console.log({ formData });
+          console.log({ formData, vol });
+          createActivity({
+            activity: {
+              timestamp: formData.timestamp,
+              type: 'feed',
+              feed: {
+                type: feedType,
+                volume: {
+                  ml: formData.vol,
+                },
+              },
+            },
+          });
         }}
       />
     </Page>
@@ -84,6 +103,6 @@ function CreateFeedButton({ onPress }) {
   useEffect(() => {
     page.setBottomEl(<PrimaryButton onPress={onPress} title="Save" />);
     return () => page.reset();
-  }, []);
+  }, [onPress, page]);
   return <></>;
 }
