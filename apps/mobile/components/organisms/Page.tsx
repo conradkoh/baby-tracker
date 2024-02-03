@@ -1,16 +1,24 @@
 import { ScrollView, Text, View } from 'react-native';
 import AppNav from './AppNav';
-import { createContext, useContext, useState } from 'react';
-
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
+import React from 'react';
 export default function Page(props: { title: string; children: any }) {
-  const [bottomEl, setBottomEl] = useState<any>(null);
+  const bottomElWrapperRef = useRef<BottomElWrapper>(null);
   return (
     <pageContext.Provider
       value={{
-        setBottomEl: (el) => {
-          setBottomEl(el);
-        },
-        reset: () => setBottomEl(null),
+        setBottomEl: useCallback((el) => {
+          bottomElWrapperRef.current?.setEl(el);
+        }, []),
+        reset: useCallback(() => {
+          bottomElWrapperRef.current?.reset();
+        }, []),
       }}
     >
       <View className="p-2 flex-1 bg-blue-200 min-h-screen">
@@ -21,25 +29,43 @@ export default function Page(props: { title: string; children: any }) {
           </View>
         </View>
         <View className="flex-1">
-          <ScrollView alwaysBounceVertical={false}>
-            <View>{props.children}</View>
-          </ScrollView>
+          <ScrollView alwaysBounceVertical={false}>{props.children}</ScrollView>
         </View>
-        {bottomEl ? <View className="h-18 py-4">{bottomEl}</View> : null}
+        <BottomElWrapper ref={bottomElWrapperRef} />
       </View>
     </pageContext.Provider>
   );
 }
 
-const pageContext = createContext<{
-  setBottomEl: (v) => void;
+class BottomElWrapper extends React.Component {
+  _bottomEl: React.ReactNode | null = null;
+  constructor(props: any) {
+    super(props);
+  }
+  setEl(el: React.ReactNode | null) {
+    this._bottomEl = el;
+    this.setState({}); //re-render
+  }
+  reset() {
+    this._bottomEl = null;
+    this.setState({});
+  }
+  render() {
+    return <View className="h-18 py-4">{this._bottomEl}</View>;
+  }
+}
+
+interface PageContextState {
+  setBottomEl: (bottomEl: React.ReactNode) => void;
   reset: () => void;
-}>({
+}
+
+const pageContext = createContext<PageContextState>({
   setBottomEl: () => {
-    throw new Error('failed to get page context before calling setBottomEl');
+    throw new Error('must init page context before calling setBottomEl');
   },
   reset: () => {
-    throw new Error('failed to get page context before calling reset');
+    throw new Error('must init page context before calling reset');
   },
 });
 

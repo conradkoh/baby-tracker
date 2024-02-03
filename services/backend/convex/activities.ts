@@ -1,6 +1,7 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
-
+import { Doc } from '../convex/_generated/dataModel';
+export type Activity = Doc<'activities'>;
 export const create = mutation({
   args: {
     activity: v.object({

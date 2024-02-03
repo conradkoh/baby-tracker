@@ -11,6 +11,7 @@
   "dependencies": {
     "@react-native-community/datetimepicker": "7.6.1",
     "@react-native-picker/picker": "2.6.1",
+    "@shopify/flash-list": "1.6.3",
     "@workspace/backend": "*",
     "convex": "^1.8.0",
     "expo": "~50.0.3",

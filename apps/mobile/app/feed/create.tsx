@@ -9,11 +9,13 @@ import {
   Keyboard,
   TouchableOpacity,
 } from 'react-native';
-import { useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import Page, { usePage } from '../../components/organisms/Page';
 import PrimaryButton from '../../components/atoms/Button/Primary';
 import { useEffect, useState } from 'react';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
 
 import FeedPicker from '../../components/atoms/FeedPicker';
 import { useMutation } from 'convex/react';
@@ -22,12 +24,30 @@ export default function CreateFeedPage() {
   const [feedType, setFeedType] = useState<string>('expressed');
   const [date, setDate] = useState(new Date());
   const [vol, setVol] = useState(50);
-  const volInputRef = useRef<TextInput>();
+  const volInputRef = useRef<TextInput>(null);
   const createActivity = useMutation(api.activities.create);
-  // const ml;
+  const onCreateFeedPress = useCallback(() => {
+    const formData = {
+      type: feedType,
+      timestamp: date.getTime(),
+      vol,
+    };
+    createActivity({
+      activity: {
+        timestamp: formData.timestamp,
+        type: 'feed',
+        feed: {
+          type: feedType,
+          volume: {
+            ml: formData.vol,
+          },
+        },
+      },
+    });
+  }, [createActivity, date, feedType, vol]);
   return (
     <Page title="Create Feed">
-      <SafeAreaView className="flex-col items-center">
+      <SafeAreaView className="h-full flex flex-1 flex-col items-center">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <>
             <View
@@ -40,12 +60,23 @@ export default function CreateFeedPage() {
               className="mt-2 flex flex-row justify-center"
               style={{ transform: [{ scale: 0.8 }] }}
             >
-              <DateTimePicker value={date} mode="datetime" />
+              <DateTimePicker
+                value={date}
+                mode="datetime"
+                onChange={useCallback(
+                  (event: DateTimePickerEvent, date?: Date) => {
+                    if (date) {
+                      setDate(date);
+                    }
+                  },
+                  []
+                )}
+              />
             </View>
             <TouchableOpacity
               className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
               style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
-              onPress={() => volInputRef.current.focus()}
+              onPress={() => volInputRef.current?.focus()}
             >
               <TextInput
                 ref={volInputRef}
@@ -56,11 +87,10 @@ export default function CreateFeedPage() {
                   const newVol = parseFloat(v);
                   if (isFinite(newVol)) {
                     setVol(newVol);
-                    console.log({ newVol });
                   }
                 }}
                 onFocus={() => {
-                  volInputRef.current.setSelection(0, ('' + vol).length);
+                  volInputRef.current?.setSelection(0, ('' + vol).length);
                 }}
                 selectTextOnFocus={true}
               />
@@ -68,29 +98,9 @@ export default function CreateFeedPage() {
             </TouchableOpacity>
           </>
         </TouchableWithoutFeedback>
+
+        <CreateFeedButton onPress={onCreateFeedPress} />
       </SafeAreaView>
-      <CreateFeedButton
-        onPress={() => {
-          const formData = {
-            type: feedType,
-            timestamp: date.getTime(),
-            vol,
-          };
-          console.log({ formData, vol });
-          createActivity({
-            activity: {
-              timestamp: formData.timestamp,
-              type: 'feed',
-              feed: {
-                type: feedType,
-                volume: {
-                  ml: formData.vol,
-                },
-              },
-            },
-          });
-        }}
-      />
     </Page>
   );
 }
@@ -98,10 +108,11 @@ export default function CreateFeedPage() {
  * Attaches the create feed button to the page
  * @returns
  */
-function CreateFeedButton({ onPress }) {
+function CreateFeedButton({ onPress }: { onPress: () => void }) {
   const page = usePage();
+  const bottomEl = useRef(<PrimaryButton onPress={onPress} title="Save" />);
   useEffect(() => {
-    page.setBottomEl(<PrimaryButton onPress={onPress} title="Save" />);
+    page.setBottomEl(bottomEl.current);
     return () => page.reset();
   }, [onPress, page]);
   return <></>;

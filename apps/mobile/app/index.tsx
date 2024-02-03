@@ -4,6 +4,7 @@ import AppNav from '../components/organisms/AppNav';
 import Page from '../components/organisms/Page';
 import { useActivities } from '../providers/AppDataProvider';
 import { api } from '../services/api';
+import { ActivityList } from '../components/molecules/ActivityList';
 
 function App() {
   const activities = useActivities();
@@ -15,11 +16,9 @@ function App() {
     <Page title="Baby Tracker">
       <View className="p-4">
         <Text>{count + ' activities'}</Text>
-        <Text>
-          {activities === undefined
-            ? 'loading...'
-            : JSON.stringify(activities, null, 2)}
-        </Text>
+        <View style={{ minHeight: 2 }} className="flex-1 w-full h-full">
+          <ActivityList activities={activities || []} />
+        </View>
       </View>
     </Page>
   );
