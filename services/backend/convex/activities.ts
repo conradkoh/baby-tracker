@@ -3,6 +3,10 @@ import { v } from 'convex/values';
 import { Doc } from '../convex/_generated/dataModel';
 import { DateTime } from 'luxon';
 export type Activity = Doc<'activities'>;
+export enum ActivityType {
+  Feed = 'feed',
+  DiaperChange = 'diaper_change',
+}
 export const create = mutation({
   args: {
     activity: v.object({
