@@ -115,9 +115,8 @@ export default function CreateFeedPage() {
  */
 function CreateFeedButton({ onPress }: { onPress: () => void }) {
   const page = usePage();
-  const bottomEl = useRef(<PrimaryButton onPress={onPress} title="Save" />);
   useEffect(() => {
-    page.setBottomEl(bottomEl.current);
+    page.setBottomEl(<PrimaryButton onPress={onPress} title="Save" />);
     return () => page.reset();
   }, [onPress, page]);
   return <></>;
