@@ -20,6 +20,7 @@ import DateTimePicker, {
 import FeedPicker from '../../components/atoms/FeedPicker';
 import { useMutation } from 'convex/react';
 import { api } from '../../services/api';
+import { DateTime } from 'luxon';
 export default function CreateFeedPage() {
   const [feedType, setFeedType] = useState<string>('expressed');
   const [date, setDate] = useState(new Date());
@@ -32,9 +33,13 @@ export default function CreateFeedPage() {
       timestamp: date.getTime(),
       vol,
     };
+    const ts = DateTime.fromJSDate(date).toUTC().toISO();
+    if (ts == null) {
+      throw new Error('invalid activity timestamp: ' + date.toString());
+    }
     createActivity({
       activity: {
-        timestamp: formData.timestamp,
+        timestamp: ts,
         type: 'feed',
         feed: {
           type: feedType,

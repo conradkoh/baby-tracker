@@ -4,7 +4,7 @@ import { v } from 'convex/values';
 export default defineSchema({
   activities: defineTable({
     activity: v.object({
-      timestamp: v.number(),
+      timestamp: v.string(),
       type: v.string(), //feed, diaper_change
       feed: v.optional(
         v.object({

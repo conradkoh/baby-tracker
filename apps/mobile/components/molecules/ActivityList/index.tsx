@@ -1,5 +1,4 @@
 import { FlashList } from '@shopify/flash-list';
-import { useEffect, useState } from 'react';
 import { Text } from 'react-native';
 
 interface ActivityListProps {

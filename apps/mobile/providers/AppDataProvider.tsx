@@ -5,7 +5,11 @@ import { api } from '../services/api';
 const appDataContext = createContext<{ activities: Activities }>({
   activities: undefined,
 });
-export default function AppDataProvider({ children }) {
+export default function AppDataProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const activities = useServerActivities();
   return (
     <appDataContext.Provider value={{ activities }}>

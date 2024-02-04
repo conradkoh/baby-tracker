@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "convex": "^1.8.0"
+    "@types/luxon": "^3.4.2",
+    "convex": "^1.8.0",
+    "luxon": "^3.4.4"
   }
 }
