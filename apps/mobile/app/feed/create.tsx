@@ -9,7 +9,7 @@ import {
   Keyboard,
   TouchableOpacity,
 } from 'react-native';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import Page, { usePage } from '../../components/organisms/Page';
 import PrimaryButton from '../../components/atoms/Button/Primary';
 import { useEffect, useState } from 'react';
@@ -21,17 +21,17 @@ import FeedPicker from '../../components/atoms/FeedPicker';
 import { useMutation } from 'convex/react';
 import { api } from '../../services/api';
 import { DateTime } from 'luxon';
+import { useFeedFormStore } from '../storage/stores/feed-form-store';
 export default function CreateFeedPage() {
-  const [feedType, setFeedType] = useState<string>('expressed');
   const [date, setDate] = useState(new Date());
-  const [vol, setVol] = useState(50);
   const volInputRef = useRef<TextInput>(null);
   const createActivity = useMutation(api.activities.create);
+  const { feedType, setFeedType, volume, setVolume } = useFeedFormStore();
   const onCreateFeedPress = useCallback(() => {
     const formData = {
       type: feedType,
       timestamp: date.getTime(),
-      vol,
+      volume,
     };
     const ts = DateTime.fromJSDate(date).toUTC().toISO();
     if (ts == null) {
@@ -44,12 +44,12 @@ export default function CreateFeedPage() {
         feed: {
           type: feedType,
           volume: {
-            ml: formData.vol,
+            ml: formData.volume,
           },
         },
       },
     });
-  }, [createActivity, date, feedType, vol]);
+  }, [createActivity, date, feedType, volume]);
   return (
     <Page title="Create Feed">
       <SafeAreaView className="h-full flex flex-1 flex-col items-center">
@@ -87,15 +87,15 @@ export default function CreateFeedPage() {
                 ref={volInputRef}
                 style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                 placeholder="Volume (ml)"
-                value={'' + vol}
+                value={'' + volume}
                 onChangeText={(v) => {
                   const newVol = parseFloat(v);
                   if (isFinite(newVol)) {
-                    setVol(newVol);
+                    setVolume(newVol);
                   }
                 }}
                 onFocus={() => {
-                  volInputRef.current?.setSelection(0, ('' + vol).length);
+                  volInputRef.current?.setSelection(0, ('' + volume).length);
                 }}
                 selectTextOnFocus={true}
               />
