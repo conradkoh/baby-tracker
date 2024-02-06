@@ -4,9 +4,16 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "dev": "BRANCH=dev expo start",
+    "android": "expo run:android",
+    "ios": "yarn run dev --ios",
+    "web": "yarn run dev --web",
+    "build:local:ios": "expo run:ios"
+  },
+  "workspaces": {
+    "nohoist": [
+      "**"
+    ]
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.21.0",
@@ -16,10 +23,10 @@
     "@types/luxon": "^3.4.2",
     "@workspace/backend": "*",
     "convex": "^1.8.0",
-    "expo": "~50.0.3",
+    "expo": "~50.0.6",
     "expo-constants": "~15.4.5",
     "expo-linking": "~6.2.2",
-    "expo-router": "~3.4.5",
+    "expo-router": "~3.4.7",
     "expo-status-bar": "~1.11.1",
     "luxon": "^3.4.4",
     "nativewind": "^2.0.11",
