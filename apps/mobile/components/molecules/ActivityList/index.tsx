@@ -4,9 +4,9 @@ import { Text, View } from 'react-native';
 import { BabyBottleIcon } from '../../atoms/icons/BabyBottle';
 import { DateTime } from 'luxon';
 import { useEffect, useRef, useState } from 'react';
-import { Format, timeAgo } from '../../../app/lib/time/timeAgo';
-import { useCurrentDateTime } from '../../../app/lib/time/useCurrentDateTime';
-import { formatDateTime } from '../../../app/lib/time/format';
+import { Format, timeAgo } from '../../../lib/time/timeAgo';
+import { useCurrentDateTime } from '../../../lib/time/useCurrentDateTime';
+import { formatDateTime } from '../../../lib/time/format';
 
 interface ActivityListProps {
   activities: Activity[];

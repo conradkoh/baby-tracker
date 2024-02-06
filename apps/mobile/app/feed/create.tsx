@@ -21,7 +21,7 @@ import FeedPicker from '../../components/atoms/FeedPicker';
 import { useMutation } from 'convex/react';
 import { api } from '../../services/api';
 import { DateTime } from 'luxon';
-import { useFeedFormStore } from '../storage/stores/feed-form-store';
+import { useFeedFormStore } from '../../storage/stores/feed-form-store';
 export default function CreateFeedPage() {
   const [date, setDate] = useState(new Date());
   const volInputRef = useRef<TextInput>(null);
