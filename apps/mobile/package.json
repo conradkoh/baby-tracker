@@ -14,6 +14,8 @@
     "build:preview:ios": "eas build --platform ios --profile preview",
     "build:development:ios": "eas build --platform ios --profile development",
     "build:production:ios": "eas build --platform ios --profile production",
+    "update:preview": "eas update --branch preview",
+    "update:production": "eas update --branch production",
     "submit:ios": "eas submit -p ios",
     "doc": "npx expo-doctor"
   },
@@ -36,6 +38,7 @@
     "expo-linking": "~6.2.2",
     "expo-router": "~3.4.7",
     "expo-status-bar": "~1.11.1",
+    "expo-updates": "~0.24.10",
     "luxon": "^3.4.4",
     "nativewind": "^2.0.11",
     "react": "18.2.0",

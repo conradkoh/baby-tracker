@@ -1,21 +1,16 @@
 import React from 'react';
 import { Text, StyleSheet, Pressable, PressableProps } from 'react-native';
-import { Variant, variants } from '../../../styles/variants';
 export type BaseButtonProps = Pick<
   PressableProps,
   'onPress' | 'style' | 'className'
 > & {
-  variant: Variant;
   title: string;
 };
 export default function BaseButton(props: BaseButtonProps) {
-  const { style, onPress, title, variant } = props;
-  const bg = variants.get(variant);
+  const { style, onPress, title } = props;
   return (
     <Pressable
-      className={`bg-${variants.get(
-        variant
-      )} w-full text-center items-center py-3 px-5 rounded`}
+      className={`w-full text-center items-center py-3 px-5 rounded`}
       onPress={onPress}
       style={style}
     >

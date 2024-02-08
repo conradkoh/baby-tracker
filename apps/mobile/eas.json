@@ -9,9 +9,11 @@
       "env": {
         "EXPO_PUBLIC_CONVEX_URL_PROD": "https://posh-dinosaur-196.convex.cloud",
         "EXPO_PUBLIC_CONVEX_URL_DEV": "https://impressive-porcupine-765.convex.cloud"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
+      "channel": "preview",
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_CONVEX_URL_PROD": "https://posh-dinosaur-196.convex.cloud",
@@ -19,6 +21,7 @@
       }
     },
     "production": {
+      "channel": "production",
       "env": {
         "EXPO_PUBLIC_CONVEX_URL_PROD": "https://posh-dinosaur-196.convex.cloud",
         "EXPO_PUBLIC_CONVEX_URL_DEV": "https://impressive-porcupine-765.convex.cloud"
