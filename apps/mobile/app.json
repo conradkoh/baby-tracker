@@ -13,18 +13,28 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.duskfare.babymonitor"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.duskfare.babymonitor"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": ["expo-router"],
-    "scheme": "baby-tracker://"
+    "scheme": ["duskfarebabytracker"],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "5c54aae3-ca99-4a67-a20a-f684319de703"
+      }
+    }
   }
 }
