@@ -12,6 +12,7 @@
     "build:ios": "eas build --platform ios",
     "build:local:ios": "expo run:ios",
     "build:preview:ios": "eas build --platform ios --profile preview",
+    "build:development:ios": "eas build --platform ios --profile development",
     "submit:ios": "eas submit -p ios",
     "doc": "npx expo-doctor"
   },
