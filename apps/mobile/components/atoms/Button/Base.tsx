@@ -11,7 +11,6 @@ export type BaseButtonProps = Pick<
 export default function BaseButton(props: BaseButtonProps) {
   const { style, onPress, title, variant } = props;
   const bg = variants.get(variant);
-  console.log({ bg });
   return (
     <Pressable
       className={`bg-${variants.get(

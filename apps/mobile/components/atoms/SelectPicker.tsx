@@ -12,14 +12,14 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-const SelectPicker = (props: {
+function SelectPicker<T>(props: {
   value: string;
   options: {
-    value: any;
+    value: T;
     label: string;
   }[];
   onChange: (v: string) => void;
-}) => {
+}) {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -61,8 +61,12 @@ const SelectPicker = (props: {
               }}
               style={{ width: '100%' }}
             >
-              {props.options.map((o) => (
-                <Picker.Item key={o.value} value={o.value} label={o.label} />
+              {props.options.map((o, idx) => (
+                <Picker.Item
+                  key={`${o.value}+${idx}`}
+                  value={o.value}
+                  label={o.label}
+                />
               ))}
             </Picker>
           </View>
@@ -70,7 +74,7 @@ const SelectPicker = (props: {
       </View>
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   doneButton: {

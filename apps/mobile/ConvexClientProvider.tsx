@@ -1,7 +1,8 @@
 'use client';
 import { ReactNode, useMemo } from 'react';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
-import { Branch, useActiveBranch } from './branch';
+import { Branch } from './branch';
+import { useBranch } from './storage/stores/branch';
 
 const convexDev = new ConvexReactClient(
   process.env.EXPO_PUBLIC_CONVEX_URL_DEV!
@@ -15,7 +16,7 @@ export default function ConvexClientProvider({
 }: {
   children: ReactNode;
 }) {
-  const { branch } = useActiveBranch();
+  const { branch } = useBranch();
   const client = useMemo(() => {
     let client = convexProd;
     if (branch === Branch.Dev) {
