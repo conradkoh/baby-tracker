@@ -13,6 +13,7 @@
     "build:local:ios": "expo run:ios",
     "build:preview:ios": "eas build --platform ios --profile preview",
     "build:development:ios": "eas build --platform ios --profile development",
+    "build:production:ios": "eas build --platform ios --profile production",
     "submit:ios": "eas submit -p ios",
     "doc": "npx expo-doctor"
   },
@@ -31,6 +32,7 @@
     "convex": "^1.8.0",
     "expo": "~50.0.6",
     "expo-constants": "~15.4.5",
+    "expo-dev-client": "~3.3.8",
     "expo-linking": "~6.2.2",
     "expo-router": "~3.4.7",
     "expo-status-bar": "~1.11.1",

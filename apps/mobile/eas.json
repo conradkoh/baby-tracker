@@ -5,12 +5,25 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_CONVEX_URL_PROD": "https://posh-dinosaur-196.convex.cloud",
+        "EXPO_PUBLIC_CONVEX_URL_DEV": "https://impressive-porcupine-765.convex.cloud"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_CONVEX_URL_PROD": "https://posh-dinosaur-196.convex.cloud",
+        "EXPO_PUBLIC_CONVEX_URL_DEV": "https://impressive-porcupine-765.convex.cloud"
+      }
     },
-    "production": {}
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_CONVEX_URL_PROD": "https://posh-dinosaur-196.convex.cloud",
+        "EXPO_PUBLIC_CONVEX_URL_DEV": "https://impressive-porcupine-765.convex.cloud"
+      }
+    }
   },
   "submit": {
     "production": {
