@@ -11,9 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.duskfare.babytracker"
@@ -29,11 +27,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-updates",
+        {
+          "username": "conradkoh"
+        }
+      ]
     ],
-    "scheme": [
-      "duskfarebabytracker"
-    ],
+    "scheme": ["duskfarebabytracker"],
     "extra": {
       "router": {
         "origin": false
