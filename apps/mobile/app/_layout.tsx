@@ -23,11 +23,12 @@ export default function RootLayout() {
     }
   }
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
       if (!env.isDev()) {
         onFetchUpdateAsync();
       }
     }, 1000 * 60);
+    return () => clearInterval(interval);
   }, [env]);
   return (
     <ConvexClientProvider>
