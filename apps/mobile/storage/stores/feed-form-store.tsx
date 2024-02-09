@@ -1,20 +1,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
+import { FeedType } from '../../domain/entities/Feed';
 const DEFAULT_VOL = 50;
 interface FeedFormStoreState {
   volume: number;
-  feedType: string;
+  feedType: FeedType;
   setVolume: (v: number) => void;
-  setFeedType: (v: string) => void;
+  setFeedType: (v: FeedType) => void;
 }
 export const useFeedFormStore = create<FeedFormStoreState>()(
   persist(
     (set, get) => ({
-      feedType: 'expressed',
+      feedType: FeedType.Expressed,
       volume: DEFAULT_VOL,
       setVolume: (volume: number) => set(() => ({ volume })),
-      setFeedType: (feedType: string) => set(() => ({ feedType })),
+      setFeedType: (feedType: FeedType) => set(() => ({ feedType })),
     }),
     { name: 'feed-storage', storage: createJSONStorage(() => AsyncStorage) }
   )

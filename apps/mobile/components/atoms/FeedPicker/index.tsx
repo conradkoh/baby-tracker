@@ -1,19 +1,20 @@
 import React from 'react';
 import SelectPicker from '../SelectPicker';
+import { FeedType } from '../../../domain/entities/Feed';
 
 const FeedPicker = (props: {
   value: string;
-  onChange: (v: string) => void;
+  onChange: (v: FeedType) => void;
 }) => {
   return (
     <SelectPicker
       options={[
-        { value: 'expressed', label: 'Expressed' },
-        { value: 'latch', label: 'Latch' },
-        { value: 'formula', label: 'Formula' },
+        { value: FeedType.Expressed, label: 'Expressed' },
+        { value: FeedType.Latch, label: 'Latch' },
+        { value: FeedType.Formula, label: 'Formula' },
       ]}
       value={props.value}
-      onChange={props.onChange}
+      onChange={(v) => props.onChange(v as FeedType)}
     />
   );
 };
