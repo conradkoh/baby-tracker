@@ -2,24 +2,43 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
+  //TABLE: activities
   activities: defineTable({
-    activity: v.object({
-      timestamp: v.string(),
-      type: v.string(), //feed, diaper_change
-      feed: v.optional(
-        v.object({
-          type: v.string(), //latch, expressed, formula
-          volume: v.object({
-            ml: v.number(),
+    activity: v.union(
+      //feed activity
+      v.object({
+        timestamp: v.string(),
+        type: v.literal('feed'),
+        feed: v.union(
+          v.object({
+            type: v.literal('latch'),
+            duration: v.object({
+              mins: v.number(),
+            }),
           }),
-        })
-      ),
-      diaper_change: v.optional(
-        v.object({
-          type: v.string(), //wet, dirty, mixed
-        })
-      ),
-    }),
+          v.object({
+            type: v.union(v.literal('expressed'), v.literal('formula')),
+            volume: v.object({
+              ml: v.number(),
+            }),
+          })
+        ),
+      }),
+      //diaper change activity
+      v.object({
+        timestamp: v.string(),
+        type: v.literal('diaper_change'),
+        diaper_change: v.optional(
+          v.object({
+            type: v.union(
+              v.literal('wet'),
+              v.literal('dirty'),
+              v.literal('mixed')
+            ),
+          })
+        ),
+      })
+    ),
   })
     .index('by_timestamp', ['activity.timestamp'])
     .index('by_type', ['activity.type']),

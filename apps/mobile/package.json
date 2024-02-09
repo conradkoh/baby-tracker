@@ -31,6 +31,7 @@
     "@shopify/flash-list": "1.6.3",
     "@types/luxon": "^3.4.2",
     "@workspace/backend": "*",
+    "@workspace/domain": "*",
     "convex": "^1.8.0",
     "expo": "~50.0.6",
     "expo-constants": "~15.4.5",

@@ -10,12 +10,13 @@ import { DateTime } from 'luxon';
 import { ActivityType } from '@workspace/backend/convex/activities';
 import { Format, timeAgo } from '../lib/time/timeAgo';
 import { useCurrentDateTime } from '../lib/time/useCurrentDateTime';
+import { router } from 'expo-router';
+import { Loader } from '../components/molecules/Loader';
 
 function App() {
   const [tsRange, setTsRange] = useState<{ fromTs: string; toTs: string }>(
     defaultDateRange()
   );
-  console.log({ tsRange });
   const activities = useQuery(api.activities.getByTimestampDesc, tsRange);
   const count = activities?.data.length || 0;
   const createActivity = useMutation(api.activities.create);
@@ -24,25 +25,33 @@ function App() {
   const lastFeedTimestamp = activities?.data?.find(
     (v) => v.activity.type === ActivityType.Feed
   )?.activity?.timestamp;
+  const isLoading = activities == undefined;
   return (
     <Page title="Baby Tracker">
-      <View className="p-4">
-        <View style={{ minHeight: 2 }} className="flex-1 w-full h-full">
-          {lastFeedTimestamp ? (
-            <View className="border p-4 border-red-200 bg-red-400 rounded-lg">
-              <Text>
-                Last Feed:{' '}
-                {timeAgo({
-                  curDateTime: curDate,
-                  dateTime: DateTime.fromISO(lastFeedTimestamp),
-                  format: Format.HoursAndMinutes,
-                })}
-              </Text>
-            </View>
-          ) : null}
-          <ActivityList activities={activities?.data || []} />
+      <Loader loading={isLoading}>
+        <View className="p-4">
+          <View style={{ minHeight: 2 }} className="flex-1 w-full h-full">
+            {lastFeedTimestamp ? (
+              <View className="border p-4 border-red-200 bg-red-400 rounded-lg">
+                <Text>
+                  Last Feed:{' '}
+                  {timeAgo({
+                    curDateTime: curDate,
+                    dateTime: DateTime.fromISO(lastFeedTimestamp),
+                    format: Format.HoursAndMinutes,
+                  })}
+                </Text>
+              </View>
+            ) : null}
+            <ActivityList
+              onActivityPress={(a) =>
+                router.push(`/feed/edit/${a.activity._id}`)
+              }
+              activities={activities?.data || []}
+            />
+          </View>
         </View>
-      </View>
+      </Loader>
     </Page>
   );
 }

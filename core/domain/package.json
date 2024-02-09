@@ -1,0 +1,7 @@
+{
+  "name": "@workspace/domain",
+  "version": "1.0.0",
+  "description": "baby tracker domain",
+  "main": "index.js",
+  "license": "MIT"
+}

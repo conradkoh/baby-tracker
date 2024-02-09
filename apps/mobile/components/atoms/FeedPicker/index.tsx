@@ -1,6 +1,6 @@
 import React from 'react';
 import SelectPicker from '../SelectPicker';
-import { FeedType } from '../../../domain/entities/Feed';
+import { FeedType } from '../../../../../core/domain/entities/Feed';
 
 const FeedPicker = (props: {
   value: string;

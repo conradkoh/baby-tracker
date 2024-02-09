@@ -7,14 +7,16 @@
   "scripts": {
     "dev": "yarn workspace @workspace/backend dev & yarn workspace @workspace/web dev & yarn workspace @workspace/mobile ios",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "deploy:preview": "yarn workspace @workspace/backend deploy && yarn @workspace/mobile update:preview"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "workspaces": [
     "apps/*",
-    "services/*"
+    "services/*",
+    "core/*"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.20.0",

@@ -3,3 +3,4 @@ export enum FeedType {
   Formula = 'formula',
   Latch = 'latch',
 }
+export type FeedTypeLiteral = `${FeedType}`;

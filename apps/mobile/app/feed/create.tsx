@@ -1,36 +1,24 @@
-import {
-  Button,
-  Pressable,
-  SafeAreaView,
-  Text,
-  TextInput,
-  View,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TouchableOpacity,
-} from 'react-native';
-import { useCallback, useRef } from 'react';
-import Page, { usePage } from '../../components/organisms/Page';
-import PrimaryButton from '../../components/atoms/Button/Primary';
-import { useEffect, useState } from 'react';
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
-
-import FeedPicker from '../../components/atoms/FeedPicker';
+import Page from '../../components/organisms/Page';
 import { useMutation } from 'convex/react';
 import { api } from '../../services/api';
 import { FeedForm } from '../../components/molecules/FeedForm';
+import { FeedType } from '@workspace/domain/entities/Feed';
+import { router } from 'expo-router';
 export default function CreateFeedPage() {
   const createActivity = useMutation(api.activities.create);
 
   return (
     <Page title="Create Feed">
       <FeedForm
+        mode="create"
         onSubmit={async function (formData): Promise<void> {
           const ts = formData.timestamp.toISO();
           if (ts === null)
             throw new Error('invalid timestamp: ' + formData.timestamp);
+          if (formData.type === FeedType.Latch) {
+            return; //disable creating latch for now
+          }
+          //default: assume there is volume
           await createActivity({
             activity: {
               timestamp: ts,
@@ -43,6 +31,7 @@ export default function CreateFeedPage() {
               },
             },
           });
+          router.back();
         }}
       />
     </Page>
