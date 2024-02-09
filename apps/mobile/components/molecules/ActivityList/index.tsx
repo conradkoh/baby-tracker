@@ -92,7 +92,11 @@ function FeedDetails(props: {
   if (activity.activity.type === ActivityType.Feed && activity.activity.feed) {
     const feed = activity.activity.feed;
     if (feed.type === FeedType.Latch) {
-      return <Text style={props.style}>{`${feed.type}`}</Text>;
+      return (
+        <Text
+          style={props.style}
+        >{`${feed.type} ${feed.duration.mins} mins`}</Text>
+      );
     }
     return (
       <Text style={props.style}>{`${feed.type} ${feed.volume.ml} ml`}</Text>

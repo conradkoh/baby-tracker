@@ -17,12 +17,24 @@ export default function CreateFeedPage() {
   useEffect(() => {
     if (activity?.activity.type === ActivityType.Feed) {
       const feed = activity.activity.feed;
-      if (feed.type === 'expressed' || feed.type === 'formula') {
-        feedFormRef.current?.load({
-          type: feed.type as FeedType,
-          timestamp: DateTime.fromISO(activity.activity.timestamp),
-          volume: feed.volume.ml,
-        });
+      switch (feed.type) {
+        case FeedType.Expressed:
+        case FeedType.Formula: {
+          feedFormRef.current?.load({
+            type: feed.type as FeedType.Expressed | FeedType.Formula,
+            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            volume: feed.volume.ml,
+          });
+          break;
+        }
+        case FeedType.Latch: {
+          feedFormRef.current?.load({
+            type: feed.type as FeedType.Latch,
+            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            duration: feed.duration.mins,
+          });
+          break;
+        }
       }
     }
   }, [activity?.activity]);

@@ -15,22 +15,42 @@ export default function CreateFeedPage() {
           const ts = formData.timestamp.toISO();
           if (ts === null)
             throw new Error('invalid timestamp: ' + formData.timestamp);
-          if (formData.type === FeedType.Latch) {
-            return; //disable creating latch for now
-          }
-          //default: assume there is volume
-          await createActivity({
-            activity: {
-              timestamp: ts,
-              type: 'feed',
-              feed: {
-                type: formData.type,
-                volume: {
-                  ml: formData.volume,
+          switch (formData.type) {
+            case FeedType.Expressed:
+            case FeedType.Formula: {
+              //default: assume there is volume
+              await createActivity({
+                activity: {
+                  timestamp: ts,
+                  type: 'feed',
+                  feed: {
+                    type: formData.type,
+                    volume: {
+                      ml: formData.volume,
+                    },
+                  },
                 },
-              },
-            },
-          });
+              });
+              break;
+            }
+            case FeedType.Latch: {
+              //default: assume there is volume
+              await createActivity({
+                activity: {
+                  timestamp: ts,
+                  type: 'feed',
+                  feed: {
+                    type: formData.type,
+                    duration: {
+                      mins: formData.duration,
+                    },
+                  },
+                },
+              });
+              break;
+            }
+          }
+
           router.back();
         }}
       />

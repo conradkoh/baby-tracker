@@ -31,31 +31,64 @@ interface FeedFormProps {
 export interface FeedFormRef {
   load: (formData: FeedFormData) => void;
 }
-interface FeedFormData {
-  type: FeedType;
-  timestamp: DateTime;
-  volume: number;
-}
+
+type FeedFormData =
+  | {
+      type: FeedType.Expressed | FeedType.Formula;
+      timestamp: DateTime;
+      volume: number;
+    }
+  | {
+      type: FeedType.Latch;
+      timestamp: DateTime;
+      duration: number;
+    };
 
 export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
   ({ mode, onSubmit: createFeed }: FeedFormProps, ref) => {
     const [date, setDate] = useState(new Date());
     const volInputRef = useRef<TextInput>(null);
     const { feedType, setFeedType, volume, setVolume } = useFeedFormStore();
+    const [duration, setDuration] = useState(0);
+    const durationInputRef = useRef<TextInput>(null);
     const [isReady, setReady] = useState(false);
     const onCreateFeedPress = useCallback(() => {
-      createFeed({
-        type: feedType,
-        timestamp: DateTime.fromJSDate(date),
-        volume: volume,
-      });
-    }, [createFeed, date, feedType, volume]);
+      switch (feedType) {
+        case FeedType.Expressed:
+        case FeedType.Formula: {
+          createFeed({
+            type: feedType,
+            timestamp: DateTime.fromJSDate(date),
+            volume: volume,
+          });
+          break;
+        }
+        case FeedType.Latch: {
+          createFeed({
+            type: feedType,
+            timestamp: DateTime.fromJSDate(date),
+            duration,
+          });
+          break;
+        }
+      }
+    }, [createFeed, date, duration, feedType, volume]);
     useImperativeHandle(ref, () => ({
       load(formData: FeedFormData) {
-        console.log({ formData });
+        switch (formData.type) {
+          case FeedType.Expressed:
+          case FeedType.Formula: {
+            setVolume(formData.volume);
+            break;
+          }
+          case FeedType.Latch: {
+            setDuration(formData.duration);
+            break;
+          }
+        }
         setDate(formData.timestamp.toJSDate());
         setFeedType(formData.type);
-        setVolume(formData.volume);
+
         //mark as ready
         setReady(true);
       },
@@ -120,6 +153,34 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                     selectTextOnFocus={true}
                   />
                   <Text> ml</Text>
+                </TouchableOpacity>
+              </Conditional>
+              <Conditional render={feedType == FeedType.Latch}>
+                <TouchableOpacity
+                  className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
+                  style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+                  onPress={() => durationInputRef.current?.focus()}
+                >
+                  <TextInput
+                    ref={durationInputRef}
+                    style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+                    placeholder="Duration (mins)"
+                    value={'' + duration}
+                    onChangeText={(v) => {
+                      const duration = parseFloat(v);
+                      if (isFinite(duration)) {
+                        setDuration(duration);
+                      }
+                    }}
+                    onFocus={() => {
+                      durationInputRef.current?.setSelection(
+                        0,
+                        ('' + duration).length
+                      );
+                    }}
+                    selectTextOnFocus={true}
+                  />
+                  <Text> mins</Text>
                 </TouchableOpacity>
               </Conditional>
             </>
