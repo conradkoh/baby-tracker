@@ -14,19 +14,21 @@ interface ActivityListProps {
 
 export function ActivityList(props: ActivityListProps) {
   return (
-    <FlashList
-      className="w-full h-full"
-      data={props.activities}
-      renderItem={(val) => {
-        return (
-          <ActivityListItem
-            activity={val.item}
-            onPress={props.onActivityPress}
-          />
-        );
-      }}
-      estimatedItemSize={200}
-    />
+    <View className="w-full h-full">
+      <FlashList
+        className="w-full h-full"
+        data={props.activities}
+        renderItem={(val) => {
+          return (
+            <ActivityListItem
+              activity={val.item}
+              onPress={props.onActivityPress}
+            />
+          );
+        }}
+        estimatedItemSize={200}
+      />
+    </View>
   );
 }
 
