@@ -6,7 +6,9 @@ import AppDataProvider from '../providers/AppDataProvider';
 import { NativeWindStyleSheet } from 'nativewind';
 import * as Updates from 'expo-updates';
 import { useEffect } from 'react';
+import { useEnv } from '../lib/env/useEnv';
 export default function RootLayout() {
+  const env = useEnv();
   async function onFetchUpdateAsync() {
     try {
       const update = await Updates.checkForUpdateAsync();
@@ -21,8 +23,12 @@ export default function RootLayout() {
     }
   }
   useEffect(() => {
-    setInterval(() => onFetchUpdateAsync(), 1000 * 60);
-  }, []);
+    setInterval(() => {
+      if (!env.isDev()) {
+        onFetchUpdateAsync();
+      }
+    }, 1000 * 60);
+  }, [env]);
   return (
     <ConvexClientProvider>
       <AppDataProvider>
