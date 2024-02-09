@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Baby Tracker!",
+    "slug": "babytracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,29 +11,23 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.duskfare.babymonitor"
+      "bundleIdentifier": "com.duskfare.babytracker"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.duskfare.babymonitor"
+      "package": "com.duskfare.babytracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-router"
-    ],
-    "scheme": [
-      "duskfarebabytracker"
-    ],
+    "plugins": ["expo-router"],
+    "scheme": ["duskfarebabytracker"],
     "extra": {
       "router": {
         "origin": false
