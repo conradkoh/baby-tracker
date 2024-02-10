@@ -16,6 +16,7 @@
     "build:production:ios": "eas build --platform ios --profile production",
     "update:preview": "eas update --branch preview",
     "update:production": "eas update --branch production",
+    "device:add": "eas device:create",
     "submit:ios": "eas submit -p ios",
     "doc": "npx expo-doctor"
   },
