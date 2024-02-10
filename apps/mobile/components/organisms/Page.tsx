@@ -21,8 +21,8 @@ export default function Page(props: { title: string; children: any }) {
         }, []),
       }}
     >
-      <View className="p-2 flex-1 bg-blue-200 min-h-screen">
-        <View className="h-30">
+      <View className="flex-1 bg-blue-200 min-h-screen">
+        <View className="px-4 pt-4 h-30">
           <Text className="mt-4 text-3xl font-bold">{props.title}</Text>
           <View className="my-2">
             <AppNav />
@@ -51,6 +51,9 @@ class BottomElWrapper extends React.Component {
     this.setState({});
   }
   render() {
+    if (!this._bottomEl) {
+      return <></>;
+    }
     return <View className="h-18 py-4">{this._bottomEl}</View>;
   }
 }

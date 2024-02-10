@@ -58,25 +58,29 @@ function ActivityListItem(props: {
     <TouchableOpacity
       onPress={() => props.onPress({ activity: props.activity })}
     >
-      <View className="flex-row py-2 px-1 my-1 border bg-blue-300 border-blue-400 rounded-lg">
+      <View className="flex-row">
         {/* Icon container with fixed size */}
-        <View className="h-100 p-2 rounded-2xl flex items-center justify-center">
-          {icon}
+        <View className="h-100 p-1 flex items-center justify-center">
+          <View className="h-100 m-1 p-2 rounded-2xl flex items-center justify-center bg-blue-300">
+            {icon}
+          </View>
         </View>
         {/* Content next to the icon */}
-        <View style={{ flex: 1, backgroundColor: 'red-50', paddingLeft: 8 }}>
-          <FeedDetails activity={activity} />
-          <View>
-            <Text className="flex-wrap">
-              {formatDateTime(activityTimestamp)} (
-              {timeAgo({
-                curDateTime,
-                dateTime: activityTimestamp,
-                format: Format.HoursAndMinutes,
-              })}
-              )
-            </Text>
+        <View className="flex-1">
+          <View className="flex-1 align-middle justify-center">
+            <FeedDetails activity={activity} />
+            <View>
+              <Text className="flex-wrap">
+                {formatDateTime(activityTimestamp)} (
+                {timeAgo({
+                  curDateTime,
+                  dateTime: activityTimestamp,
+                })}
+                )
+              </Text>
+            </View>
           </View>
+          <View className="border-b border-blue-300" />
         </View>
       </View>
     </TouchableOpacity>

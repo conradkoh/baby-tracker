@@ -1,12 +1,11 @@
 import { DateTime } from 'luxon';
 export enum Format {
-  HoursAndMinutes = "h 'hours,' m 'minutes ago'",
+  HourAndMinutes = "h 'hour,' m 'mins ago'",
+  HoursAndMinutes = "h 'hours,' m 'mins ago'",
+  Day = "d 'day ago'",
+  Days = "d 'days ago'",
 }
-export function timeAgo(p: {
-  curDateTime: DateTime;
-  dateTime: DateTime;
-  format: Format;
-}) {
+export function timeAgo(p: { curDateTime: DateTime; dateTime: DateTime }) {
   const { curDateTime, dateTime } = p;
   if (!curDateTime.isValid) {
     throw new Error(`invalid curDateTime: ${curDateTime}`);
@@ -23,6 +22,12 @@ export function timeAgo(p: {
   ]);
 
   // Format the duration
-  const formattedDuration = diff.toFormat(p.format);
-  return formattedDuration;
+  if (diff.days == 0) {
+    if (diff.hours == 1) return diff.toFormat(Format.HourAndMinutes);
+    return diff.toFormat(Format.HoursAndMinutes);
+  } else if (diff.days > 0) {
+    if (diff.days == 1) return diff.toFormat(Format.Day);
+    return diff.toFormat(Format.Days);
+  }
+  return diff.toFormat(Format.HoursAndMinutes);
 }

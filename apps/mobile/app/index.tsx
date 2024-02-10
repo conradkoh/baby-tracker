@@ -29,7 +29,7 @@ function App() {
   return (
     <Page title="Baby Tracker">
       <Loader loading={isLoading}>
-        <View className="p-4">
+        <View>
           <View style={{ minHeight: 2 }} className="flex-1 w-full h-full">
             {lastFeedTimestamp ? (
               <View className="border p-4 border-red-200 bg-red-400 rounded-lg">
@@ -38,7 +38,6 @@ function App() {
                   {timeAgo({
                     curDateTime: curDate,
                     dateTime: DateTime.fromISO(lastFeedTimestamp),
-                    format: Format.HoursAndMinutes,
                   })}
                 </Text>
               </View>
