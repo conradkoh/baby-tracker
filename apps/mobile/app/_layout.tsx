@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { AppState, View } from 'react-native';
 import ConvexClientProvider from '../ConvexClientProvider';
 import { Slot } from 'expo-router';
 import AppDataProvider from '../providers/AppDataProvider';
@@ -7,6 +7,7 @@ import { NativeWindStyleSheet } from 'nativewind';
 import * as Updates from 'expo-updates';
 import { useEffect } from 'react';
 import { useEnv } from '../lib/env/useEnv';
+import { useAppState } from '../lib/platform/useAppState';
 export default function RootLayout() {
   const env = useEnv();
   async function onFetchUpdateAsync() {
@@ -22,14 +23,13 @@ export default function RootLayout() {
       alert(`Error fetching latest Expo update: ${error}`);
     }
   }
+  const appState = useAppState();
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!env.isDev()) {
-        onFetchUpdateAsync();
-      }
-    }, 1000 * 60);
-    return () => clearInterval(interval);
-  }, [env]);
+    if (appState.didFocus()) {
+      console.log('checking for updates...');
+      onFetchUpdateAsync();
+    }
+  }, [appState]);
   return (
     <ConvexClientProvider>
       <AppDataProvider>
