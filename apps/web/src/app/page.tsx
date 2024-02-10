@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { api } from '@workspace/backend/convex/_generated/api';
 import { useMutation, useQuery } from 'convex/react';
+import { DateTime } from 'luxon';
 export default function Home() {
   const activities = useQuery(api.activities.get);
   const createActivity = useMutation(api.activities.create);
@@ -21,7 +22,7 @@ export default function Home() {
           //TODO: replace this with actual logic
           createActivity({
             activity: {
-              timestamp: new Date().getTime(),
+              timestamp: DateTime.now().toISO(),
               type: 'diaper_change',
               diaper_change: {
                 type: 'wet',

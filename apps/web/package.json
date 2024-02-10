@@ -9,11 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@workspace/backend": "*",
     "convex": "^1.8.0",
+    "luxon": "^3.4.4",
     "next": "14.1.0",
     "react": "^18",
-    "react-dom": "^18",
-    "@workspace/backend": "*"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
