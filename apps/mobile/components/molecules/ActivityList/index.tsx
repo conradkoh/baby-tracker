@@ -14,9 +14,9 @@ interface ActivityListProps {
 
 export function ActivityList(props: ActivityListProps) {
   return (
-    <View className="w-full h-full">
+    <View className="grow">
       <FlashList
-        className="w-full h-full"
+        className="grow"
         data={props.activities}
         renderItem={(val) => {
           return (

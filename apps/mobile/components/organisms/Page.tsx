@@ -30,11 +30,7 @@ export default function Page(props: { title: string; children: any }) {
               <AppNav />
             </View>
           </View>
-          <View className="grow">
-            <ScrollView alwaysBounceVertical={false}>
-              {props.children}
-            </ScrollView>
-          </View>
+          <View className="grow">{props.children}</View>
           <BottomElWrapper ref={bottomElWrapperRef} />
         </SafeAreaView>
       </View>

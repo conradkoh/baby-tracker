@@ -29,26 +29,22 @@ function App() {
   return (
     <Page title="Baby Tracker">
       <Loader loading={isLoading}>
-        <View>
-          <View style={{ minHeight: 2 }} className="flex-1 w-full h-full">
-            {lastFeedTimestamp ? (
-              <View className="border p-4 border-red-200 bg-red-400 rounded-lg">
-                <Text>
-                  Last Feed:{' '}
-                  {timeAgo({
-                    curDateTime: curDate,
-                    dateTime: DateTime.fromISO(lastFeedTimestamp),
-                  })}
-                </Text>
-              </View>
-            ) : null}
-            <ActivityList
-              onActivityPress={(a) =>
-                router.push(`/feed/edit/${a.activity._id}`)
-              }
-              activities={activities?.data || []}
-            />
-          </View>
+        <View style={{ minHeight: 2 }} className="grow">
+          {lastFeedTimestamp ? (
+            <View className="border p-4 border-red-200 bg-red-400 rounded-lg">
+              <Text>
+                Last Feed:{' '}
+                {timeAgo({
+                  curDateTime: curDate,
+                  dateTime: DateTime.fromISO(lastFeedTimestamp),
+                })}
+              </Text>
+            </View>
+          ) : null}
+          <ActivityList
+            onActivityPress={(a) => router.push(`/feed/edit/${a.activity._id}`)}
+            activities={activities?.data || []}
+          />
         </View>
       </Loader>
     </Page>
