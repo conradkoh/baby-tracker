@@ -1,7 +1,6 @@
 import {
   Button,
   Pressable,
-  SafeAreaView,
   Text,
   TextInput,
   View,
@@ -107,7 +106,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
     }, [mode]);
 
     return (
-      <SafeAreaView className="h-full flex flex-1 flex-col items-center">
+      <View className="h-full flex flex-1 flex-col items-center">
         <Loader loading={!isReady}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <>
@@ -188,7 +187,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
 
           <CreateFeedButton onPress={onCreateFeedPress} />
         </Loader>
-      </SafeAreaView>
+      </View>
     );
   }
 );

@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 export default function Page(props: { title: string; children: any }) {
   const bottomElWrapperRef = useRef<BottomElWrapper>(null);
   return (
@@ -22,16 +23,20 @@ export default function Page(props: { title: string; children: any }) {
       }}
     >
       <View className="flex-1 bg-blue-200 min-h-screen">
-        <View className="px-4 pt-4 h-30">
-          <Text className="mt-4 text-3xl font-bold">{props.title}</Text>
-          <View className="my-2">
-            <AppNav />
+        <SafeAreaView className="grow">
+          <View className="px-2 h-30">
+            <Text className="text-3xl font-bold">{props.title}</Text>
+            <View className="my-2">
+              <AppNav />
+            </View>
           </View>
-        </View>
-        <View className="flex-1">
-          <ScrollView alwaysBounceVertical={false}>{props.children}</ScrollView>
-        </View>
-        <BottomElWrapper ref={bottomElWrapperRef} />
+          <View className="grow">
+            <ScrollView alwaysBounceVertical={false}>
+              {props.children}
+            </ScrollView>
+          </View>
+          <BottomElWrapper ref={bottomElWrapperRef} />
+        </SafeAreaView>
       </View>
     </pageContext.Provider>
   );

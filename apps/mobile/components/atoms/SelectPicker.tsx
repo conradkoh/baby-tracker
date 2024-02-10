@@ -8,7 +8,6 @@ import {
   Text,
   Platform,
   Pressable,
-  SafeAreaView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
