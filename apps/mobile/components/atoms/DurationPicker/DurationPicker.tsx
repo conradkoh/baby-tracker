@@ -58,6 +58,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
     }));
   };
 
+  const hourOptions = generateOptions(23);
   const minutesOptions = generateOptions(59);
   const secondsOptions = generateOptions(59);
 
@@ -107,7 +108,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
                 }}
                 style={{ width: '100%' }}
               >
-                {minutesOptions.map((option) => (
+                {hourOptions.map((option) => (
                   <Picker.Item
                     key={option.value}
                     value={option.value}
