@@ -23,6 +23,8 @@ import FeedPicker from '../../atoms/FeedPicker';
 import { usePage } from '../../organisms/Page';
 import { Loader } from '../Loader';
 import { Conditional } from '../../atoms/Condition';
+import { BreastTimer } from '../BreastTimer/BreastTimer';
+import DurationPicker from '../../atoms/DurationPicker/DurationPicker';
 interface FeedFormProps {
   onSubmit: (p: FeedFormData) => Promise<void>;
   mode: 'create' | 'edit';
@@ -40,22 +42,24 @@ type FeedFormData =
   | {
       type: FeedType.Latch;
       timestamp: DateTime;
-      duration: number;
+      duration: {
+        seconds: number;
+      };
     };
 
 export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
-  ({ mode, onSubmit: createFeed }: FeedFormProps, ref) => {
+  ({ mode, onSubmit }: FeedFormProps, ref) => {
     const [date, setDate] = useState(new Date());
     const volInputRef = useRef<TextInput>(null);
     const { feedType, setFeedType, volume, setVolume } = useFeedFormStore();
-    const [duration, setDuration] = useState(0);
+    const [duration, setDuration] = useState({ seconds: 0 });
     const durationInputRef = useRef<TextInput>(null);
     const [isReady, setReady] = useState(false);
     const onCreateFeedPress = useCallback(() => {
       switch (feedType) {
         case FeedType.Expressed:
         case FeedType.Formula: {
-          createFeed({
+          onSubmit({
             type: feedType,
             timestamp: DateTime.fromJSDate(date),
             volume: volume,
@@ -63,7 +67,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
           break;
         }
         case FeedType.Latch: {
-          createFeed({
+          onSubmit({
             type: feedType,
             timestamp: DateTime.fromJSDate(date),
             duration,
@@ -71,7 +75,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
           break;
         }
       }
-    }, [createFeed, date, duration, feedType, volume]);
+    }, [onSubmit, date, duration, feedType, volume]);
     useImperativeHandle(ref, () => ({
       load(formData: FeedFormData) {
         switch (formData.type) {
@@ -155,32 +159,29 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                 </TouchableOpacity>
               </Conditional>
               <Conditional render={feedType == FeedType.Latch}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
                   style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                   onPress={() => durationInputRef.current?.focus()}
-                >
-                  <TextInput
-                    ref={durationInputRef}
-                    style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
-                    placeholder="Duration (mins)"
-                    value={'' + duration}
-                    onChangeText={(v) => {
-                      const duration = parseFloat(v);
-                      if (isFinite(duration)) {
-                        setDuration(duration);
-                      }
+                > */}
+                <View className="mt-2">
+                  <DurationPicker
+                    value={duration}
+                    onDurationChange={(v) => {
+                      setDuration({
+                        seconds: v.as('seconds'),
+                      });
                     }}
-                    onFocus={() => {
-                      durationInputRef.current?.setSelection(
-                        0,
-                        ('' + duration).length
-                      );
-                    }}
-                    selectTextOnFocus={true}
                   />
-                  <Text> mins</Text>
-                </TouchableOpacity>
+                </View>
+                {/* </TouchableOpacity> */}
+              </Conditional>
+              <Conditional render={feedType == FeedType.Latch}>
+                <BreastTimer
+                  onStop={(e) => {
+                    setDuration({ seconds: e.totalDuration.seconds });
+                  }}
+                />
               </Conditional>
             </>
           </TouchableWithoutFeedback>

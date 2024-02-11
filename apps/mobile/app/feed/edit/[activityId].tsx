@@ -31,7 +31,9 @@ export default function CreateFeedPage() {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Latch,
             timestamp: DateTime.fromISO(activity.activity.timestamp),
-            duration: feed.duration.mins,
+            duration: {
+              seconds: feed.duration.seconds,
+            },
           });
           break;
         }

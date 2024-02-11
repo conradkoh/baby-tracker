@@ -13,7 +13,7 @@ export default defineSchema({
           v.object({
             type: v.literal('latch'),
             duration: v.object({
-              mins: v.number(),
+              seconds: v.number(),
             }),
           }),
           v.object({

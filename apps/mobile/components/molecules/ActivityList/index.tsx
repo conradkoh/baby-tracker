@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { Activity, ActivityType } from '@workspace/backend/convex/activities';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { Format, timeAgo } from '../../../lib/time/timeAgo';
 import { useCurrentDateTime } from '../../../lib/time/useCurrentDateTime';
 import { formatDateTime } from '../../../lib/time/format';
@@ -96,10 +96,11 @@ function FeedDetails(props: {
   if (activity.activity.type === ActivityType.Feed && activity.activity.feed) {
     const feed = activity.activity.feed;
     if (feed.type === FeedType.Latch) {
+      const duration = Duration.fromObject({ seconds: feed.duration.seconds });
       return (
-        <Text
-          style={props.style}
-        >{`${feed.type} ${feed.duration.mins} mins`}</Text>
+        <Text style={props.style}>{`${feed.type} ${duration.toFormat(
+          "m 'minutes' s 'seconds'"
+        )}`}</Text>
       );
     }
     return (

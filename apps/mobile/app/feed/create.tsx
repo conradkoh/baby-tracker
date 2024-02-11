@@ -6,7 +6,6 @@ import { FeedType } from '@workspace/domain/entities/Feed';
 import { router } from 'expo-router';
 export default function CreateFeedPage() {
   const createActivity = useMutation(api.activities.create);
-
   return (
     <Page title="Create Feed">
       <FeedForm
@@ -42,7 +41,7 @@ export default function CreateFeedPage() {
                   feed: {
                     type: formData.type,
                     duration: {
-                      mins: formData.duration,
+                      seconds: formData.duration.seconds,
                     },
                   },
                 },
