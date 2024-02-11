@@ -116,7 +116,7 @@ export function BreastTimer(props: BreastTimerProps) {
       const selected = side === BreastSide.Left ? left : right;
       return Duration.fromObject({
         seconds: selected.duration.seconds,
-      }).toFormat('mm:ss');
+      }).toFormat('hh:mm:ss');
     },
     [left, right]
   );

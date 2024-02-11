@@ -26,22 +26,26 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
   onDurationChange,
 }) => {
   const [visible, setVisible] = useState(false);
+  const [selectedHours, setSelectedHours] = useState<string>('00');
   const [selectedMinutes, setSelectedMinutes] = useState<string>('00');
   const [selectedSeconds, setSelectedSeconds] = useState<string>('00');
   useEffect(() => {
-    const duration = {
-      minutes: Math.floor(value.seconds / 60),
-      seconds: value.seconds % 60,
-    };
+    const duration = Duration.fromObject({ seconds: value.seconds }).shiftTo(
+      'hours',
+      'minutes',
+      'seconds'
+    );
     setSelectedMinutes(duration.minutes.toString().padStart(2, '0'));
     setSelectedSeconds(duration.seconds.toString().padStart(2, '0'));
   }, [value.seconds]);
   const handleDurationChange = useCallback(
-    (minutes: string, seconds: string): void => {
+    (hours: string, minutes: string, seconds: string): void => {
       const duration = Duration.fromObject({
+        hours: parseInt(hours, 10),
         minutes: parseInt(minutes, 10),
         seconds: parseInt(seconds, 10),
       });
+      console.log({ duration, hours, minutes, seconds });
       onDurationChange(duration);
     },
     [onDurationChange]
@@ -69,7 +73,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
             className="rounded-md"
             style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
           >
-            <Text>{`${selectedMinutes}:${selectedSeconds}`}</Text>
+            <Text>{`${selectedHours}:${selectedMinutes}:${selectedSeconds}`}</Text>
           </View>
         </Pressable>
       </View>
@@ -89,15 +93,19 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
             </TouchableOpacity>
           )}
           <View className="flex-row">
-            <View className="items-center w-1/2">
-              <Text>Mins</Text>
+            <View className="items-center w-1/3">
+              <Text>Hours</Text>
               <Picker
-                selectedValue={selectedMinutes}
+                selectedValue={selectedHours}
                 onValueChange={(itemValue) => {
-                  setSelectedMinutes(itemValue);
-                  handleDurationChange(itemValue, selectedSeconds);
+                  setSelectedHours(itemValue);
+                  handleDurationChange(
+                    itemValue,
+                    selectedMinutes,
+                    selectedSeconds
+                  );
                 }}
-                style={{ width: '50%' }}
+                style={{ width: '100%' }}
               >
                 {minutesOptions.map((option) => (
                   <Picker.Item
@@ -108,15 +116,42 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
                 ))}
               </Picker>
             </View>
-            <View className="items-center w-1/2">
+            <View className="items-center w-1/3">
+              <Text>Mins</Text>
+              <Picker
+                selectedValue={selectedMinutes}
+                onValueChange={(itemValue) => {
+                  setSelectedMinutes(itemValue);
+                  handleDurationChange(
+                    selectedHours,
+                    itemValue,
+                    selectedSeconds
+                  );
+                }}
+                style={{ width: '100%' }}
+              >
+                {minutesOptions.map((option) => (
+                  <Picker.Item
+                    key={option.value}
+                    value={option.value}
+                    label={option.label}
+                  />
+                ))}
+              </Picker>
+            </View>
+            <View className="items-center w-1/3">
               <Text>Seconds</Text>
               <Picker
                 selectedValue={selectedSeconds}
                 onValueChange={(itemValue) => {
                   setSelectedSeconds(itemValue);
-                  handleDurationChange(selectedMinutes, itemValue);
+                  handleDurationChange(
+                    selectedHours,
+                    selectedMinutes,
+                    itemValue
+                  );
                 }}
-                style={{ width: '50%' }}
+                style={{ width: '100%' }}
               >
                 {secondsOptions.map((option) => (
                   <Picker.Item

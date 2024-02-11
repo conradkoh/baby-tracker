@@ -84,6 +84,21 @@ export default function CreateFeedPage() {
                 },
               },
             });
+          } else if (formData.type === FeedType.Latch) {
+            await updateActivity({
+              activityId,
+              activity: {
+                timestamp: ts,
+                type: 'feed',
+                feed: {
+                  type: formData.type,
+                  duration: {
+                    left: formData.duration.left,
+                    right: formData.duration.right,
+                  },
+                },
+              },
+            });
           }
           router.back();
         }}

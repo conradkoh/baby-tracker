@@ -103,7 +103,7 @@ function FeedDetails(props: {
       });
       return (
         <Text style={props.style}>{`${feed.type} ${duration.toFormat(
-          "m 'minutes' s 'seconds'"
+          "h 'hrs', m 'min', s 'sec'"
         )}`}</Text>
       );
     }
