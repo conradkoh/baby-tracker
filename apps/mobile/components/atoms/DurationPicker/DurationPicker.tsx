@@ -35,6 +35,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
       'minutes',
       'seconds'
     );
+    setSelectedHours(duration.hours.toString().padStart(2, '0'));
     setSelectedMinutes(duration.minutes.toString().padStart(2, '0'));
     setSelectedSeconds(duration.seconds.toString().padStart(2, '0'));
   }, [value.seconds]);
@@ -45,7 +46,6 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
         minutes: parseInt(minutes, 10),
         seconds: parseInt(seconds, 10),
       });
-      console.log({ duration, hours, minutes, seconds });
       onDurationChange(duration);
     },
     [onDurationChange]
