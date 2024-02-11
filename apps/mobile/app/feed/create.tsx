@@ -41,7 +41,9 @@ export default function CreateFeedPage() {
                   feed: {
                     type: formData.type,
                     duration: {
-                      seconds: formData.duration.seconds,
+                      // seconds: formData.duration.seconds,
+                      left: formData.duration.left,
+                      right: formData.duration.right,
                     },
                   },
                 },

@@ -20,7 +20,12 @@ export const create = mutation({
           v.object({
             type: v.literal('latch'),
             duration: v.object({
-              seconds: v.number(),
+              left: v.object({
+                seconds: v.number(),
+              }),
+              right: v.object({
+                seconds: v.number(),
+              }),
             }),
           }),
           v.object({
@@ -86,7 +91,12 @@ export const update = mutation({
           v.object({
             type: v.literal('latch'),
             duration: v.object({
-              seconds: v.number(),
+              left: v.object({
+                seconds: v.number(),
+              }),
+              right: v.object({
+                seconds: v.number(),
+              }),
             }),
           }),
           v.object({

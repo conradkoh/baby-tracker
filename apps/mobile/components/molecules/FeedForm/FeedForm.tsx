@@ -43,7 +43,12 @@ type FeedFormData =
       type: FeedType.Latch;
       timestamp: DateTime;
       duration: {
-        seconds: number;
+        left: {
+          seconds: number;
+        };
+        right: {
+          seconds: number;
+        };
       };
     };
 
@@ -52,7 +57,10 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
     const [date, setDate] = useState(new Date());
     const volInputRef = useRef<TextInput>(null);
     const { feedType, setFeedType, volume, setVolume } = useFeedFormStore();
-    const [duration, setDuration] = useState({ seconds: 0 });
+    const [duration, setDuration] = useState({
+      left: { seconds: 0 },
+      right: { seconds: 0 },
+    });
     const [isReady, setReady] = useState(false);
     const [disableSubmit, setDisableSubmit] = useState(false);
     const onCreateFeedPress = useCallback(() => {
@@ -170,13 +178,24 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                   style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                   onPress={() => durationInputRef.current?.focus()}
                 > */}
-                <View className="mt-2">
+                <View className="mt-2 flex-row">
                   <DurationPicker
-                    value={duration}
+                    value={duration.left}
                     onDurationChange={(v) => {
-                      setDuration({
-                        seconds: v.as('seconds'),
-                      });
+                      setDuration((p) => ({
+                        ...p,
+                        left: { seconds: v.as('seconds') },
+                      }));
+                    }}
+                  />
+                  <View className="p-2" />
+                  <DurationPicker
+                    value={duration.right}
+                    onDurationChange={(v) => {
+                      setDuration((p) => ({
+                        ...p,
+                        right: { seconds: v.as('seconds') },
+                      }));
                     }}
                   />
                 </View>
@@ -185,7 +204,14 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
               <Conditional render={feedType == FeedType.Latch}>
                 <BreastTimer
                   onStop={(e) => {
-                    setDuration({ seconds: e.totalDuration.seconds });
+                    setDuration({
+                      left: {
+                        seconds: e.left.duration.seconds,
+                      },
+                      right: {
+                        seconds: e.right.duration.seconds,
+                      },
+                    });
                   }}
                 />
               </Conditional>

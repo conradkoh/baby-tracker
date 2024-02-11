@@ -96,7 +96,11 @@ function FeedDetails(props: {
   if (activity.activity.type === ActivityType.Feed && activity.activity.feed) {
     const feed = activity.activity.feed;
     if (feed.type === FeedType.Latch) {
-      const duration = Duration.fromObject({ seconds: feed.duration.seconds });
+      const duration = Duration.fromObject({
+        seconds:
+          (feed.duration.left?.seconds || 0) +
+          (feed.duration.right?.seconds || 0),
+      });
       return (
         <Text style={props.style}>{`${feed.type} ${duration.toFormat(
           "m 'minutes' s 'seconds'"
