@@ -129,6 +129,14 @@ export const update = mutation({
     return activities;
   },
 });
+export const deleteActivity = mutation({
+  args: {
+    activityId: v.id('activities'),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.activityId);
+  },
+});
 
 export const getById = query({
   args: {

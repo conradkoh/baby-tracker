@@ -8,11 +8,13 @@ import { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { ActivityType } from '@workspace/domain/entities/Activity';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { DateTime } from 'luxon';
+import { Text, TouchableOpacity, View } from 'react-native';
 export default function CreateFeedPage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;
   const activity = useQuery(api.activities.getById, { id: activityId });
   const updateActivity = useMutation(api.activities.update);
+  const deleteActivity = useMutation(api.activities.deleteActivity);
   const feedFormRef = useRef<FeedFormRef>(null);
   useEffect(() => {
     if (activity?.activity.type === ActivityType.Feed) {
@@ -42,6 +44,17 @@ export default function CreateFeedPage() {
   }, [activity?.activity]);
   return (
     <Page title="Edit Feed">
+      <View className=" items-end mr-2">
+        <TouchableOpacity
+          className="bg-red-300 p-2 rounded"
+          onPress={() => {
+            deleteActivity({ activityId });
+            router.back();
+          }}
+        >
+          <Text className=" text-red-800">DELETE</Text>
+        </TouchableOpacity>
+      </View>
       <FeedForm
         mode="edit"
         ref={feedFormRef}
@@ -53,7 +66,7 @@ export default function CreateFeedPage() {
             formData.type === FeedType.Expressed ||
             formData.type === FeedType.Formula
           ) {
-            updateActivity({
+            await updateActivity({
               activityId,
               activity: {
                 timestamp: ts,
