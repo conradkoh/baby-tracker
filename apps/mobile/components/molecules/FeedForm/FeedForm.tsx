@@ -53,27 +53,33 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
     const volInputRef = useRef<TextInput>(null);
     const { feedType, setFeedType, volume, setVolume } = useFeedFormStore();
     const [duration, setDuration] = useState({ seconds: 0 });
-    const durationInputRef = useRef<TextInput>(null);
     const [isReady, setReady] = useState(false);
+    const [disableSubmit, setDisableSubmit] = useState(false);
     const onCreateFeedPress = useCallback(() => {
-      switch (feedType) {
-        case FeedType.Expressed:
-        case FeedType.Formula: {
-          onSubmit({
-            type: feedType,
-            timestamp: DateTime.fromJSDate(date),
-            volume: volume,
-          });
-          break;
+      setDisableSubmit(true);
+      try {
+        switch (feedType) {
+          case FeedType.Expressed:
+          case FeedType.Formula: {
+            onSubmit({
+              type: feedType,
+              timestamp: DateTime.fromJSDate(date),
+              volume: volume,
+            });
+            break;
+          }
+          case FeedType.Latch: {
+            onSubmit({
+              type: feedType,
+              timestamp: DateTime.fromJSDate(date),
+              duration,
+            });
+            break;
+          }
         }
-        case FeedType.Latch: {
-          onSubmit({
-            type: feedType,
-            timestamp: DateTime.fromJSDate(date),
-            duration,
-          });
-          break;
-        }
+      } catch (err) {
+        setDisableSubmit(false);
+        throw err;
       }
     }, [onSubmit, date, duration, feedType, volume]);
     useImperativeHandle(ref, () => ({
@@ -186,7 +192,10 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
             </>
           </TouchableWithoutFeedback>
 
-          <CreateFeedButton onPress={onCreateFeedPress} />
+          <CreateFeedButton
+            disabled={disableSubmit}
+            onPress={onCreateFeedPress}
+          />
         </Loader>
       </View>
     );
@@ -197,11 +206,19 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
  * Attaches the create feed button to the page
  * @returns
  */
-function CreateFeedButton({ onPress }: { onPress: () => void }) {
+function CreateFeedButton({
+  onPress,
+  disabled,
+}: {
+  disabled: boolean;
+  onPress: () => void;
+}) {
   const page = usePage();
   useEffect(() => {
-    page.setBottomEl(<PrimaryButton onPress={onPress} title="Save" />);
+    page.setBottomEl(
+      <PrimaryButton disabled={disabled} onPress={onPress} title="Save" />
+    );
     return () => page.reset();
-  }, [onPress, page]);
+  }, [disabled, onPress, page]);
   return <></>;
 }

@@ -2,14 +2,15 @@ import React from 'react';
 import { Text, StyleSheet, Pressable, PressableProps } from 'react-native';
 export type BaseButtonProps = Pick<
   PressableProps,
-  'onPress' | 'style' | 'className'
+  'onPress' | 'style' | 'className' | 'disabled'
 > & {
   title: string;
 };
 export default function BaseButton(props: BaseButtonProps) {
-  const { style, onPress, title } = props;
+  const { style, onPress, title, disabled } = props;
   return (
     <Pressable
+      disabled={disabled}
       className={`w-full text-center items-center py-3 px-5 rounded`}
       onPress={onPress}
       style={style}
