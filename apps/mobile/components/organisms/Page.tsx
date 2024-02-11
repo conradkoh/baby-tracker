@@ -1,14 +1,8 @@
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import AppNav from './AppNav';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useRef } from 'react';
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native';
 export default function Page(props: { title: string; children: any }) {
   const bottomElWrapperRef = useRef<BottomElWrapper>(null);
   return (
