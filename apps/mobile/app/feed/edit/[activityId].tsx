@@ -38,7 +38,7 @@ export default function CreateFeedPage() {
                 seconds: feed.duration.left?.seconds || 0,
               },
               right: {
-                seconds: feed.duration.left?.seconds || 0,
+                seconds: feed.duration.right?.seconds || 0,
               },
             },
           });
@@ -57,7 +57,7 @@ export default function CreateFeedPage() {
             router.back();
           }}
         >
-          <Text className=" text-red-800">DELETE</Text>
+          <Text className="text-red-800">DELETE</Text>
         </TouchableOpacity>
       </View>
       <FeedForm

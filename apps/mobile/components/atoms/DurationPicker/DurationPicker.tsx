@@ -61,6 +61,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
     <>
       <View className="items-center justify-center rounded-md">
         <Pressable
+          className="rounded-lg"
           onPress={() => setVisible(true)}
           style={styles.pressableStyle}
         >

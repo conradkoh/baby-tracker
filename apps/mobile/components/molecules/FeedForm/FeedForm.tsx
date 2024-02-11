@@ -173,11 +173,6 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                 </TouchableOpacity>
               </Conditional>
               <Conditional render={feedType == FeedType.Latch}>
-                {/* <TouchableOpacity
-                  className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
-                  style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
-                  onPress={() => durationInputRef.current?.focus()}
-                > */}
                 <View className="mt-2 flex-row">
                   <DurationPicker
                     value={duration.left}
@@ -199,7 +194,6 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                     }}
                   />
                 </View>
-                {/* </TouchableOpacity> */}
               </Conditional>
               <Conditional render={feedType == FeedType.Latch}>
                 <BreastTimer

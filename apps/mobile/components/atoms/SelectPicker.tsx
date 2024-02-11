@@ -24,17 +24,20 @@ function SelectPicker<T>(props: {
   return (
     <>
       <View className="w-full flex items-center rounded">
-        <View
-          className=" place-self-center w-auto rounded-md p-2"
-          style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+        <Pressable
+          className="w-full items-center"
+          onPress={() => setVisible(true)}
         >
-          <Pressable onPress={() => setVisible(true)}>
+          <View
+            className="place-self-center w-auto rounded-md p-2"
+            style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+          >
             <Text>
               {props.options.find((o) => o.value === props.value)?.label ||
                 'Unknown'}
             </Text>
-          </Pressable>
-        </View>
+          </View>
+        </Pressable>
       </View>
       <View className="flex-1 justify-center align-middle">
         <Modal
@@ -55,7 +58,6 @@ function SelectPicker<T>(props: {
             <Picker
               selectedValue={props.value}
               onValueChange={(itemValue) => {
-                console.log({ itemValue });
                 return props.onChange(itemValue);
               }}
               style={{ width: '100%' }}
