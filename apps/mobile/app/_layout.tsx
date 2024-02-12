@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { AppState, View } from 'react-native';
+import { View, Alert } from 'react-native';
 import ConvexClientProvider from '../ConvexClientProvider';
 import { Slot } from 'expo-router';
 import AppDataProvider from '../providers/AppDataProvider';
@@ -15,8 +15,25 @@ export default function RootLayout() {
       const update = await Updates.checkForUpdateAsync();
 
       if (update.isAvailable) {
-        await Updates.fetchUpdateAsync();
-        await Updates.reloadAsync();
+        Alert.alert(
+          'Updated Available',
+          'Would you like to reload the app?',
+          [
+            {
+              text: 'Cancel',
+              onPress: () => {},
+              style: 'cancel',
+            },
+            {
+              text: 'Yes',
+              onPress: async () => {
+                await Updates.fetchUpdateAsync();
+                await Updates.reloadAsync();
+              },
+            },
+          ],
+          { cancelable: false }
+        );
       }
     } catch (error) {
       // You can also add an alert() to see the error message in case of an error when fetching updates.
