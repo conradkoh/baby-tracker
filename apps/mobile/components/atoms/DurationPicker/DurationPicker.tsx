@@ -1,15 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-  View,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  Platform,
-  Pressable,
-} from 'react-native';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Duration } from 'luxon';
+import Modal from '../Modal/Modal';
 
 interface Option {
   value: string;
@@ -79,90 +72,71 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
         </Pressable>
       </View>
       <Modal
-        animationType="slide"
-        transparent={true}
         visible={visible}
-        onRequestClose={() => setVisible(false)}
+        onClose={() => setVisible(false)}
+        onDone={() => setVisible(false)}
       >
-        <View style={styles.modalView}>
-          {Platform.OS === 'ios' && (
-            <TouchableOpacity
-              style={styles.doneButton}
-              onPress={() => setVisible(false)}
+        <View className="flex-row">
+          <View className="items-center w-1/3">
+            <Text>Hours</Text>
+            <Picker
+              selectedValue={selectedHours}
+              onValueChange={(itemValue) => {
+                setSelectedHours(itemValue);
+                handleDurationChange(
+                  itemValue,
+                  selectedMinutes,
+                  selectedSeconds
+                );
+              }}
+              style={{ width: '100%' }}
             >
-              <Text>Done</Text>
-            </TouchableOpacity>
-          )}
-          <View className="flex-row">
-            <View className="items-center w-1/3">
-              <Text>Hours</Text>
-              <Picker
-                selectedValue={selectedHours}
-                onValueChange={(itemValue) => {
-                  setSelectedHours(itemValue);
-                  handleDurationChange(
-                    itemValue,
-                    selectedMinutes,
-                    selectedSeconds
-                  );
-                }}
-                style={{ width: '100%' }}
-              >
-                {hourOptions.map((option) => (
-                  <Picker.Item
-                    key={option.value}
-                    value={option.value}
-                    label={option.label}
-                  />
-                ))}
-              </Picker>
-            </View>
-            <View className="items-center w-1/3">
-              <Text>Mins</Text>
-              <Picker
-                selectedValue={selectedMinutes}
-                onValueChange={(itemValue) => {
-                  setSelectedMinutes(itemValue);
-                  handleDurationChange(
-                    selectedHours,
-                    itemValue,
-                    selectedSeconds
-                  );
-                }}
-                style={{ width: '100%' }}
-              >
-                {minutesOptions.map((option) => (
-                  <Picker.Item
-                    key={option.value}
-                    value={option.value}
-                    label={option.label}
-                  />
-                ))}
-              </Picker>
-            </View>
-            <View className="items-center w-1/3">
-              <Text>Seconds</Text>
-              <Picker
-                selectedValue={selectedSeconds}
-                onValueChange={(itemValue) => {
-                  setSelectedSeconds(itemValue);
-                  handleDurationChange(
-                    selectedHours,
-                    selectedMinutes,
-                    itemValue
-                  );
-                }}
-                style={{ width: '100%' }}
-              >
-                {secondsOptions.map((option) => (
-                  <Picker.Item
-                    key={option.value}
-                    value={option.value}
-                    label={option.label}
-                  />
-                ))}
-              </Picker>
-            </View>
+              {hourOptions.map((option) => (
+                <Picker.Item
+                  key={option.value}
+                  value={option.value}
+                  label={option.label}
+                />
+              ))}
+            </Picker>
+          </View>
+          <View className="items-center w-1/3">
+            <Text>Mins</Text>
+            <Picker
+              selectedValue={selectedMinutes}
+              onValueChange={(itemValue) => {
+                setSelectedMinutes(itemValue);
+                handleDurationChange(selectedHours, itemValue, selectedSeconds);
+              }}
+              style={{ width: '100%' }}
+            >
+              {minutesOptions.map((option) => (
+                <Picker.Item
+                  key={option.value}
+                  value={option.value}
+                  label={option.label}
+                />
+              ))}
+            </Picker>
+          </View>
+          <View className="items-center w-1/3">
+            <Text>Seconds</Text>
+            <Picker
+              selectedValue={selectedSeconds}
+              onValueChange={(itemValue) => {
+                setSelectedSeconds(itemValue);
+                handleDurationChange(selectedHours, selectedMinutes, itemValue);
+              }}
+              style={{ width: '100%' }}
+            >
+              {secondsOptions.map((option) => (
+                <Picker.Item
+                  key={option.value}
+                  value={option.value}
+                  label={option.label}
+                />
+              ))}
+            </Picker>
           </View>
         </View>
       </Modal>
@@ -171,27 +145,6 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
 };
 
 const styles = StyleSheet.create({
-  doneButton: {
-    alignSelf: 'flex-end',
-    margin: 10,
-  },
-  modalView: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
   pressableStyle: {
     marginBottom: 10,
     padding: 10,

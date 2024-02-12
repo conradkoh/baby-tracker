@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Button,
-  Modal,
   StyleSheet,
   TouchableOpacity,
   Text,
@@ -10,6 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import Modal from './Modal/Modal';
 
 function SelectPicker<T>(props: {
   value: string;
@@ -41,47 +41,29 @@ function SelectPicker<T>(props: {
       </View>
       <View className="flex-1 justify-center align-middle">
         <Modal
-          animationType="slide"
-          transparent={true}
           visible={visible}
-          onRequestClose={() => setVisible(false)}
+          onClose={() => setVisible(false)}
+          onDone={() => setVisible(false)}
         >
-          <View className="absolute bottom-0 w-full bg-slate-50 rounded-t-lg px-2 py-1 align-middle justify-center">
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity
-                style={styles.doneButton}
-                onPress={() => setVisible(false)}
-              >
-                <Text>Done</Text>
-              </TouchableOpacity>
-            )}
-            <Picker
-              selectedValue={props.value}
-              onValueChange={(itemValue) => {
-                return props.onChange(itemValue);
-              }}
-              style={{ width: '100%' }}
-            >
-              {props.options.map((o, idx) => (
-                <Picker.Item
-                  key={`${o.value}+${idx}`}
-                  value={o.value}
-                  label={o.label}
-                />
-              ))}
-            </Picker>
-          </View>
+          <Picker
+            selectedValue={props.value}
+            onValueChange={(itemValue) => {
+              return props.onChange(itemValue);
+            }}
+            style={{ width: '100%' }}
+          >
+            {props.options.map((o, idx) => (
+              <Picker.Item
+                key={`${o.value}+${idx}`}
+                value={o.value}
+                label={o.label}
+              />
+            ))}
+          </Picker>
         </Modal>
       </View>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  doneButton: {
-    alignSelf: 'flex-end',
-    margin: 10,
-  },
-});
 
 export default SelectPicker;
