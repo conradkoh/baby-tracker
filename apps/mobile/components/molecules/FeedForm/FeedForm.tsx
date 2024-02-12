@@ -123,10 +123,10 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
       if (mode === 'create') setReady(true);
     }, [mode]);
     return (
-      <View className="h-full w-full flex flex-col items-center">
-        <Loader loading={!isReady}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View className="grow w-full flex items-center">
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View className="h-full w-full flex-1 flex-col items-center">
+          <Loader loading={!isReady}>
+            <>
               <View
                 className="mt-2 w-1/2 rounded-lg"
                 style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
@@ -211,15 +211,15 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                   }}
                 />
               </Conditional>
-            </View>
-          </TouchableWithoutFeedback>
+            </>
 
-          <CreateFeedButton
-            disabled={disableSubmit}
-            onPress={onCreateFeedPress}
-          />
-        </Loader>
-      </View>
+            <CreateFeedButton
+              disabled={disableSubmit}
+              onPress={onCreateFeedPress}
+            />
+          </Loader>
+        </View>
+      </TouchableWithoutFeedback>
     );
   }
 );
