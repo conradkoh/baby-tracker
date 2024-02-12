@@ -122,7 +122,6 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
     useEffect(() => {
       if (mode === 'create') setReady(true);
     }, [mode]);
-
     return (
       <View className="h-full flex flex-1 flex-col items-center">
         <Loader loading={!isReady}>
