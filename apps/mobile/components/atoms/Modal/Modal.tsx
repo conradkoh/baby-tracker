@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 interface ModalProps {
   visible: boolean;
@@ -28,17 +29,21 @@ const Modal: React.FC<ModalProps> = ({
         visible={visible}
         onRequestClose={() => onClose}
       >
-        <View style={styles.modalView}>
-          {Platform.OS === 'ios' && (
-            <TouchableOpacity
-              style={styles.doneButton}
-              onPress={() => onDone()}
-            >
-              <Text>Done</Text>
-            </TouchableOpacity>
-          )}
-          {children}
-        </View>
+        <TouchableWithoutFeedback onPress={() => onClose()}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalView}>
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={styles.doneButton}
+                  onPress={() => onDone()}
+                >
+                  <Text>Done</Text>
+                </TouchableOpacity>
+              )}
+              {children}
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
       </RNModal>
     </>
   );
@@ -48,6 +53,11 @@ const styles = StyleSheet.create({
   doneButton: {
     alignSelf: 'flex-end',
     padding: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalView: {
     position: 'absolute',
