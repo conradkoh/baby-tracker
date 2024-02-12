@@ -151,6 +151,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                 >
                   <TextInput
                     ref={volInputRef}
+                    keyboardType="number-pad"
                     style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                     placeholder="Volume (ml)"
                     value={'' + volume}
@@ -158,6 +159,8 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                       const newVol = parseFloat(v);
                       if (isFinite(newVol)) {
                         setVolume(newVol);
+                      } else {
+                        setVolume(0);
                       }
                     }}
                     onFocus={() => {

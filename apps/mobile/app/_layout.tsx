@@ -16,7 +16,7 @@ export default function RootLayout() {
 
       if (update.isAvailable) {
         Alert.alert(
-          'Updated Available',
+          'Update Available',
           'Would you like to reload the app?',
           [
             {
