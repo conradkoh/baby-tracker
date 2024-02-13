@@ -29,19 +29,23 @@ const Modal: React.FC<ModalProps> = ({
         visible={visible}
         onRequestClose={() => onClose}
       >
-        <TouchableWithoutFeedback onPress={() => onClose()}>
+        <TouchableWithoutFeedback onPress={(e) => onDone()}>
           <View style={styles.modalOverlay}>
-            <View style={styles.modalView}>
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity
-                  style={styles.doneButton}
-                  onPress={() => onDone()}
-                >
-                  <Text>Done</Text>
-                </TouchableOpacity>
-              )}
-              {children}
-            </View>
+            {/* This intercepts the event from triggering the outer TouchableWithoutFeedback */}
+            <TouchableWithoutFeedback>
+              <View style={styles.modalView}>
+                {Platform.OS === 'ios' && (
+                  <TouchableOpacity
+                    className="z-10"
+                    style={styles.doneButton}
+                    onPress={() => onDone()}
+                  >
+                    <Text>Done</Text>
+                  </TouchableOpacity>
+                )}
+                {children}
+              </View>
+            </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
       </RNModal>
