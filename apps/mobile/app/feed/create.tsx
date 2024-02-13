@@ -51,8 +51,7 @@ export default function CreateFeedPage() {
               break;
             }
           }
-
-          router.back();
+          router.navigate('/');
         }}
       />
     </Page>
