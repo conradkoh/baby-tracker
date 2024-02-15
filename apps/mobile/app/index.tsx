@@ -1,7 +1,7 @@
 import { Platform, Text, View } from 'react-native';
 import { useMutation, useQuery } from 'convex/react';
 import AppNav from '../components/organisms/AppNav';
-import Page from '../components/organisms/Page';
+import Page, { withPage } from '../components/organisms/Page';
 import { useActivities } from '../providers/AppDataProvider';
 import { api } from '../services/api';
 import { ActivityList } from '../components/molecules/ActivityList';
@@ -14,8 +14,9 @@ import { router } from 'expo-router';
 import { Loader } from '../components/molecules/Loader';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { Conditional } from '../components/atoms/Condition';
+import { withReloadOnReconnect } from '../providers/ConvexClientProvider';
 
-function App() {
+function AppIndexPage() {
   const [tsRange, setTsRange] = useState<{ fromTs: string; toTs: string }>(
     defaultDateRange()
   );
@@ -97,35 +98,33 @@ function App() {
     return feedStats;
   }, [activities, curDate]);
   return (
-    <Page title="Baby Tracker">
-      <Loader loading={isLoading}>
-        <View style={{ minHeight: 2 }} className="grow">
-          {lastFeedTimestamp ? (
-            <View className="border p-4 border-red-200 bg-red-300 rounded-lg">
+    <Loader loading={isLoading}>
+      <View style={{ minHeight: 2 }} className="grow">
+        {lastFeedTimestamp ? (
+          <View className="border p-4 border-red-200 bg-red-300 rounded-lg">
+            <Text>
+              Last Feed:{' '}
+              {timeAgo({
+                curDateTime: curDate,
+                dateTime: DateTime.fromISO(lastFeedTimestamp),
+              })}
+            </Text>
+            <Conditional render={!feedStats.isLoading}>
               <Text>
-                Last Feed:{' '}
-                {timeAgo({
-                  curDateTime: curDate,
-                  dateTime: DateTime.fromISO(lastFeedTimestamp),
-                })}
+                Feed volume:{' '}
+                {feedStats.isValid
+                  ? `${feedStats.threeHourlyVolume} ml`
+                  : 'insufficient data'}
               </Text>
-              <Conditional render={!feedStats.isLoading}>
-                <Text>
-                  Feed volume:{' '}
-                  {feedStats.isValid
-                    ? `${feedStats.threeHourlyVolume} ml`
-                    : 'insufficient data'}
-                </Text>
-              </Conditional>
-            </View>
-          ) : null}
-          <ActivityList
-            onActivityPress={(a) => router.push(`/feed/edit/${a.activity._id}`)}
-            activities={activities?.data || []}
-          />
-        </View>
-      </Loader>
-    </Page>
+            </Conditional>
+          </View>
+        ) : null}
+        <ActivityList
+          onActivityPress={(a) => router.push(`/feed/edit/${a.activity._id}`)}
+          activities={activities?.data || []}
+        />
+      </View>
+    </Loader>
   );
 }
 
@@ -136,4 +135,7 @@ function defaultDateRange() {
     toTs: curDate.toUTC().toISO(),
   };
 }
-export default App;
+export default withPage(
+  { title: 'Baby Tracker' }, //this ensures that the reload only happens to the page contents, and does not affect the static content
+  withReloadOnReconnect(AppIndexPage)
+);

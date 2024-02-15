@@ -3,7 +3,11 @@ import AppNav from './AppNav';
 import { createContext, useCallback, useContext, useRef } from 'react';
 import React from 'react';
 import { SafeAreaView } from 'react-native';
-export default function Page(props: { title: string; children: any }) {
+export interface PageProps {
+  title: string;
+  children: React.ReactNode;
+}
+export default function Page(props: PageProps) {
   const bottomElWrapperRef = useRef<BottomElWrapper>(null);
   return (
     <pageContext.Provider
@@ -30,6 +34,20 @@ export default function Page(props: { title: string; children: any }) {
       </View>
     </pageContext.Provider>
   );
+}
+
+export function withPage(
+  props: Omit<PageProps, 'children'>,
+  Component: React.FC
+) {
+  return function PageWrapper() {
+    console.log('re-rendering page');
+    return (
+      <Page {...props}>
+        <Component />
+      </Page>
+    );
+  };
 }
 
 class BottomElWrapper extends React.Component {

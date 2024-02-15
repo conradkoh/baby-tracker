@@ -41,7 +41,9 @@ export default function ConvexClientProvider({
 export function useConnection() {
   const client = useConvex();
   const [connectionStateHistory, setConnectionStateHistory] = useState([
-    ConnectionState.Connecting,
+    client.connectionState().isWebSocketConnected
+      ? ConnectionState.Ready
+      : ConnectionState.Connecting,
   ]);
   //update connection state
   useEffect(() => {
@@ -98,6 +100,32 @@ export function ConnectionStatus() {
       </View>
     </Conditional>
   );
+}
+
+/**
+ * This wrapper component ensures that the wrapped component reloads when convex reconnects
+ * @param Component
+ * @returns
+ */
+export function withReloadOnReconnect(Component: React.FC) {
+  return function ReloadOnReconnectWrapper() {
+    const conn = useConnection();
+    const [isConnected, setConnected] = useState(conn.isConnected);
+    const [render, setRender] = useState(true);
+    useEffect(() => {
+      if (!isConnected && conn.isConnected) {
+        console.log('reconnected - reloading components');
+        setConnected(true); //update the connection state
+        setRender(false);
+        setTimeout(() => setRender(true), 100);
+      }
+    }, [conn.isConnected, isConnected]);
+    return (
+      <Conditional render={render}>
+        <Component />
+      </Conditional>
+    );
+  };
 }
 
 export function withConvex(Component: React.FC) {
