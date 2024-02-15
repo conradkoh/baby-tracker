@@ -20,10 +20,14 @@ function AppIndexPage() {
   const [tsRange, setTsRange] = useState<{ fromTs: string; toTs: string }>(
     defaultDateRange()
   );
-  const activities = useQuery(api.activities.getByTimestampDesc, tsRange);
+  const activities = useQuery(api.activities.getByTimestampDesc, {
+    fromTs: tsRange.fromTs,
+  });
   const curDate = useCurrentDateTime();
   const lastFeedTimestamp = activities?.data?.find(
-    (v) => v.activity.type === ActivityType.Feed
+    (v) =>
+      v.activity.type === ActivityType.Feed &&
+      DateTime.fromISO(v.activity.timestamp).toMillis() <= curDate.toMillis()
   )?.activity?.timestamp;
   const isLoading = activities == undefined;
   //get feed stats

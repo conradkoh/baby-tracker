@@ -164,19 +164,14 @@ export const getById = query({
 export const getByTimestampDesc = query({
   args: {
     fromTs: v.string(),
-    toTs: v.string(),
   },
   handler: async (ctx, args) => {
     const fromTs = DateTime.fromISO(args.fromTs);
-    const toTS = DateTime.fromISO(args.toTs);
     const activities = await ctx.db
       .query('activities')
       .withIndex('by_timestamp')
       .filter((v) =>
-        v.and(
-          v.gte(v.field('activity.timestamp'), fromTs.toISO()),
-          v.lte(v.field('activity.timestamp'), toTS.toISO())
-        )
+        v.and(v.gte(v.field('activity.timestamp'), fromTs.toISO()))
       )
       .order('desc')
       .collect();
@@ -184,7 +179,6 @@ export const getByTimestampDesc = query({
     return {
       data: activities,
       fromTs: args.fromTs,
-      toTs: args.toTs,
     };
   },
 });
