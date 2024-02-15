@@ -1,6 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
 import { View, Alert } from 'react-native';
-import ConvexClientProvider from '../ConvexClientProvider';
+import {
+  ConnectionStatus,
+  withConvex,
+} from '../providers/ConvexClientProvider';
 import { Slot } from 'expo-router';
 import AppDataProvider from '../providers/AppDataProvider';
 import { NativeWindStyleSheet } from 'nativewind';
@@ -8,7 +11,8 @@ import * as Updates from 'expo-updates';
 import { useEffect } from 'react';
 import { useEnv } from '../lib/env/useEnv';
 import { useAppState } from '../lib/platform/useAppState';
-export default function RootLayout() {
+import { SafeAreaView } from 'react-native';
+function RootLayout() {
   const env = useEnv();
   async function onFetchUpdateAsync() {
     try {
@@ -47,15 +51,21 @@ export default function RootLayout() {
       onFetchUpdateAsync();
     }
   }, [appState]);
+
   return (
-    <ConvexClientProvider>
-      <AppDataProvider>
-        <View>
-          <Slot />
-        </View>
-      </AppDataProvider>
-      <StatusBar style="auto" />
-    </ConvexClientProvider>
+    <>
+      <View className="min-h-screen flex-1">
+        <ConnectionStatus />
+        <SafeAreaView className="bg-blue-200 grow">
+          <AppDataProvider>
+            <View className="grow">
+              <Slot />
+            </View>
+          </AppDataProvider>
+          <StatusBar style="auto" />
+        </SafeAreaView>
+      </View>
+    </>
   );
 }
 
@@ -63,3 +73,4 @@ export default function RootLayout() {
 NativeWindStyleSheet.setOutput({
   default: 'native',
 });
+export default withConvex(RootLayout);

@@ -16,7 +16,7 @@ export default function Page(props: { title: string; children: any }) {
         }, []),
       }}
     >
-      <View className="flex-1 bg-blue-200 min-h-screen">
+      <View className="grow">
         <SafeAreaView className="grow">
           <View className="px-2 h-30">
             <Text className="text-3xl font-bold">{props.title}</Text>
