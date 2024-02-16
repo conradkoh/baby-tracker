@@ -4233,6 +4233,15 @@ convex@^1.8.0:
     jwt-decode "^3.1.2"
     node-fetch "^2.6.1"
 
+convex@^1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/convex/-/convex-1.9.0.tgz#01bfe4cd29a356546e30201a53a3b213e18ad03a"
+  integrity sha512-ORaiHNmzofLUui6hVnFRVwjFh4fnWU3hpneyru0C49bLYc4s1UVC/+s3fIaXYnpKoWj+snspaHOteRuV6eF5uA==
+  dependencies:
+    esbuild "^0.17.5"
+    jwt-decode "^3.1.2"
+    node-fetch "^2.6.1"
+
 cookie-signature@^1.1.0:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/cookie-signature/-/cookie-signature-1.2.1.tgz#790dea2cce64638c7ae04d9fabed193bd7ccf3b4"
