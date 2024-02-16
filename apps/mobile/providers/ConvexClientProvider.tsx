@@ -6,13 +6,12 @@ import { useBranch } from '../storage/stores/branch';
 import { Text, View } from 'react-native';
 import { Conditional } from '../components/atoms/Condition';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ConvexClient } from 'convex/browser';
 
-const convexDev = new ConvexReactClient(
-  process.env.EXPO_PUBLIC_CONVEX_URL_DEV!
-);
-const convexProd = new ConvexReactClient(
-  process.env.EXPO_PUBLIC_CONVEX_URL_PROD!
-);
+const convexDev = () =>
+  new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL_DEV!);
+const convexProd = () =>
+  new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL_PROD!);
 enum ConnectionState {
   Ready = 'ready',
   Reconnecting = 'reconnecting',
@@ -24,13 +23,24 @@ export default function ConvexClientProvider({
   children: ReactNode;
 }) {
   const { branch } = useBranch();
-  const client = useMemo(() => {
-    let client = convexProd;
-    if (branch === Branch.Dev) {
-      client = convexDev;
+  const [client, setClient] = useState<ConvexReactClient | null>(null);
+  useEffect(() => {
+    let client: ConvexReactClient | null = null;
+    if (branch == Branch.Prod) {
+      client = convexProd();
+    } else if (branch == Branch.Dev) {
+      client = convexDev();
     }
-    return client;
+
+    setClient(client);
+    return () => {
+      client?.close();
+    };
   }, [branch]);
+  if (!client) {
+    return <></>;
+  }
+
   return (
     <>
       <ConvexProvider client={client}>{children}</ConvexProvider>
