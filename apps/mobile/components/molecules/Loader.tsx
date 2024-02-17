@@ -7,7 +7,7 @@ export const Loader = (props: {
   if (props.loading) {
     return (
       <>
-        <View className="p-4 flex-row align-middle justify-center">
+        <View className="p-4 flex-row align-middle justify-center ">
           <Text>⏳</Text>
         </View>
       </>

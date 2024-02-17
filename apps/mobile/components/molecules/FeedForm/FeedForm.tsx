@@ -25,6 +25,7 @@ import { Loader } from '../Loader';
 import { Conditional } from '../../atoms/Condition';
 import { BreastTimer } from '../BreastTimer/BreastTimer';
 import DurationPicker from '../../atoms/DurationPicker/DurationPicker';
+import { FormulaCalculator } from '../FormulaCalculator';
 interface FeedFormProps {
   onSubmit: (p: FeedFormData) => Promise<void>;
   mode: 'create' | 'edit';
@@ -212,6 +213,13 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                 />
               </Conditional>
             </>
+
+            {/* Feed Form Calculator */}
+            <Conditional render={mode == 'create'}>
+              <View className="px-3 mt-3 w-full">
+                <FormulaCalculator targetVolume={volume} />
+              </View>
+            </Conditional>
 
             <CreateFeedButton
               disabled={disableSubmit}
