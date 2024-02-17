@@ -215,7 +215,9 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
             </>
 
             {/* Feed Form Calculator */}
-            <Conditional render={mode == 'create'}>
+            <Conditional
+              render={mode == 'create' && feedType === FeedType.Formula}
+            >
               <View className="px-3 mt-3 w-full">
                 <FormulaCalculator targetVolume={volume} />
               </View>
