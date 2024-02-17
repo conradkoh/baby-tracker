@@ -2,10 +2,11 @@ import { FlashList } from '@shopify/flash-list';
 import { Activity, ActivityType } from '@workspace/backend/convex/activities';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { DateTime, Duration } from 'luxon';
-import { Format, timeAgo } from '../../../lib/time/timeAgo';
+import { timeAgo } from '../../../lib/time/timeAgo';
 import { useCurrentDateTime } from '../../../lib/time/useCurrentDateTime';
 import { formatDateTime } from '../../../lib/time/format';
 import { FeedType } from '@workspace/domain/entities/Feed';
+import { Conditional } from '../../atoms/Condition';
 
 interface ActivityListProps {
   activities: Activity[];
@@ -68,7 +69,14 @@ function ActivityListItem(props: {
         {/* Content next to the icon */}
         <View className="flex-1">
           <View className="flex-1 align-middle justify-center">
-            <FeedDetails activity={activity} />
+            <Conditional render={activity.activity.type === ActivityType.Feed}>
+              <FeedDetails activity={activity} />
+            </Conditional>
+            <Conditional
+              render={activity.activity.type === ActivityType.DiaperChange}
+            >
+              <DiaperChangeDetails activity={activity} />
+            </Conditional>
             <View>
               <Text className="flex-wrap">
                 {formatDateTime(activityTimestamp)} (
@@ -110,6 +118,23 @@ function FeedDetails(props: {
     return (
       <Text style={props.style}>{`${feed.type} ${feed.volume.ml} ml`}</Text>
     );
+  }
+  return <></>;
+}
+
+function DiaperChangeDetails(props: {
+  className?: string;
+  style?: any;
+  activity: Activity;
+}) {
+  const { activity } = props;
+  if (
+    activity.activity.type === ActivityType.DiaperChange &&
+    activity.activity.diaperChange
+  ) {
+    const diaperChange = activity.activity.diaperChange;
+
+    return <Text style={props.style}>{`${diaperChange.type}`}</Text>;
   }
   return <></>;
 }

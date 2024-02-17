@@ -2,8 +2,6 @@ import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { Doc } from '../convex/_generated/dataModel';
 import { DateTime } from 'luxon';
-import { produce } from 'immer';
-import { FeedType } from '../../../core/domain/entities/Feed';
 export type Activity = Doc<'activities'>;
 export enum ActivityType {
   Feed = 'feed',
@@ -40,7 +38,7 @@ export const create = mutation({
       v.object({
         timestamp: v.string(),
         type: v.literal('diaper_change'),
-        diaper_change: v.optional(
+        diaperChange: v.optional(
           v.object({
             type: v.union(
               v.literal('wet'),
@@ -111,7 +109,7 @@ export const update = mutation({
       v.object({
         timestamp: v.string(),
         type: v.literal('diaper_change'),
-        diaper_change: v.optional(
+        diaperChange: v.optional(
           v.object({
             type: v.union(
               v.literal('wet'),

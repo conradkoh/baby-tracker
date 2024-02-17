@@ -124,7 +124,21 @@ function AppIndexPage() {
           </View>
         ) : null}
         <ActivityList
-          onActivityPress={(a) => router.push(`/feed/edit/${a.activity._id}`)}
+          onActivityPress={(a) => {
+            switch (a.activity.activity.type) {
+              case ActivityType.Feed: {
+                router.push(`/feed/edit/${a.activity._id}`);
+                break;
+              }
+              case ActivityType.DiaperChange: {
+                router.push(`/diaper-change/edit/${a.activity._id}`);
+                break;
+              }
+              default: {
+                break;
+              }
+            }
+          }}
           activities={activities?.data || []}
         />
       </View>

@@ -1,6 +1,12 @@
 import { Text, View } from 'react-native';
 import AppNav from './AppNav';
-import { createContext, useCallback, useContext, useRef } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from 'react';
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 export interface PageProps {
@@ -14,6 +20,9 @@ export default function Page(props: PageProps) {
       value={{
         setBottomEl: useCallback((el) => {
           bottomElWrapperRef.current?.setEl(el);
+        }, []),
+        unsetBottomEl: useCallback(() => {
+          bottomElWrapperRef.current?.unsetEl();
         }, []),
         reset: useCallback(() => {
           bottomElWrapperRef.current?.reset();
@@ -59,6 +68,10 @@ class BottomElWrapper extends React.Component {
     this._bottomEl = el;
     this.setState({}); //re-render
   }
+  unsetEl() {
+    this._bottomEl = null;
+    this.setState({}); //re-render
+  }
   reset() {
     this._bottomEl = null;
     this.setState({});
@@ -73,12 +86,16 @@ class BottomElWrapper extends React.Component {
 
 interface PageContextState {
   setBottomEl: (bottomEl: React.ReactNode) => void;
+  unsetBottomEl: () => void;
   reset: () => void;
 }
 
 const pageContext = createContext<PageContextState>({
   setBottomEl: () => {
     throw new Error('must init page context before calling setBottomEl');
+  },
+  unsetBottomEl: () => {
+    throw new Error('must init page context before calling unsetBottomEl');
   },
   reset: () => {
     throw new Error('must init page context before calling reset');

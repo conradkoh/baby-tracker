@@ -33,7 +33,7 @@ export default defineSchema({
       v.object({
         timestamp: v.string(),
         type: v.literal('diaper_change'),
-        diaper_change: v.optional(
+        diaperChange: v.optional(
           v.object({
             type: v.union(
               v.literal('wet'),

@@ -9,7 +9,7 @@ import { ActivityType } from '@workspace/domain/entities/Activity';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { DateTime } from 'luxon';
 import { Text, TouchableOpacity, View } from 'react-native';
-export default function CreateFeedPage() {
+export default function EditFeedPage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;
   const activity = useQuery(api.activities.getById, { id: activityId });

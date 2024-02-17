@@ -6,7 +6,6 @@ import { useBranch } from '../storage/stores/branch';
 import { Text, View } from 'react-native';
 import { Conditional } from '../components/atoms/Condition';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ConvexClient } from 'convex/browser';
 
 const convexDev = () =>
   new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL_DEV!);
