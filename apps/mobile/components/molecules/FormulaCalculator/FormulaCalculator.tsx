@@ -6,17 +6,26 @@ export interface FormatCalculatorProps {
 }
 
 export const FormulaCalculator: FC<FormatCalculatorProps> = (props) => {
+  const volIncreasePerScoop = 10;
+  const waterMlPerScoop = 60;
+  const volIncreasePerMl =
+    volIncreasePerScoop / (volIncreasePerScoop + waterMlPerScoop);
   const estimate = calculateWaterVolumes({
     targetVolume: props.targetVolume,
     targetTemperatureCelsius: 47,
-    volumeIncreasePerML: 20 / 140,
+    volumeIncreasePerML: volIncreasePerMl,
     roomTempCelsius: 25,
   });
+  const totalVol = estimate.boilingWater + estimate.roomTempWater;
+  const milkPowderScoops = totalVol / waterMlPerScoop;
   return (
     <>
       <View className="items-start ">
         <Text className="text-lg font-bold">Formula Calculator</Text>
         <View className="w-full">
+          <Text>
+            No. of Scoops: {Math.ceil(milkPowderScoops * 100) / 100} scoops
+          </Text>
           <Text>
             Room Temp Water Vol: {Math.ceil(estimate.roomTempWater)} ml
           </Text>
