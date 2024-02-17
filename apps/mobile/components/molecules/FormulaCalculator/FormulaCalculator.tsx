@@ -29,7 +29,7 @@ export const FormulaCalculator: FC<FormatCalculatorProps> = (props) => {
           <Text>
             Room Temp Water Vol: {Math.ceil(estimate.roomTempWater)} ml
           </Text>
-          <Text>Boiling Water Vol: {Math.ceil(estimate.roomTempWater)} ml</Text>
+          <Text>Boiling Water Vol: {Math.ceil(estimate.boilingWater)} ml</Text>
         </View>
       </View>
     </>
