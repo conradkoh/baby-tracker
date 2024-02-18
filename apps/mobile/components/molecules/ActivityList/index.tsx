@@ -136,7 +136,7 @@ function ActivityItem(props: {
               </Conditional>
             </View>
             {/* Time Info */}
-            <View className="align-middle justify-center pr-2 ">
+            <View className="align-middle justify-center pr-3">
               <Text className="flex-wrap text-xs">
                 {formatTime(activityTimestamp)}
               </Text>
