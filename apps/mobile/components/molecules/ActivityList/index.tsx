@@ -122,13 +122,13 @@ function ActivityItem(props: {
         <View className="flex-col grow">
           <View className="flex-row grow">
             {/* Content next to the icon */}
-            <View className="flex-1">
-              <View className="flex-1 align-middle justify-center">
+            <View>
+              <View className="flex-1 w-20 align-middle justify-center">
                 <Text>{mainContent}</Text>
               </View>
             </View>
             {/* Sub Content */}
-            <View className="align-middle justify-center pr-2 ">
+            <View className="grow items-start justify-center px-2">
               <Conditional render={!!subContent}>
                 <SubInfo>
                   <Text className="text-xs">{subContent}</Text>
@@ -137,7 +137,9 @@ function ActivityItem(props: {
             </View>
             {/* Time Info */}
             <View className="align-middle justify-center pr-2 ">
-              <Text className="flex-wrap">{formatTime(activityTimestamp)}</Text>
+              <Text className="flex-wrap text-xs">
+                {formatTime(activityTimestamp)}
+              </Text>
             </View>
           </View>
           <View className="border-b border-blue-300" />
