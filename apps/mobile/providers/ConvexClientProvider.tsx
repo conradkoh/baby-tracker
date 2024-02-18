@@ -102,11 +102,9 @@ export function ConnectionStatus() {
   return (
     <Conditional render={conn.isReconnecting}>
       <View
-        className="bg-orange-100 pb-2 items-center"
-        style={{ paddingTop: inset.top }}
-      >
-        <Text>Reconnecting...</Text>
-      </View>
+        className="bg-orange-200 pb-2 items-center"
+        style={{ height: inset.top }}
+      ></View>
     </Conditional>
   );
 }
