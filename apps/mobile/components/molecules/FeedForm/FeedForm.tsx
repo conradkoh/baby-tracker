@@ -248,7 +248,9 @@ function CreateFeedButton({
   const page = usePage();
   useEffect(() => {
     page.setBottomEl(
-      <PrimaryButton disabled={disabled} onPress={onPress} title="Save" />
+      <View className="px-5">
+        <PrimaryButton disabled={disabled} onPress={onPress} title="Save" />
+      </View>
     );
     return () => page.reset();
   }, [disabled, onPress, page]);

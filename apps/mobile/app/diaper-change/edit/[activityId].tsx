@@ -11,6 +11,7 @@ import {
   DiaperChangeForm,
   DiaperChangeFormRef,
 } from '../../../components/molecules/DiaperChangeForm/DiaperChangeForm';
+import { diaperChangeFromLiteral } from '@workspace/domain/entities/DiaperChange';
 export default function EditDiaperChangePage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;
@@ -26,7 +27,7 @@ export default function EditDiaperChangePage() {
         return;
       }
       diaperChangeFormRef.current?.load({
-        type: diaperChange.type,
+        type: diaperChangeFromLiteral(diaperChange.type),
         timestamp: DateTime.fromISO(activity.activity.timestamp),
       });
     }

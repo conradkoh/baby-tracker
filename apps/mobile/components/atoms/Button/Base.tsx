@@ -1,7 +1,12 @@
 import React from 'react';
-import { Text, StyleSheet, Pressable, PressableProps } from 'react-native';
+import {
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableOpacityProps,
+} from 'react-native';
 export type BaseButtonProps = Pick<
-  PressableProps,
+  TouchableOpacityProps,
   'onPress' | 'style' | 'className' | 'disabled'
 > & {
   title: string;
@@ -9,14 +14,15 @@ export type BaseButtonProps = Pick<
 export default function BaseButton(props: BaseButtonProps) {
   const { style, onPress, title, disabled } = props;
   return (
-    <Pressable
+    <TouchableOpacity
       disabled={disabled}
       className={`w-full text-center items-center py-3 px-5 rounded`}
       onPress={onPress}
       style={style}
+      activeOpacity={0.8}
     >
       <Text style={styles.text}>{title}</Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

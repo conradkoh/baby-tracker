@@ -4,3 +4,9 @@ export enum DiaperChangeType {
   Mixed = 'mixed',
 }
 export type DiaperChangeTypeLiteral = `${DiaperChangeType}`;
+
+export function diaperChangeFromLiteral(
+  v: DiaperChangeTypeLiteral
+): DiaperChangeType {
+  return v as DiaperChangeType;
+}

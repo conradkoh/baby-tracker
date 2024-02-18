@@ -10,7 +10,7 @@ import React from 'react';
 import PrimaryButton from '../../atoms/Button/Primary';
 import { usePage } from '../../organisms/Page';
 import { Loader } from '../Loader';
-import { DiaperChangeTypeLiteral } from '@workspace/domain/entities/DiaperChange';
+import { DiaperChangeType } from '@workspace/domain/entities/DiaperChange';
 import { useDiaperChangeStore } from '../../../storage/stores/diaper-change-store';
 import DiaperChangeTypePicker from '../../atoms/DiaperChangeTypePicker/DiaperChangeTypePicker';
 interface DiaperChangeFormProps {
@@ -22,7 +22,7 @@ export interface DiaperChangeFormRef {
 }
 
 type DiaperChangeFormData = {
-  type: DiaperChangeTypeLiteral;
+  type: DiaperChangeType;
   timestamp: DateTime;
 };
 
@@ -119,7 +119,9 @@ function SaveButton({
   const page = usePage();
   useEffect(() => {
     page.setBottomEl(
-      <PrimaryButton disabled={disabled} onPress={onPress} title="Save" />
+      <View className="px-5">
+        <PrimaryButton disabled={disabled} onPress={onPress} title="Save" />
+      </View>
     );
     return () => page.unsetBottomEl();
   }, [disabled, onPress, page]);
