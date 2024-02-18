@@ -8,12 +8,12 @@ export interface FormatCalculatorProps {
 export const FormulaCalculator: FC<FormatCalculatorProps> = (props) => {
   const volIncreasePerScoop = 10;
   const waterMlPerScoop = 60;
-  const volIncreasePerMl =
-    volIncreasePerScoop / (volIncreasePerScoop + waterMlPerScoop);
+
   const estimate = calculateWaterVolumes({
     targetVolume: props.targetVolume,
     targetTemperatureCelsius: 47,
-    volumeIncreasePerML: volIncreasePerMl,
+    waterMLPerScoop: waterMlPerScoop,
+    volMLIncreasedPerScoop: volIncreasePerScoop,
     roomTempCelsius: 25,
   });
   const totalVol = estimate.boilingWater + estimate.roomTempWater;
@@ -24,34 +24,36 @@ export const FormulaCalculator: FC<FormatCalculatorProps> = (props) => {
         <Text className="text-lg font-bold">Formula Calculator</Text>
         <View className="w-full">
           <Text>
-            No. of Scoops: {Math.ceil(milkPowderScoops * 100) / 100} scoops
+            No. of Scoops: {Math.round(milkPowderScoops * 100) / 100} scoops
           </Text>
           <Text>
-            Room Temp Water Vol: {Math.ceil(estimate.roomTempWater)} ml
+            Room Temp Water Vol: {Math.round(estimate.roomTempWater)} ml
           </Text>
-          <Text>Boiling Water Vol: {Math.ceil(estimate.boilingWater)} ml</Text>
+          <Text>Boiling Water Vol: {Math.round(estimate.boilingWater)} ml</Text>
         </View>
       </View>
     </>
   );
 };
 export interface CalculateWaterVolumeParams {
-  targetVolume: number;
-  targetTemperatureCelsius: number;
-  volumeIncreasePerML: number;
-  roomTempCelsius: number;
+  targetVolume: number; //the final target volume
+  targetTemperatureCelsius: number; //the target temperature
+  volMLIncreasedPerScoop: number; //volume added by each scoop of powder
+  waterMLPerScoop: number; //the amount of water to be added for each scoop of powder
+  roomTempCelsius: number; //room temperature in celsius
 }
 export function calculateWaterVolumes(props: CalculateWaterVolumeParams): {
   roomTempWater: number;
   boilingWater: number;
 } {
   // Constants for water temperatures
-  // const roomTemp = 25; // Assuming room temperature is 25°C
   const boilingTemp = 100; // Boiling temperature of water
 
   // Calculate the initial volume of water needed before adding milk powder
-  const initialWaterVolume =
-    props.targetVolume / (1 + props.volumeIncreasePerML);
+  const fr =
+    props.waterMLPerScoop /
+    (props.volMLIncreasedPerScoop + props.waterMLPerScoop);
+  const initialWaterVolume = props.targetVolume * fr;
 
   // Using the formula (m1*c1 + m2*c2) / (m1 + m2) = targetTemperature
   // where m1 and m2 are the masses (volumes, in this case) of the two water temperatures,
