@@ -33,15 +33,13 @@ export default defineSchema({
       v.object({
         timestamp: v.string(),
         type: v.literal('diaper_change'),
-        diaperChange: v.optional(
-          v.object({
-            type: v.union(
-              v.literal('wet'),
-              v.literal('dirty'),
-              v.literal('mixed')
-            ),
-          })
-        ),
+        diaperChange: v.object({
+          type: v.union(
+            v.literal('wet'),
+            v.literal('dirty'),
+            v.literal('mixed')
+          ),
+        }),
       })
     ),
   })

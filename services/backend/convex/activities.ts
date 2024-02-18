@@ -38,15 +38,13 @@ export const create = mutation({
       v.object({
         timestamp: v.string(),
         type: v.literal('diaper_change'),
-        diaperChange: v.optional(
-          v.object({
-            type: v.union(
-              v.literal('wet'),
-              v.literal('dirty'),
-              v.literal('mixed')
-            ),
-          })
-        ),
+        diaperChange: v.object({
+          type: v.union(
+            v.literal('wet'),
+            v.literal('dirty'),
+            v.literal('mixed')
+          ),
+        }),
       })
     ),
   },
@@ -109,15 +107,13 @@ export const update = mutation({
       v.object({
         timestamp: v.string(),
         type: v.literal('diaper_change'),
-        diaperChange: v.optional(
-          v.object({
-            type: v.union(
-              v.literal('wet'),
-              v.literal('dirty'),
-              v.literal('mixed')
-            ),
-          })
-        ),
+        diaperChange: v.object({
+          type: v.union(
+            v.literal('wet'),
+            v.literal('dirty'),
+            v.literal('mixed')
+          ),
+        }),
       })
     ),
   },

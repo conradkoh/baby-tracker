@@ -2,14 +2,12 @@ import { FlashList } from '@shopify/flash-list';
 import { Activity, ActivityType } from '@workspace/backend/convex/activities';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { DateTime, Duration } from 'luxon';
-import { timeAgo } from '../../../lib/time/timeAgo';
 import { useCurrentDateTime } from '../../../lib/time/useCurrentDateTime';
-import { formatDateTime, formatTime } from '../../../lib/time/format';
+import { formatTime } from '../../../lib/time/format';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { Conditional } from '../../atoms/Condition';
 import { FC, useMemo } from 'react';
 import {
-  ActivityListViewableItem,
   ActivityListViewableItemType,
   viewModelFromActivities,
 } from './ActivityListViewModel';
@@ -73,6 +71,43 @@ function ActivityItem(props: {
       break;
     }
   }
+  const { mainContent, subContent } = useMemo(() => {
+    let mainContent = '';
+    let subContent = '';
+    switch (activity.activity.type) {
+      case ActivityType.Feed: {
+        const feed = activity.activity.feed;
+        mainContent = `${toPascalCase(feed.type)}`;
+        switch (feed.type) {
+          case FeedType.Latch: {
+            const duration = Duration.fromObject({
+              seconds:
+                (feed.duration.left?.seconds || 0) +
+                (feed.duration.right?.seconds || 0),
+            });
+
+            subContent =
+              duration.normalize().toFormat('m') == '1'
+                ? `${duration.toFormat("m 'min'")}`
+                : `${duration.toFormat("m 'mins'")}`;
+            break;
+          }
+          case FeedType.Expressed:
+          case FeedType.Formula: {
+            subContent = `${feed.volume.ml} ml`;
+            break;
+          }
+        }
+        break;
+      }
+      case ActivityType.DiaperChange: {
+        const diaperChange = activity.activity.diaperChange;
+        mainContent = `${toPascalCase(diaperChange.type)}`;
+        break;
+      }
+    }
+    return { mainContent, subContent };
+  }, [activity.activity]);
   return (
     <TouchableOpacity
       onPress={() => props.onPress({ activity: props.activity })}
@@ -89,17 +124,16 @@ function ActivityItem(props: {
             {/* Content next to the icon */}
             <View className="flex-1">
               <View className="flex-1 align-middle justify-center">
-                <Conditional
-                  render={activity.activity.type === ActivityType.Feed}
-                >
-                  <FeedDetails activity={activity} />
-                </Conditional>
-                <Conditional
-                  render={activity.activity.type === ActivityType.DiaperChange}
-                >
-                  <DiaperChangeDetails activity={activity} />
-                </Conditional>
+                <Text>{mainContent}</Text>
               </View>
+            </View>
+            {/* Sub Content */}
+            <View className="align-middle justify-center pr-2 ">
+              <Conditional render={!!subContent}>
+                <SubInfo>
+                  <Text className="text-xs">{subContent}</Text>
+                </SubInfo>
+              </Conditional>
             </View>
             {/* Time Info */}
             <View className="align-middle justify-center pr-2 ">
@@ -111,63 +145,6 @@ function ActivityItem(props: {
       </View>
     </TouchableOpacity>
   );
-}
-
-function FeedDetails(props: {
-  className?: string;
-  style?: any;
-  activity: Activity;
-}) {
-  const { activity } = props;
-  let mainContent = '';
-  let subContent = '';
-  if (activity.activity.type === ActivityType.Feed && activity.activity.feed) {
-    const feed = activity.activity.feed;
-    mainContent = `${toPascalCase(feed.type)}`;
-    switch (feed.type) {
-      case FeedType.Latch: {
-        const duration = Duration.fromObject({
-          seconds:
-            (feed.duration.left?.seconds || 0) +
-            (feed.duration.right?.seconds || 0),
-        });
-        subContent = `${duration.toFormat("m 'mins'")}`;
-        break;
-      }
-      case FeedType.Expressed:
-      case FeedType.Formula: {
-        subContent = `${feed.volume.ml} ml`;
-        break;
-      }
-    }
-  }
-  return (
-    <View className="flex-row align-middle items-center">
-      <View>
-        <Text style={props.style}>{`${mainContent}`}</Text>
-      </View>
-      <View className="mx-2">
-        <SubInfo>
-          <Text className="text-xs">{subContent}</Text>
-        </SubInfo>
-      </View>
-    </View>
-  );
-
-  return <></>;
-}
-
-function DiaperChangeDetails(props: { activity: Activity }) {
-  const { activity } = props;
-  if (
-    activity.activity.type === ActivityType.DiaperChange &&
-    activity.activity.diaperChange
-  ) {
-    const diaperChange = activity.activity.diaperChange;
-
-    return <Text>{`${toPascalCase(diaperChange.type)}`}</Text>;
-  }
-  return <></>;
 }
 
 const SubInfo: FC<{
