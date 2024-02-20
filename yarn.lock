@@ -4233,10 +4233,10 @@ convex@^1.8.0:
     jwt-decode "^3.1.2"
     node-fetch "^2.6.1"
 
-convex@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/convex/-/convex-1.9.0.tgz#01bfe4cd29a356546e30201a53a3b213e18ad03a"
-  integrity sha512-ORaiHNmzofLUui6hVnFRVwjFh4fnWU3hpneyru0C49bLYc4s1UVC/+s3fIaXYnpKoWj+snspaHOteRuV6eF5uA==
+convex@^1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/convex/-/convex-1.9.1.tgz#489bb13732d9cd34ed3f78c14503de58a6dc88e2"
+  integrity sha512-OhO/rMSuHy3Y30zDI9XGfJrnqspp+1R+OpX9Bb2cD/k+O59kz4jKvNPvtOzVAyi3w3DTUMcdhBY1WFl3SOBjOQ==
   dependencies:
     esbuild "^0.17.5"
     jwt-decode "^3.1.2"
