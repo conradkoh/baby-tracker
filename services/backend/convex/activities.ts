@@ -179,17 +179,12 @@ export const getByTimestampDesc = query({
 });
 export const getByTimestampDescPaginated = query({
   args: {
-    fromTs: v.string(),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const fromTs = DateTime.fromISO(args.fromTs);
     const activitiesPaginatedResult = await ctx.db
       .query('activities')
       .withIndex('by_timestamp')
-      .filter((v) =>
-        v.and(v.gte(v.field('activity.timestamp'), fromTs.toISO()))
-      )
       .order('desc')
       .paginate(args.paginationOpts);
 

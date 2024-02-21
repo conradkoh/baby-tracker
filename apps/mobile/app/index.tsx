@@ -17,18 +17,13 @@ import { Conditional } from '../components/atoms/Condition';
 import { withReloadOnReconnect } from '../providers/ConvexClientProvider';
 
 function AppIndexPage() {
-  const [tsRange, setTsRange] = useState<{ fromTs: string; toTs: string }>(
-    defaultDateRange()
-  );
   const {
     results: activities,
     status,
     loadMore,
   } = usePaginatedQuery(
     api.activities.getByTimestampDescPaginated,
-    {
-      fromTs: tsRange.fromTs,
-    },
+    {},
     { initialNumItems: 10 }
   );
   const curDate = useCurrentDateTime();
