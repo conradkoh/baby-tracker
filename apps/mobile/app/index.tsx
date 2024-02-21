@@ -1,5 +1,5 @@
 import { Platform, Text, View } from 'react-native';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
 import AppNav from '../components/organisms/AppNav';
 import Page, { withPage } from '../components/organisms/Page';
 import { useActivities } from '../providers/AppDataProvider';
@@ -20,11 +20,19 @@ function AppIndexPage() {
   const [tsRange, setTsRange] = useState<{ fromTs: string; toTs: string }>(
     defaultDateRange()
   );
-  const activities = useQuery(api.activities.getByTimestampDesc, {
-    fromTs: tsRange.fromTs,
-  });
+  const {
+    results: activities,
+    status,
+    loadMore,
+  } = usePaginatedQuery(
+    api.activities.getByTimestampDescPaginated,
+    {
+      fromTs: tsRange.fromTs,
+    },
+    { initialNumItems: 10 }
+  );
   const curDate = useCurrentDateTime();
-  const lastFeedTimestamp = activities?.data?.find(
+  const lastFeedTimestamp = activities?.find(
     (v) =>
       v.activity.type === ActivityType.Feed &&
       DateTime.fromISO(v.activity.timestamp).toMillis() <= curDate.toMillis()
@@ -48,7 +56,7 @@ function AppIndexPage() {
     const last24HourFeedsWithVol: {
       activity: { dateTime: DateTime; feed: { volume: { ml: number } } };
     }[] = [];
-    for (const f of activities.data) {
+    for (const f of activities) {
       if (
         f.activity.type === ActivityType.Feed &&
         f.activity.feed.type !== FeedType.Latch &&
@@ -139,7 +147,10 @@ function AppIndexPage() {
               }
             }
           }}
-          activities={activities?.data || []}
+          activities={activities || []}
+          loadMore={() => {
+            loadMore(7);
+          }}
         />
       </View>
     </Loader>

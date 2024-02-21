@@ -16,6 +16,7 @@ import { toPascalCase } from '../../../lib/string/string';
 interface ActivityListProps {
   activities: Activity[];
   onActivityPress: (e: { activity: Activity }) => void;
+  loadMore: () => void;
 }
 
 export function ActivityList(props: ActivityListProps) {
@@ -44,6 +45,8 @@ export function ActivityList(props: ActivityListProps) {
           );
         }}
         estimatedItemSize={200}
+        onEndReached={props.loadMore}
+        onEndReachedThreshold={0.2}
       />
     </View>
   );

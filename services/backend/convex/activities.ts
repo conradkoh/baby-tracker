@@ -2,6 +2,7 @@ import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { Doc } from '../convex/_generated/dataModel';
 import { DateTime } from 'luxon';
+import { paginationOptsValidator } from 'convex/server';
 export type Activity = Doc<'activities'>;
 export enum ActivityType {
   Feed = 'feed',
@@ -174,6 +175,25 @@ export const getByTimestampDesc = query({
       data: activities,
       fromTs: args.fromTs,
     };
+  },
+});
+export const getByTimestampDescPaginated = query({
+  args: {
+    fromTs: v.string(),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const fromTs = DateTime.fromISO(args.fromTs);
+    const activitiesPaginatedResult = await ctx.db
+      .query('activities')
+      .withIndex('by_timestamp')
+      .filter((v) =>
+        v.and(v.gte(v.field('activity.timestamp'), fromTs.toISO()))
+      )
+      .order('desc')
+      .paginate(args.paginationOpts);
+
+    return activitiesPaginatedResult;
   },
 });
 export const count = query({
