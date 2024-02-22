@@ -47,7 +47,6 @@ export const sync = mutation({
       device = await createNewDevice(); //create if no id
     } else {
       const prevDeviceState = await getDeviceById(args.deviceId);
-      console.log({ args, prevDeviceState });
       if (!prevDeviceState) {
         device = await createNewDevice(); //create if not found
       } else {
