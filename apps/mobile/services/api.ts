@@ -9,10 +9,8 @@ export { api } from '@workspace/backend/convex/_generated/api';
  * @param args
  * @returns
  */
-export function useActivitiesPaginated(args: { fromTs: DateTime }) {
+export function useActivitiesPaginated(args: { fromTs: DateTime<true> }) {
   const fromTs = args.fromTs.toISO();
-  if (fromTs === null)
-    throw new Error('useActivitiesPaginated received an invalid date');
   //1. get data using useQuery with stable inputs to hit cache
   const activities = useQuery(api.activities.getByTimestampDesc, { fromTs });
 
