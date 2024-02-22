@@ -1,4 +1,4 @@
-import { mutation, query } from './_generated/server';
+import { action, mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { Doc } from '../convex/_generated/dataModel';
 import { DateTime } from 'luxon';
@@ -156,35 +156,32 @@ export const getById = query({
   },
 });
 
+//WARNING: queries should not use the luxon date time library, because it can result in the cache always being invalidated.
+//This is due to how convex determines when a query can be cached. If a query uses the date constructor, it cannot be cached.
 export const getByTimestampDesc = query({
   args: {
     fromTs: v.string(),
   },
   handler: async (ctx, args) => {
-    const fromTs = DateTime.fromISO(args.fromTs);
     const activities = await ctx.db
       .query('activities')
       .withIndex('by_timestamp')
-      .filter((v) =>
-        v.and(v.gte(v.field('activity.timestamp'), fromTs.toISO()))
-      )
+      .filter((v) => v.and(v.gte(v.field('activity.timestamp'), args.fromTs)))
       .order('desc')
       .collect();
-
-    return {
-      data: activities,
-      fromTs: args.fromTs,
-    };
+    return activities;
   },
 });
 export const getByTimestampDescPaginated = query({
   args: {
+    strictBeforeTs: v.string(),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
     const activitiesPaginatedResult = await ctx.db
       .query('activities')
       .withIndex('by_timestamp')
+      .filter((v) => v.lt(v.field('activity.timestamp'), args.strictBeforeTs))
       .order('desc')
       .paginate(args.paginationOpts);
 

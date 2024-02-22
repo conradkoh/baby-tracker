@@ -1,14 +1,14 @@
-import { Platform, Text, View } from 'react-native';
-import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
+import { Text, View } from 'react-native';
+import { usePaginatedQuery, useQuery } from 'convex/react';
 import AppNav from '../components/organisms/AppNav';
 import Page, { withPage } from '../components/organisms/Page';
-import { useActivities } from '../providers/AppDataProvider';
-import { api } from '../services/api';
+import {} from '../providers/AppDataProvider';
+import { api, useActivitiesPaginated } from '../services/api';
 import { ActivityList } from '../components/molecules/ActivityList';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { DateTime } from 'luxon';
 import { ActivityType } from '@workspace/backend/convex/activities';
-import { Format, timeAgo } from '../lib/time/timeAgo';
+import { timeAgo } from '../lib/time/timeAgo';
 import { useCurrentDateTime } from '../lib/time/useCurrentDateTime';
 import { router } from 'expo-router';
 import { Loader } from '../components/molecules/Loader';
@@ -17,15 +17,10 @@ import { Conditional } from '../components/atoms/Condition';
 import { withReloadOnReconnect } from '../providers/ConvexClientProvider';
 
 function AppIndexPage() {
-  const {
-    results: activities,
-    status,
-    loadMore,
-  } = usePaginatedQuery(
-    api.activities.getByTimestampDescPaginated,
-    {},
-    { initialNumItems: 10 }
-  );
+  const fromTs = useMemo(() => {
+    return DateTime.now().minus({ days: 7 }).startOf('day');
+  }, []);
+  const { results: activities, loadMore } = useActivitiesPaginated({ fromTs });
   const curDate = useCurrentDateTime();
   const lastFeedTimestamp = activities?.find(
     (v) =>
@@ -144,7 +139,7 @@ function AppIndexPage() {
           }}
           activities={activities || []}
           loadMore={() => {
-            loadMore(7);
+            loadMore(5);
           }}
         />
       </View>
@@ -152,13 +147,6 @@ function AppIndexPage() {
   );
 }
 
-function defaultDateRange() {
-  const curDate = DateTime.now();
-  return {
-    fromTs: curDate.minus({ days: 7 }).toUTC().toISO(),
-    toTs: curDate.toUTC().toISO(),
-  };
-}
 export default withPage(
   { title: 'Baby Tracker' }, //this ensures that the reload only happens to the page contents, and does not affect the static content
   withReloadOnReconnect(AppIndexPage)

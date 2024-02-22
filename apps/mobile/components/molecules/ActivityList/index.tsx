@@ -46,7 +46,7 @@ export function ActivityList(props: ActivityListProps) {
         }}
         estimatedItemSize={200}
         onEndReached={props.loadMore}
-        onEndReachedThreshold={0.2}
+        onEndReachedThreshold={0.5}
       />
     </View>
   );
