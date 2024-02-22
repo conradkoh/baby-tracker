@@ -8,15 +8,18 @@ export function useActivitiesPaginated(args: { fromTs: DateTime }) {
   const fromTs = args.fromTs.toISO();
   if (fromTs === null)
     throw new Error('useActivitiesPaginated received an invalid date');
-  //use the useQuery hook to ensure that the input parameters are stable, since usePaginatedQuery busts the cache always
+  //1. get data using useQuery with stable inputs to hit cache
   const activities = useQuery(api.activities.getByTimestampDesc, { fromTs });
+
+  //2. load paginated query to for additional data
   const { results: moreActivities, loadMore } = usePaginatedQuery(
     api.activities.getByTimestampDescPaginated,
     { strictBeforeTs: fromTs },
-    { initialNumItems: 1 } //ideally we can set this number to 0 but convex does not allow this.
+    { initialNumItems: 1 } //should be 0, but set as 1 because convex does not allow 0
   );
+
+  //3. combine the lists to make this transparent to users
   const activityList = useMemo(() => {
-    //combine the lists
     return [...(activities || []), ...moreActivities];
   }, [activities, moreActivities]);
   return {
