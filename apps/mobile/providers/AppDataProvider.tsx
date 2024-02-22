@@ -26,7 +26,7 @@ const deviceInfo = Object.freeze({
 const appDataContext = createContext<AppContextData>({
   device: null,
   resetDevice: () => {
-    throw new Error('app data context not intialized.');
+    throw new Error('app data context not initialized.');
   },
 });
 export default function AppDataProvider({
