@@ -17,6 +17,7 @@ export default function SettingsPage() {
         <View className="pt-2">
           <Text>Env: {env.value}</Text>
           <Text>Device ID: {deviceInfo.device?._id}</Text>
+          <Text>Device Name: {deviceInfo.device?.deviceName}</Text>
         </View>
         <View className="pt-2">
           <Text>Branch</Text>
