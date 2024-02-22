@@ -2,8 +2,13 @@ import { api } from '@workspace/backend/convex/_generated/api';
 import { useQuery, usePaginatedQuery } from 'convex/react';
 import { DateTime } from 'luxon';
 import { useMemo } from 'react';
-
 export { api } from '@workspace/backend/convex/_generated/api';
+
+/**
+ * Use activities with pagination for infinite scroll
+ * @param args
+ * @returns
+ */
 export function useActivitiesPaginated(args: { fromTs: DateTime }) {
   const fromTs = args.fromTs.toISO();
   if (fromTs === null)
