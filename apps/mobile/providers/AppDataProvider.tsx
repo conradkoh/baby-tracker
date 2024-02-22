@@ -1,5 +1,12 @@
 import { useMutation, useQuery } from 'convex/react';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Doc, api } from '../services/api';
 import { useDeviceInfoStore } from '../storage/stores/device';
 import { Id } from '@workspace/backend/convex/_generated/dataModel';
@@ -7,7 +14,10 @@ import { deviceName, osName, osVersion } from 'expo-device';
 import { deepEqual } from 'expo-router/build/fork/getPathFromState';
 
 type Device = Doc<'device'>;
-type AppContextData = { device: Device | null };
+type AppContextData = {
+  device: Device | null;
+  resetDevice: () => Promise<void>;
+};
 const deviceInfo = Object.freeze({
   osVersion: osVersion || undefined,
   osName: osName || undefined,
@@ -15,6 +25,9 @@ const deviceInfo = Object.freeze({
 });
 const appDataContext = createContext<AppContextData>({
   device: null,
+  resetDevice: () => {
+    throw new Error('app data context not intialized.');
+  },
 });
 export default function AppDataProvider({
   children,
@@ -23,6 +36,12 @@ export default function AppDataProvider({
 }) {
   const syncDevice = useMutation(api.device.sync);
   const { device: device, setDevice } = useDeviceInfoStore();
+  const resetDevice = useCallback(async () => {
+    const nextDevice = await syncDevice({
+      ...deviceInfo,
+    });
+    setDevice(nextDevice);
+  }, [setDevice, syncDevice]);
   useEffect(() => {
     (async () => {
       const nextDevice = await syncDevice({
@@ -35,10 +54,18 @@ export default function AppDataProvider({
       return () => {};
     })();
   }, [device, setDevice, syncDevice]);
-  const appState = useMemo(() => ({ device: device }), [device]);
+  const appState = useMemo(
+    () => ({ device: device, resetDevice }),
+    [device, resetDevice]
+  );
   return (
     <appDataContext.Provider value={appState}>
       {children}
     </appDataContext.Provider>
   );
+}
+
+export function useDeviceInfo() {
+  const ctx = useContext(appDataContext);
+  return ctx;
 }
