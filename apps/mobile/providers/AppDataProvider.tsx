@@ -11,7 +11,7 @@ import { Doc, api } from '../services/api';
 import { useDeviceInfoStore } from '../storage/stores/device';
 import { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { deviceName, osName, osVersion } from 'expo-device';
-import { deepEqual } from 'expo-router/build/fork/getPathFromState';
+import { isEqual } from 'lodash';
 
 type Device = Doc<'device'>;
 type AppContextData = {
@@ -45,7 +45,7 @@ export default function AppDataProvider({
         deviceId: device?._id,
         ...deviceInfo,
       });
-      if (!nextDevice || !device || !deepEqual(nextDevice, device)) {
+      if (!isEqual(nextDevice, device)) {
         setDevice(nextDevice); //update device state if the params have changed
       }
     })();
