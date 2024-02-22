@@ -1,36 +1,44 @@
-import { useQuery } from 'convex/react';
-import { createContext, useContext } from 'react';
-import { api } from '../services/api';
+import { useMutation, useQuery } from 'convex/react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { Doc, api } from '../services/api';
+import { useDeviceInfoStore } from '../storage/stores/device';
+import { Id } from '@workspace/backend/convex/_generated/dataModel';
+import { deviceName, osName, osVersion } from 'expo-device';
+import { deepEqual } from 'expo-router/build/fork/getPathFromState';
 
-const appDataContext = createContext<{ activities: Activities }>({
-  activities: undefined,
+type Device = Doc<'device'>;
+type AppContextData = { device: Device | null };
+const deviceInfo = Object.freeze({
+  osVersion: osVersion || undefined,
+  osName: osName || undefined,
+  deviceName: deviceName || undefined,
+});
+const appDataContext = createContext<AppContextData>({
+  device: null,
 });
 export default function AppDataProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const activities = useServerActivities();
+  const syncDevice = useMutation(api.device.sync);
+  const { device: device, setDevice } = useDeviceInfoStore();
+  useEffect(() => {
+    (async () => {
+      const nextDevice = await syncDevice({
+        deviceId: device?._id,
+        ...deviceInfo,
+      });
+      if (!deepEqual(nextDevice, device)) {
+        setDevice(nextDevice); //update device state if the params have changed
+      }
+      return () => {};
+    })();
+  }, [device, setDevice, syncDevice]);
+  const appState = useMemo(() => ({ device: device }), [device]);
   return (
-    <appDataContext.Provider value={{ activities }}>
+    <appDataContext.Provider value={appState}>
       {children}
     </appDataContext.Provider>
   );
 }
-/**
- * Client centric state hook
- * @returns
- */
-export function useActivities() {
-  const ctx = useContext(appDataContext);
-  return ctx.activities;
-}
-/**
- * Server centric state hook
- * @returns
- */
-function useServerActivities() {
-  return useQuery(api.activities.get);
-}
-
-type Activities = ReturnType<typeof useServerActivities>;

@@ -45,4 +45,22 @@ export default defineSchema({
   })
     .index('by_timestamp', ['activity.timestamp'])
     .index('by_type', ['activity.type']),
+  //TABLE: DEVICE
+  device: defineTable({
+    familyId: v.optional(v.id('family')),
+    deviceName: v.optional(v.string()),
+    osName: v.optional(v.string()),
+    osVersion: v.optional(v.string()),
+    brand: v.optional(v.string()),
+  }),
+  //TABLE: FAMILY
+  family: defineTable({
+    children: v.array(
+      v.object({
+        iid: v.string(),
+        name: v.string(),
+        dateOfBirth: v.string(), //YYYY-MM-DD
+      })
+    ),
+  }),
 });

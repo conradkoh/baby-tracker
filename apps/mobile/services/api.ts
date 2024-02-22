@@ -3,6 +3,7 @@ import { useQuery, usePaginatedQuery } from 'convex/react';
 import { DateTime } from 'luxon';
 import { useMemo } from 'react';
 export { api } from '@workspace/backend/convex/_generated/api';
+export type { Doc } from '@workspace/backend/convex/_generated/dataModel';
 
 /**
  * Use activities with pagination for infinite scroll
