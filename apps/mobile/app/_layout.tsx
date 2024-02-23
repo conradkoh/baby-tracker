@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { View, Alert } from 'react-native';
+import { View, Alert, Text } from 'react-native';
 import {
   ConnectionStatus,
   withConvex,
@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { useEnv } from '../lib/env/useEnv';
 import { useAppState } from '../lib/platform/useAppState';
 import { SafeAreaView } from 'react-native';
+import { ErrorBoundary } from '../components/atoms/ErrorBoundary';
 function RootLayout() {
   const env = useEnv();
   async function onFetchUpdateAsync() {
@@ -73,4 +74,22 @@ function RootLayout() {
 NativeWindStyleSheet.setOutput({
   default: 'native',
 });
-export default withConvex(RootLayout);
+
+function withErrorBoundary(Component: React.FC) {
+  return function ExpoUpdateWrapper() {
+    return (
+      <ErrorBoundary
+        fallback={
+          <SafeAreaView className="bg-blue-200 grow">
+            <View className="p-2 self-center">
+              <Text>Oops, an error has occurred</Text>
+            </View>
+          </SafeAreaView>
+        }
+      >
+        <Component />
+      </ErrorBoundary>
+    );
+  };
+}
+export default withErrorBoundary(withConvex(RootLayout));
