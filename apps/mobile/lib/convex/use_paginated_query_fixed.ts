@@ -119,7 +119,16 @@ const completeSplitQuery =
       ongoingSplits,
     };
   };
-
+function generateIDFromSharingKey(sharingKey: string): number {
+  let hash = 0;
+  if (sharingKey.length === 0) return hash;
+  for (let i = 0; i < sharingKey.length; i++) {
+    const char = sharingKey.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+}
 /**
  * Load data reactively from a paginated query to a create a growing list.
  *
@@ -160,7 +169,7 @@ const completeSplitQuery =
 export function usePaginatedQuery<Query extends PaginatedQueryReference>(
   query: Query,
   args: PaginatedQueryArgs<Query> | 'skip',
-  options: { initialNumItems: number }
+  options: { initialNumItems: number; sharingKey?: string }
 ): UsePaginatedQueryReturnType<Query> {
   if (
     typeof options?.initialNumItems !== 'number' ||
@@ -175,7 +184,10 @@ export function usePaginatedQuery<Query extends PaginatedQueryReference>(
   const queryName = getFunctionName(query);
   const createInitialState = useMemo(() => {
     return () => {
-      const id = nextPaginationId();
+      const id =
+        options.sharingKey == null
+          ? 0
+          : generateIDFromSharingKey(options.sharingKey); //generate the ID from the sharing key - pages that wish to hit the same cache can provide the same sharing key
       return {
         query,
         args: argsObject as Record<string, Value>,

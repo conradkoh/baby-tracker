@@ -195,3 +195,18 @@ export const count = query({
     return activities.length;
   },
 });
+
+export const expGetByTimestampDescPaginated = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const activitiesPaginatedResult = await ctx.db
+      .query('activities')
+      .withIndex('by_timestamp')
+      .order('desc')
+      .paginate(args.paginationOpts);
+
+    return activitiesPaginatedResult;
+  },
+});

@@ -1,7 +1,6 @@
 import { api } from '@workspace/backend/convex/_generated/api';
-import { useQuery, usePaginatedQuery } from 'convex/react';
 import { DateTime } from 'luxon';
-import { useMemo } from 'react';
+import { usePaginatedQuery } from '../lib/convex/use_paginated_query_fixed';
 export { api } from '@workspace/backend/convex/_generated/api';
 export type { Doc } from '@workspace/backend/convex/_generated/dataModel';
 
@@ -11,23 +10,13 @@ export type { Doc } from '@workspace/backend/convex/_generated/dataModel';
  * @returns
  */
 export function useActivitiesPaginated(args: { fromTs: DateTime<true> }) {
-  const fromTs = args.fromTs.toISO();
-  //1. get data using useQuery with stable inputs to hit cache
-  const activities = useQuery(api.activities.getByTimestampDesc, { fromTs });
-
-  //2. load paginated query to for additional data
-  const { results: moreActivities, loadMore } = usePaginatedQuery(
-    api.activities.getByTimestampDescPaginated,
-    { strictBeforeTs: fromTs },
-    { initialNumItems: 1 } //should be 0, but set as 1 because convex does not allow 0
+  const { results: activities, loadMore } = usePaginatedQuery(
+    api.activities.expGetByTimestampDescPaginated,
+    {},
+    { initialNumItems: 10, sharingKey: 'app-index' }
   );
-
-  //3. combine the lists to make this transparent to users
-  const activityList = useMemo(() => {
-    return [...(activities || []), ...moreActivities];
-  }, [activities, moreActivities]);
   return {
-    results: activityList,
+    results: activities,
     loadMore,
   };
 }
