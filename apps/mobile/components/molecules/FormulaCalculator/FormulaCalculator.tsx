@@ -27,6 +27,10 @@ export const FormulaCalculator: FC<FormatCalculatorProps> = (props) => {
             No. of Scoops: {Math.round(milkPowderScoops * 100) / 100} scoops
           </Text>
           <Text>
+            Total Water Vol:{' '}
+            {Math.round(estimate.roomTempWater + estimate.boilingWater)} ml
+          </Text>
+          <Text>
             Room Temp Water Vol: {Math.round(estimate.roomTempWater)} ml
           </Text>
           <Text>Boiling Water Vol: {Math.round(estimate.boilingWater)} ml</Text>
