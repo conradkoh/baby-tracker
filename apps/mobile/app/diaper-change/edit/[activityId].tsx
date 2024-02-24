@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { api } from '../../../services/api';
 import { useEffect, useRef } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -12,6 +12,7 @@ import {
   DiaperChangeFormRef,
 } from '../../../components/molecules/DiaperChangeForm/DiaperChangeForm';
 import { diaperChangeFromLiteral } from '@workspace/domain/entities/DiaperChange';
+import { useQuery } from '../../../lib/convex/use_query_swr';
 export default function EditDiaperChangePage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;

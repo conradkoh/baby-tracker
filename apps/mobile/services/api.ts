@@ -1,6 +1,6 @@
 import { api } from '@workspace/backend/convex/_generated/api';
 import { DateTime } from 'luxon';
-import { usePaginatedQuery } from '../lib/convex/use_paginated_query_fixed';
+import { usePaginatedQuery } from '../lib/convex/use_query_swr';
 export { api } from '@workspace/backend/convex/_generated/api';
 export type { Doc } from '@workspace/backend/convex/_generated/dataModel';
 
@@ -13,8 +13,9 @@ export function useActivitiesPaginated(args: { fromTs: DateTime<true> }) {
   const { results: activities, loadMore } = usePaginatedQuery(
     api.activities.expGetByTimestampDescPaginated,
     {},
-    { initialNumItems: 10, sharingKey: 'app-index' }
+    { initialNumItems: 20, sharingKey: 'app-index' }
   );
+
   return {
     results: activities,
     loadMore,
