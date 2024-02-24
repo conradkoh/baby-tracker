@@ -16,7 +16,7 @@ export default function SettingsPage() {
       <View className="p-2 grow ">
         <View className="pt-2">
           <Text>Env: {env.value}</Text>
-          <Text>Device ID: {deviceInfo.device?._id}</Text>
+          <Text>Device ID: {deviceInfo.device?.deviceId}</Text>
           <Text>Device Name: {deviceInfo.device?.deviceName}</Text>
         </View>
         <View className="pt-2">

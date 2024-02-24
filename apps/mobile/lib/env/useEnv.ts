@@ -1,6 +1,7 @@
 export function useEnv() {
+  const env = process.env.NODE_ENV || 'production';
   return {
-    value: process.env.NODE_ENV,
-    isDev: () => process.env.NODE_ENV === 'development',
+    value: env,
+    isDev: () => env === 'development',
   };
 }

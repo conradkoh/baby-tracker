@@ -35,14 +35,19 @@ export default function AppDataProvider({
   children: React.ReactNode;
 }) {
   const syncDevice = useMutation(api.device.sync);
-  const { device: device, setDevice, clearDevice } = useDeviceInfoStore();
+  const {
+    deviceId,
+    device: device,
+    setDevice,
+    clearDevice,
+  } = useDeviceInfoStore();
   const resetDevice = useCallback(async () => {
     clearDevice();
   }, [clearDevice]);
   useEffect(() => {
     (async () => {
       const nextDevice = await syncDevice({
-        deviceId: device?._id,
+        deviceId,
         ...deviceInfo,
       });
       if (!isEqual(nextDevice, device)) {
@@ -50,7 +55,7 @@ export default function AppDataProvider({
       }
     })();
     return () => {};
-  }, [device, setDevice, syncDevice]);
+  }, [device, deviceId, setDevice, syncDevice]);
   const appState = useMemo(
     () => ({ device: device, resetDevice }),
     [device, resetDevice]

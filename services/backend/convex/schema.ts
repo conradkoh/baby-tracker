@@ -48,11 +48,12 @@ export default defineSchema({
   //TABLE: DEVICE
   device: defineTable({
     familyId: v.optional(v.id('family')),
+    deviceId: v.string(),
     deviceName: v.optional(v.string()),
     osName: v.optional(v.string()),
     osVersion: v.optional(v.string()),
     brand: v.optional(v.string()),
-  }),
+  }).index('by_deviceId', ['deviceId']),
   //TABLE: FAMILY
   family: defineTable({
     children: v.array(

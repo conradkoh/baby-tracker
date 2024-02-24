@@ -3,26 +3,28 @@ import { action, mutation, query } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
 export const sync = mutation({
   args: {
-    deviceId: v.optional(v.id('device')),
+    deviceId: v.string(), //this must be generate on the client
     deviceName: v.optional(v.string()),
     osName: v.optional(v.string()),
     osVersion: v.optional(v.string()),
     brand: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const getDeviceById = async (deviceId: Id<'device'>) => {
+    const getDeviceByDeviceId = async (deviceId: string) => {
       return await ctx.db
         .query('device')
-        .filter((v) => v.eq(v.field('_id'), deviceId))
+        .filter((v) => v.eq(v.field('deviceId'), deviceId))
         .first();
     };
     const createNewDevice = async () => {
-      const id = await ctx.db.insert('device', {
+      const deviceId = args.deviceId; //get device id from params
+      await ctx.db.insert('device', {
+        deviceId,
         deviceName: args.deviceName,
         osName: args.osName,
         osVersion: args.osVersion,
       });
-      const device = await getDeviceById(id);
+      const device = await getDeviceByDeviceId(deviceId);
       return device;
     };
     const updateDevice = async (prevState: Doc<'device'>) => {
@@ -39,14 +41,14 @@ export const sync = mutation({
           brand: args.brand,
         }); //update the DB with device info
       }
-      return getDeviceById(prevState._id);
+      return getDeviceByDeviceId(prevState.deviceId);
     };
 
     let device: Doc<'device'> | null;
     if (!args.deviceId) {
       device = await createNewDevice(); //create if no id
     } else {
-      const prevDeviceState = await getDeviceById(args.deviceId);
+      const prevDeviceState = await getDeviceByDeviceId(args.deviceId);
       if (!prevDeviceState) {
         device = await createNewDevice(); //create if not found
       } else {
