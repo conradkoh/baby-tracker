@@ -4,8 +4,8 @@ import SelectPicker from '../../components/atoms/SelectPicker';
 import { Branch } from '../../branch';
 import { useBranch } from '../../storage/stores/branch';
 import { useEnv } from '../../lib/env/useEnv';
-import { useDeviceInfo } from '../../providers/AppDataProvider';
 import PrimaryButton from '../../components/atoms/Button/Primary';
+import { useDeviceInfo } from '../../providers/AppDataProvider';
 
 export default function SettingsPage() {
   const { branch, setBranch } = useBranch();

@@ -9,9 +9,7 @@ import {
 } from 'react';
 import { Doc, api } from '../services/api';
 import { useDeviceInfoStore } from '../storage/stores/device';
-import { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { deviceName, osName, osVersion } from 'expo-device';
-import { isEqual } from 'lodash';
 
 type Device = Doc<'device'>;
 type AppContextData = {
@@ -35,27 +33,21 @@ export default function AppDataProvider({
   children: React.ReactNode;
 }) {
   const syncDevice = useMutation(api.device.sync);
-  const {
-    deviceId,
-    device: device,
-    setDevice,
-    clearDevice,
-  } = useDeviceInfoStore();
-  const resetDevice = useCallback(async () => {
-    clearDevice();
-  }, [clearDevice]);
+  const [device, setDevice] = useState<Device | null>(null);
+  const { deviceId, clearDevice } = useDeviceInfoStore();
   useEffect(() => {
     (async () => {
-      const nextDevice = await syncDevice({
+      const device = await syncDevice({
         deviceId,
         ...deviceInfo,
       });
-      if (!isEqual(nextDevice, device)) {
-        setDevice(nextDevice); //update device state if the params have changed
-      }
+      setDevice(device);
     })();
-    return () => {};
-  }, [device, deviceId, setDevice, syncDevice]);
+  }, [deviceId, syncDevice]);
+  const resetDevice = useCallback(async () => {
+    clearDevice();
+  }, [clearDevice]);
+
   const appState = useMemo(
     () => ({ device: device, resetDevice }),
     [device, resetDevice]

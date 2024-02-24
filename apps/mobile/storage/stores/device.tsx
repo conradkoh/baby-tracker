@@ -9,29 +9,16 @@ import * as Crypto from 'expo-crypto';
 const uuid = () => Crypto.randomUUID();
 interface DeviceInfoStore {
   deviceId: string; //this is the source of truth for all branches for all environments
-  devices: Record<string, Doc<'device'> | null>;
-  getDevice: (env: string) => Doc<'device'> | null;
-  setDevice: (env: string, device: Doc<'device'>) => void;
   clearDevice: () => void;
 }
-export const useDeviceInfoStoreState = create<DeviceInfoStore>()(
+export const useDeviceInfoStore = create<DeviceInfoStore>()(
   persist(
     (set, get) => ({
-      deviceId: uuid(),
-      devices: {},
-      getDevice: (env: string) => get().devices[env],
-      setDevice: (env: string, d: Doc<'device'>) =>
-        set((p) => {
-          const next = {
-            ...p,
-            devices: {
-              ...p.devices,
-              [env]: d,
-            },
-          };
-          return next;
-        }),
-      clearDevice: () => set((p) => ({ ...p, deviceId: uuid(), devices: {} })),
+      device: {
+        deviceId: uuid(),
+      },
+      deviceId: uuid(), //this is the source of truth for device id
+      clearDevice: () => set((p) => ({ ...p, deviceId: uuid() })),
     }),
     {
       name: 'device-info-storage',
@@ -39,14 +26,3 @@ export const useDeviceInfoStoreState = create<DeviceInfoStore>()(
     }
   )
 );
-
-export function useDeviceInfoStore() {
-  const { branch: env } = useActiveBranch();
-  const store = useDeviceInfoStoreState();
-  return {
-    deviceId: store.deviceId,
-    device: store.devices[env],
-    clearDevice: () => store.clearDevice(),
-    setDevice: (device: Doc<'device'>) => store.setDevice(env, device),
-  };
-}
