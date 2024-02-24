@@ -13,6 +13,7 @@
     "build:local:ios": "expo run:ios",
     "build:preview:ios": "eas build --platform ios --profile preview",
     "build:development:ios": "eas build --platform ios --profile development",
+    "build:development:ios-simulator": "eas build --profile development-simulator --platform ios",
     "build:production:ios": "eas build --platform ios --profile production",
     "update:preview": "eas update --branch preview",
     "update:production": "eas update --branch production",
