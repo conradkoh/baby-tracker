@@ -1,6 +1,17 @@
 import { v } from 'convex/values';
 import { action, mutation, query } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
+
+export const get = query({
+  args: { deviceId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('device')
+      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .first();
+  },
+});
+
 export const sync = mutation({
   args: {
     deviceId: v.string(), //this must be generate on the client

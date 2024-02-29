@@ -10,10 +10,11 @@ import {
 import { Doc, api } from '../services/api';
 import { useDeviceInfoStore } from '../storage/stores/device';
 import { deviceName, osName, osVersion } from 'expo-device';
+import { useMount } from 'react-use';
 
 type Device = Doc<'device'>;
 type AppContextData = {
-  device: Device | null;
+  device: Device | null | undefined;
   resetDevice: () => Promise<void>;
 };
 const deviceInfo = Object.freeze({
@@ -33,15 +34,15 @@ export default function AppDataProvider({
   children: React.ReactNode;
 }) {
   const syncDevice = useMutation(api.device.sync);
-  const [device, setDevice] = useState<Device | null>(null);
   const { deviceId, clearDevice } = useDeviceInfoStore();
+  const device = useQuery(api.device.get, { deviceId });
   useEffect(() => {
     (async () => {
-      const device = await syncDevice({
+      //sync device when info from the store changes
+      await syncDevice({
         deviceId,
         ...deviceInfo,
       });
-      setDevice(device);
     })();
   }, [deviceId, syncDevice]);
   const resetDevice = useCallback(async () => {

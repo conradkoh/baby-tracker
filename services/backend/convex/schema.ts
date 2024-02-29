@@ -47,8 +47,8 @@ export default defineSchema({
     .index('by_type', ['activity.type']),
   //TABLE: DEVICE
   device: defineTable({
-    familyId: v.optional(v.id('family')),
     deviceId: v.string(),
+    familyId: v.optional(v.id('family')),
     deviceName: v.optional(v.string()),
     osName: v.optional(v.string()),
     osVersion: v.optional(v.string()),
@@ -61,6 +61,12 @@ export default defineSchema({
         iid: v.string(),
         name: v.string(),
         dateOfBirth: v.string(), //YYYY-MM-DD
+      })
+    ),
+    devices: v.array(
+      v.object({
+        deviceId: v.string(),
+        status: v.string(),
       })
     ),
   }),

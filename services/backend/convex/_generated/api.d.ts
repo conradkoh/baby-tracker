@@ -16,6 +16,7 @@ import type {
 } from "convex/server";
 import type * as activities from "../activities.js";
 import type * as device from "../device.js";
+import type * as family from "../family.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -28,6 +29,7 @@ import type * as device from "../device.js";
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
   device: typeof device;
+  family: typeof family;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
