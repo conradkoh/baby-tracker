@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "start:clean": "yarn cache clean && yarn install --network-timeout 100000 && yarn expo start --ios -c",
     "dev": "BRANCH=dev expo start",
     "android": "expo run:android",
     "ios": "yarn dev --ios",
