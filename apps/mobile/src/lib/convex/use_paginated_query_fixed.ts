@@ -12,7 +12,7 @@ import {
 import { Infer, Value, convexToJson } from 'convex/values';
 import { useMemo, useState } from 'react';
 import { Expand } from 'tailwindcss/types/config';
-import { server } from '../../metro.config';
+import { server } from '../../../metro.config';
 import { useQueries } from 'convex/react';
 import { BetterOmit } from './type_utils';
 

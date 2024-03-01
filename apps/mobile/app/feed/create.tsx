@@ -1,7 +1,7 @@
-import Page from '../../components/organisms/Page';
+import Page from '../../src/components/organisms/Page';
 import { useMutation } from 'convex/react';
-import { api } from '../../services/api';
-import { FeedForm } from '../../components/molecules/FeedForm';
+import { api } from '../../src/services/api';
+import { FeedForm } from '../../src/components/molecules/FeedForm';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { router } from 'expo-router';
 export default function CreateFeedPage() {

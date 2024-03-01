@@ -1,20 +1,20 @@
 import { Text, View } from 'react-native';
 import { usePaginatedQuery, useQuery } from 'convex/react';
-import AppNav from '../components/organisms/AppNav';
-import Page, { withPage } from '../components/organisms/Page';
-import {} from '../providers/AppDataProvider';
-import { api, useActivitiesPaginated } from '../services/api';
-import { ActivityList } from '../components/molecules/ActivityList';
+import AppNav from '../src/components/organisms/AppNav';
+import Page, { withPage } from '../src/components/organisms/Page';
+import {} from '../src/providers/AppDataProvider';
+import { api, useActivitiesPaginated } from '../src/services/api';
+import { ActivityList } from '../src/components/molecules/ActivityList';
 import { useMemo } from 'react';
 import { DateTime } from 'luxon';
 import { ActivityType } from '@workspace/backend/convex/activities';
-import { timeAgo } from '../lib/time/timeAgo';
-import { useCurrentDateTime } from '../lib/time/useCurrentDateTime';
+import { timeAgo } from '../src/lib/time/timeAgo';
+import { useCurrentDateTime } from '../src/lib/time/useCurrentDateTime';
 import { router } from 'expo-router';
-import { Loader } from '../components/molecules/Loader';
+import { Loader } from '../src/components/molecules/Loader';
 import { FeedType } from '@workspace/domain/entities/Feed';
-import { Conditional } from '../components/atoms/Condition';
-import { withReloadOnReconnect } from '../providers/ConvexClientProvider';
+import { Conditional } from '../src/components/atoms/Condition';
+import { withReloadOnReconnect } from '../src/providers/ConvexClientProvider';
 
 function AppIndexPage() {
   const fromTs = useMemo(() => {

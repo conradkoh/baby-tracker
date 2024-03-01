@@ -1,18 +1,18 @@
 import { useMutation } from 'convex/react';
-import { api } from '../../../services/api';
+import { api } from '../../../src/services/api';
 import { useEffect, useRef } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { ActivityType } from '@workspace/domain/entities/Activity';
 import { DateTime } from 'luxon';
 
-import { EditActivityPageLayout } from '../../../components/organisms/EditActivityPageLayout';
+import { EditActivityPageLayout } from '../../../src/components/organisms/EditActivityPageLayout';
 import {
   DiaperChangeForm,
   DiaperChangeFormRef,
-} from '../../../components/molecules/DiaperChangeForm/DiaperChangeForm';
+} from '../../../src/components/molecules/DiaperChangeForm/DiaperChangeForm';
 import { diaperChangeFromLiteral } from '@workspace/domain/entities/DiaperChange';
-import { useQuery } from '../../../lib/convex/use_query_swr';
+import { useQuery } from '../../../src/lib/convex/use_query_swr';
 export default function EditDiaperChangePage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;

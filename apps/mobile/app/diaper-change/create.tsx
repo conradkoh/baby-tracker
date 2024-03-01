@@ -1,7 +1,7 @@
-import Page from '../../components/organisms/Page';
-import { DiaperChangeForm } from '../../components/molecules/DiaperChangeForm/DiaperChangeForm';
+import Page from '../../src/components/organisms/Page';
+import { DiaperChangeForm } from '../../src/components/molecules/DiaperChangeForm/DiaperChangeForm';
 import { useMutation } from 'convex/react';
-import { api } from '../../services/api';
+import { api } from '../../src/services/api';
 import { router } from 'expo-router';
 
 export default function DiaperChangeCreatePage() {

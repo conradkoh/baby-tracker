@@ -1,18 +1,18 @@
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
-import Page from '../../components/organisms/Page';
-import SelectPicker from '../../components/atoms/SelectPicker';
+import Page from '../../src/components/organisms/Page';
+import SelectPicker from '../../src/components/atoms/SelectPicker';
 import { Branch } from '../../branch';
-import { useBranch } from '../../storage/stores/branch';
-import { useEnv } from '../../lib/env/useEnv';
-import PrimaryButton from '../../components/atoms/Button/Primary';
-import { useDeviceInfo } from '../../providers/AppDataProvider';
+import { useBranch } from '../../src/storage/stores/branch';
+import { useEnv } from '../../src/lib/env/useEnv';
+import PrimaryButton from '../../src/components/atoms/Button/Primary';
+import { useDeviceInfo } from '../../src/providers/AppDataProvider';
 import { useMutation } from 'convex/react';
-import { api } from '../../services/api';
-import { useQuery } from '../../lib/convex/use_query_swr';
-import { toPascalCase } from '../../lib/string/string';
-import { Conditional } from '../../components/atoms/Condition';
+import { api } from '../../src/services/api';
+import { useQuery } from '../../src/lib/convex/use_query_swr';
+import { toPascalCase } from '../../src/lib/string/string';
+import { Conditional } from '../../src/components/atoms/Condition';
 import { DeviceStatus } from '@workspace/backend/domain/entities/device/DeviceStatus';
-import { useInputModal } from '../../components/atoms/AlertInputModal/AlertInputModal';
+import { useInputModal } from '../../src/components/atoms/AlertInputModal/AlertInputModal';
 
 export default function SettingsPage() {
   const { branch, setBranch } = useBranch();

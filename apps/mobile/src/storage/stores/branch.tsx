@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
-import { Branch } from '../../branch';
+import { Branch } from '../../../branch';
 interface BranchStoreState {
   branch: Branch;
   setBranch: (v: Branch) => void;

@@ -1,7 +1,7 @@
 'use client';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { ConvexProvider, ConvexReactClient, useConvex } from 'convex/react';
-import { Branch } from '../branch';
+import { Branch } from '../../branch';
 import { useBranch } from '../storage/stores/branch';
 import { Text, View } from 'react-native';
 import { Conditional } from '../components/atoms/Condition';

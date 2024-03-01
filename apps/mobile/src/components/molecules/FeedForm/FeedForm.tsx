@@ -16,7 +16,7 @@ import DateTimePicker, {
 
 import { DateTime } from 'luxon';
 import React from 'react';
-import { FeedType } from '../../../../../core/domain/entities/Feed';
+import { FeedType } from '@workspace/domain/entities/Feed';
 import { useFeedFormStore } from '../../../storage/stores/feed-form-store';
 import PrimaryButton from '../../atoms/Button/Primary';
 import FeedPicker from '../../atoms/FeedPicker';

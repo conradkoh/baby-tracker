@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { DiaperChangeType } from '../../../../core/domain/entities/DiaperChange';
+import { DiaperChangeType } from '@workspace/domain/entities/DiaperChange';
 interface DiaperChangeFormStoreState {
   diaperChangeType: DiaperChangeType;
   setDiaperChangeType: (v: DiaperChangeType) => void;

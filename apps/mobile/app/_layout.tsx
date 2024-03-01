@@ -3,16 +3,16 @@ import { View, Alert, Text } from 'react-native';
 import {
   ConnectionStatus,
   withConvex,
-} from '../providers/ConvexClientProvider';
+} from '../src/providers/ConvexClientProvider';
 import { Slot } from 'expo-router';
-import AppDataProvider from '../providers/AppDataProvider';
+import AppDataProvider from '../src/providers/AppDataProvider';
 import { NativeWindStyleSheet } from 'nativewind';
 import * as Updates from 'expo-updates';
 import { useEffect } from 'react';
-import { useEnv } from '../lib/env/useEnv';
-import { useAppState } from '../lib/platform/useAppState';
+import { useEnv } from '../src/lib/env/useEnv';
+import { useAppState } from '../src/lib/platform/useAppState';
 import { SafeAreaView } from 'react-native';
-import { ErrorBoundary } from '../components/atoms/ErrorBoundary';
+import { ErrorBoundary } from '../src/components/atoms/ErrorBoundary';
 function RootLayout() {
   const env = useEnv();
   async function onFetchUpdateAsync() {

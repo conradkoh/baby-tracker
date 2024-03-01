@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useEnv } from '../../lib/env/useEnv';
 import { useBranch } from './branch';
-import { useActiveBranch } from '../../branch';
+import { useActiveBranch } from '../../../branch';
 import * as Crypto from 'expo-crypto';
 const uuid = () => Crypto.randomUUID();
 interface DeviceInfoStore {

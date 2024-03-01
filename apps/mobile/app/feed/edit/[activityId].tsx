@@ -1,7 +1,10 @@
-import Page from '../../../components/organisms/Page';
+import Page from '../../../src/components/organisms/Page';
 import { useMutation } from 'convex/react';
-import { api } from '../../../services/api';
-import { FeedForm, FeedFormRef } from '../../../components/molecules/FeedForm';
+import { api } from '../../../src/services/api';
+import {
+  FeedForm,
+  FeedFormRef,
+} from '../../../src/components/molecules/FeedForm';
 import { useEffect, useRef } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Id } from '@workspace/backend/convex/_generated/dataModel';
@@ -9,7 +12,7 @@ import { ActivityType } from '@workspace/domain/entities/Activity';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { DateTime } from 'luxon';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { useQuery } from '../../../lib/convex/use_query_swr';
+import { useQuery } from '../../../src/lib/convex/use_query_swr';
 export default function EditFeedPage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;
