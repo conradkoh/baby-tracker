@@ -16,7 +16,7 @@ export const create = mutation({
     //create a new family
     const familyID = await ctx.db.insert('family', {
       children: [],
-      devices: [{ deviceId: args.deviceId, status: DeviceStatus.Active }],
+      devices: [{ deviceId: args.deviceId }],
     });
 
     //link the device to the family
@@ -39,7 +39,16 @@ export const get = query({
     if (!family) {
       return null;
     }
-    return family;
+
+    const joinRequests = await ctx.db
+      .query('familyJoinRequests')
+      .withIndex('by_familyId')
+      .filter((v) => v.eq(v.field('familyId'), args.familyId))
+      .collect();
+    return {
+      ...family,
+      joinRequests,
+    };
   },
 });
 
@@ -48,6 +57,9 @@ export const del = mutation({
   handler: async (ctx, args) => {
     //check if device belongs to family
     const family = await ctx.db.get(args.familyId);
+    if (!family) {
+      throw new Error('failed to get family');
+    }
     const authorizingDevice = family?.devices.find(
       (v) => v.deviceId === args.authorizingDeviceId
     );
@@ -55,6 +67,14 @@ export const del = mutation({
       throw new Error('not authorized');
     }
     await ctx.db.delete(args.familyId);
+
+    //delete all pending requests for the family
+    const requests = await ctx.db
+      .query('familyJoinRequests')
+      .withIndex('by_familyId')
+      .filter((v) => v.eq(v.field('familyId'), family._id))
+      .collect();
+    await Promise.all(requests.map((r) => ctx.db.delete(r._id)));
   },
 });
 
@@ -81,11 +101,24 @@ export const requestJoin = mutation({
     if (!device) {
       throw new Error('device does not exist');
     }
-    const existingDevice = family.devices.find(
+    const familyJoinRequests = await ctx.db
+      .query('familyJoinRequests')
+      .withIndex('by_deviceId')
+      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .collect();
+
+    //delete all requests not from this family id bc each device can only belong to one family
+    await Promise.all(
+      familyJoinRequests
+        .filter((r) => r.familyId !== args.familyId)
+        .map((req) => ctx.db.delete(req._id))
+    );
+
+    const existingDevice = familyJoinRequests.find(
       (d) => d.deviceId === args.deviceId
     );
     if (existingDevice) {
-      if (existingDevice.status === 'pending') {
+      if (existingDevice.status === DeviceStatus.Pending) {
         return {
           isError: true,
           message: 'Your pending request has not been approved yet.',
@@ -97,15 +130,12 @@ export const requestJoin = mutation({
         };
       }
     }
-    //update the family in the db
-    await ctx.db.patch(family._id, {
-      devices: [
-        ...family.devices,
-        { deviceId: args.deviceId, status: 'pending' },
-      ],
+    //add a join request
+    await ctx.db.insert('familyJoinRequests', {
+      deviceId: args.deviceId,
+      familyId: family._id,
+      status: DeviceStatus.Pending,
     });
-    //link this device to the family
-    await ctx.db.patch(device._id, { familyId: family._id });
 
     //return the status
     return {
@@ -128,28 +158,45 @@ export const approveJoinRequest = mutation({
     if (!family) {
       throw new Error('family does not exist.');
     }
+    const device = await ctx.db
+      .query('device')
+      .withIndex('by_deviceId')
+      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .first();
+    if (!device) {
+      throw new Error('failed to get device');
+    }
+    const familyJoinRequest = await ctx.db
+      .query('familyJoinRequests')
+      .withIndex('by_familyId_and_deviceId')
+      .filter((v) =>
+        v.and(
+          v.eq(v.field('familyId'), args.familyId),
+          v.eq(v.field('deviceId'), args.deviceId)
+        )
+      )
+      .first();
+    if (familyJoinRequest == null) {
+      throw new Error('failed to find request.');
+    }
     //ensure that authorizer has permissions to grant access
     const activeAuthorizingDevice = family.devices.find(
-      (d) =>
-        d.deviceId === args.authorizingDeviceId &&
-        d.status === DeviceStatus.Active
+      (d) => d.deviceId === args.authorizingDeviceId //authorizer is part of family
     );
     if (!activeAuthorizingDevice) {
       throw new Error('permission denied: no permissions to approve request.');
     }
-    const existingDeviceRequest = family.devices.find(
-      (d) => d.deviceId === args.deviceId
-    );
-    if (!existingDeviceRequest) {
-      throw new Error('failed to find request');
-    }
-    //set device to active and update the field in the db
-    existingDeviceRequest.status = 'active';
+    //add the device to the family
     await ctx.db.patch(family._id, {
       devices: [
         ...family.devices.filter((d) => d.deviceId != args.deviceId),
-        existingDeviceRequest,
+        { deviceId: familyJoinRequest.deviceId },
       ],
     });
+    //set the device's family id
+    await ctx.db.patch(device._id, { familyId: family._id });
+
+    //delete the request
+    await ctx.db.delete(familyJoinRequest._id);
   },
 });

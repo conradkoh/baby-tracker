@@ -7,11 +7,11 @@ export const get = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query('device')
+      .withIndex('by_deviceId')
       .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
       .first();
   },
 });
-
 export const sync = mutation({
   args: {
     deviceId: v.string(), //this must be generate on the client
@@ -24,11 +24,13 @@ export const sync = mutation({
     const getDeviceByDeviceId = async (deviceId: string) => {
       return await ctx.db
         .query('device')
+        .withIndex('by_deviceId')
         .filter((v) => v.eq(v.field('deviceId'), deviceId))
         .first();
     };
     const createNewDevice = async () => {
       const deviceId = args.deviceId; //get device id from params
+
       await ctx.db.insert('device', {
         deviceId,
         deviceName: args.deviceName,
@@ -70,5 +72,20 @@ export const sync = mutation({
       throw new Error('sync failed: no device.');
     }
     return device;
+  },
+});
+
+export const getFamilyJoinRequests = query({
+  args: { deviceId: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    if (!args.deviceId) {
+      return [];
+    }
+    const requests = await ctx.db
+      .query('familyJoinRequests')
+      .withIndex('by_deviceId')
+      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .collect();
+    return requests;
   },
 });

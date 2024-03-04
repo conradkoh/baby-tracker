@@ -66,8 +66,16 @@ export default defineSchema({
     devices: v.array(
       v.object({
         deviceId: v.string(),
-        status: v.string(),
       })
     ),
   }),
+  //TABLE: Family Join Requests
+  familyJoinRequests: defineTable({
+    deviceId: v.string(),
+    familyId: v.id('family'),
+    status: v.string(), //pending or rejected
+  })
+    .index('by_familyId', ['familyId'])
+    .index('by_deviceId', ['deviceId'])
+    .index('by_familyId_and_deviceId', ['familyId', 'deviceId']),
 });
