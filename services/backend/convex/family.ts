@@ -200,3 +200,31 @@ export const approveJoinRequest = mutation({
     await ctx.db.delete(familyJoinRequest._id);
   },
 });
+
+export const leave = mutation({
+  args: { deviceId: v.string(), familyId: v.id('family') },
+  handler: async (ctx, args) => {
+    const family = await ctx.db.get(args.familyId);
+    if (!family) {
+      throw new Error('failed to get family');
+    }
+    const device = await ctx.db
+      .query('device')
+      .withIndex('by_deviceId')
+      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .first();
+    if (!device) {
+      throw new Error('failed to get device');
+    }
+    //remove device from family
+    await ctx.db.patch(family._id, {
+      devices: [
+        ...family.devices.filter((d) => d.deviceId !== device.deviceId),
+      ],
+    });
+
+    await ctx.db.patch(device._id, { familyId: undefined });
+
+    //unset device family id
+  },
+});

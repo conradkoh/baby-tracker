@@ -27,6 +27,7 @@ export default function SettingsPage() {
   const family = useQuery(api.family.get, {
     familyId: deviceInfo.device?.familyId,
   });
+  const leaveFamily = useMutation(api.family.leave);
   const deviceFamilyJoinRequests = useQuery(api.device.getFamilyJoinRequests, {
     deviceId: deviceInfo.device?.deviceId,
   });
@@ -66,7 +67,7 @@ export default function SettingsPage() {
             {family ? (
               <>
                 <View className="flex-row items-center">
-                  <Text>Family ID:</Text>
+                  <Text>ID: </Text>
                   <TouchableOpacity
                     onPress={() => Clipboard.setStringAsync(family._id)}
                   >
@@ -78,93 +79,130 @@ export default function SettingsPage() {
                     </View>
                   </TouchableOpacity>
                 </View>
-                <Text className="font-bold text-md py-2">Devices</Text>
-                <Conditional render={family.joinRequests.length === 0}>
-                  <Text>There are no join requests. </Text>
+                <Conditional render={family.joinRequests.length > 0}>
+                  <Text className="font-bold text-md py-2">Join Requests</Text>
+
+                  {family.joinRequests.map((d) => (
+                    <TouchableOpacity
+                      key={d.deviceId}
+                      onPress={() => {
+                        if (d.status === DeviceStatus.Pending) {
+                          Alert.alert(
+                            'Pending Device',
+                            'Please confirm if this device belongs to your family.',
+                            [
+                              {
+                                text: 'Deny',
+                                onPress: () => {
+                                  //TOOD: deny the request
+                                },
+                              },
+                              {
+                                text: 'Accept',
+                                onPress: async () => {
+                                  const device = deviceInfo.device;
+                                  if (device) {
+                                    await approveJoinRequest({
+                                      deviceId: d.deviceId,
+                                      authorizingDeviceId: device.deviceId,
+                                      familyId: family._id,
+                                    });
+                                  } else {
+                                    Alert.alert(
+                                      'Approval Failed',
+                                      'Unable to approve without device info.'
+                                    );
+                                  }
+                                },
+                              },
+                            ]
+                          );
+                        }
+                      }}
+                    >
+                      <View className="border border-blue-300 rounded-lg p-2">
+                        <Text>Device ID: {d.deviceId}</Text>
+                        <Text>Status: {toPascalCase(d.status)}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
                 </Conditional>
-                {family.joinRequests.map((d) => (
-                  <TouchableOpacity
-                    key={d.deviceId}
-                    onPress={() => {
-                      if (d.status === DeviceStatus.Pending) {
-                        Alert.alert(
-                          'Pending Device',
-                          'Please confirm if this device belongs to your family.',
-                          [
-                            {
-                              text: 'Deny',
-                              onPress: () => {
-                                //TOOD: deny the request
-                              },
+                <View className="flex-row">
+                  <PrimaryButton
+                    className="my-2 mr-3 w-1/3 bg-red-500"
+                    title="Delete"
+                    onPress={async () => {
+                      const authorizingDevice = deviceInfo.device;
+                      const familyId = authorizingDevice?.familyId;
+                      if (authorizingDevice && familyId) {
+                        Alert.alert('Delete Family', 'Are you sure?', [
+                          {
+                            text: 'Cancel',
+                            onPress: () => {
+                              //do nothing
                             },
-                            {
-                              text: 'Accept',
-                              onPress: async () => {
-                                const device = deviceInfo.device;
-                                if (device) {
-                                  await approveJoinRequest({
-                                    deviceId: d.deviceId,
-                                    authorizingDeviceId: device.deviceId,
-                                    familyId: family._id,
-                                  });
-                                } else {
-                                  Alert.alert(
-                                    'Approval Failed',
-                                    'Unable to approve without device info.'
-                                  );
-                                }
-                              },
+                          },
+                          {
+                            text: 'Confirm',
+                            onPress: async () => {
+                              await deleteFamily({
+                                authorizingDeviceId: authorizingDevice.deviceId,
+                                familyId,
+                              });
                             },
-                          ]
-                        );
+                          },
+                        ]);
+                      } else {
+                        if (!familyId) {
+                          Alert.alert(
+                            'Delete Failed',
+                            'No family ID is associated with this device.'
+                          );
+                        } else if (!authorizingDevice) {
+                          Alert.alert(
+                            'Delete Failed',
+                            'The device has not been initialized.'
+                          );
+                        }
                       }
                     }}
-                  >
-                    <View className="border border-blue-300 rounded-lg p-2">
-                      <Text>Device ID: {d.deviceId}</Text>
-                      <Text>Status: {toPascalCase(d.status)}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-                <PrimaryButton
-                  className="my-2 w-1/2 bg-red-500"
-                  title="Delete Family"
-                  onPress={async () => {
-                    const authorizingDevice = deviceInfo.device;
-                    const familyId = authorizingDevice?.familyId;
-                    if (authorizingDevice && familyId) {
-                      Alert.alert('Delete Family', 'Are you sure?', [
-                        {
-                          text: 'Cancel',
-                          onPress: () => {
-                            //do nothing
+                  />
+                  <PrimaryButton
+                    className="my-2 w-1/3 bg-red-500"
+                    title="Leave"
+                    onPress={async () => {
+                      const familyId = family._id;
+                      if (familyId && deviceId) {
+                        Alert.alert('Leave Family', 'Are you sure?', [
+                          {
+                            text: 'Cancel',
+                            onPress: () => {
+                              //do nothing
+                            },
                           },
-                        },
-                        {
-                          text: 'Confirm',
-                          onPress: async () => {
-                            await deleteFamily({
-                              authorizingDeviceId: authorizingDevice.deviceId,
-                              familyId,
-                            });
+                          {
+                            text: 'Confirm',
+                            onPress: async () => {
+                              await leaveFamily({
+                                deviceId,
+                                familyId,
+                              });
+                            },
                           },
-                        },
-                      ]);
-                    } else {
-                      if (!familyId) {
-                        Alert.alert(
-                          'Delete Failed',
-                          'No family ID is associated with this device.'
-                        );
-                      } else if (!authorizingDevice) {
-                        Alert.alert(
-                          'Delete Failed',
-                          'The device has not been initialized.'
-                        );
+                        ]);
+                      } else {
+                        if (!familyId) {
+                          Alert.alert(
+                            'Delete Failed',
+                            'No family ID is associated with this device.'
+                          );
+                        } else if (!deviceId) {
+                          Alert.alert('Delete Failed', 'This device has no ID');
+                        }
                       }
-                    }
-                  }}
-                />
+                    }}
+                  />
+                </View>
               </>
             ) : (
               <>
