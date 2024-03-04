@@ -1,4 +1,4 @@
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, Touchable, TouchableOpacity, View } from 'react-native';
 import Page from '../../src/components/organisms/Page';
 import SelectPicker from '../../src/components/atoms/SelectPicker';
 import { Branch } from '../../branch';
@@ -13,7 +13,9 @@ import { toPascalCase } from '../../src/lib/string/string';
 import { Conditional } from '../../src/components/atoms/Condition';
 import { DeviceStatus } from '@workspace/backend/domain/entities/device/DeviceStatus';
 import { useInputModal } from '../../src/components/atoms/AlertInputModal/AlertInputModal';
-
+import CopyIcon from '../../src/components/atoms/CopyIcon/CopyIcon';
+import * as Clipboard from 'expo-clipboard';
+import { ConvexError } from 'convex/values';
 export default function SettingsPage() {
   const { branch, setBranch } = useBranch();
   const env = useEnv();
@@ -21,11 +23,13 @@ export default function SettingsPage() {
   const createFamily = useMutation(api.family.create);
   const deleteFamily = useMutation(api.family.del);
   const approveJoinRequest = useMutation(api.family.approveJoinRequest);
+  const createJoinRequest = useMutation(api.family.requestJoin);
   const family = useQuery(api.family.get, {
     familyId: deviceInfo.device?.familyId,
   });
   const InputModal = useInputModal();
   const isFamilyLoading = family === undefined;
+  const deviceId = deviceInfo.device?.deviceId;
   return (
     <Page title="Settings">
       <View className="p-2 grow ">
@@ -58,7 +62,19 @@ export default function SettingsPage() {
           >
             {family ? (
               <>
-                <Text>Family ID: {family._id}</Text>
+                <View className="flex-row items-center">
+                  <Text>Family ID:</Text>
+                  <TouchableOpacity
+                    onPress={() => Clipboard.setStringAsync(family._id)}
+                  >
+                    <View className="flex-row items-center">
+                      <Text className="mr-1">{family._id}</Text>
+                      <Text>
+                        <CopyIcon />
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
                 <Text className="font-bold text-md py-2">Devices</Text>
                 {family.devices.map((d) => (
                   <TouchableOpacity
@@ -172,11 +188,40 @@ export default function SettingsPage() {
                   <PrimaryButton
                     title="Join Family"
                     onPress={async () => {
-                      // const result = await InputModal.show(
-                      //   'Join Family',
-                      //   'Please enter the family ID:'
-                      // );
-                      // console.log('joining', result);
+                      await InputModal.show('Request to Join Family', {
+                        placeholder: 'Family ID',
+                        onSubmit: async (result) => {
+                          console.log('attempting to submit');
+                          if (deviceId) {
+                            try {
+                              const joinRequest = await createJoinRequest({
+                                deviceId,
+                                familyId: result,
+                              });
+                              if (joinRequest.isError) {
+                                Alert.alert(`Error: ${joinRequest.message}`);
+                              } else {
+                                Alert.alert(joinRequest.message);
+                                InputModal.close();
+                              }
+                            } catch (err: unknown) {
+                              if (err instanceof ConvexError) {
+                                const { message } = err.data as {
+                                  message: string;
+                                };
+                                Alert.alert(
+                                  `Error: Failed to create join request.`
+                                );
+                              }
+                              throw err;
+                            }
+                          } else {
+                            Alert.alert(
+                              'This device has no ID. Please try to restart the app.'
+                            );
+                          }
+                        },
+                      });
                     }}
                   />
                 </View>

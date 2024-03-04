@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { DeviceStatus } from '../domain/entities/device/DeviceStatus';
 export const create = mutation({
@@ -60,7 +60,7 @@ export const del = mutation({
 
 export const requestJoin = mutation({
   args: {
-    familyId: v.id('family'),
+    familyId: v.string(),
     deviceId: v.string(),
   },
   handler: async (ctx, args) => {
@@ -69,7 +69,10 @@ export const requestJoin = mutation({
       .filter((v) => v.eq(v.field('_id'), args.familyId))
       .first();
     if (!family) {
-      throw new Error('family does not exist.');
+      return {
+        isError: true,
+        message: 'The provided family ID does not exist',
+      };
     }
     const device = await ctx.db
       .query('device')
@@ -82,7 +85,17 @@ export const requestJoin = mutation({
       (d) => d.deviceId === args.deviceId
     );
     if (existingDevice) {
-      throw new Error('request already exists in family.');
+      if (existingDevice.status === 'pending') {
+        return {
+          isError: true,
+          message: 'Your pending request has not been approved yet.',
+        };
+      } else {
+        return {
+          isError: true,
+          message: 'You are already a part of this family.',
+        };
+      }
     }
     //update the family in the db
     await ctx.db.patch(family._id, {
@@ -93,6 +106,11 @@ export const requestJoin = mutation({
     });
     //link this device to the family
     await ctx.db.patch(device._id, { familyId: family._id });
+
+    //return the status
+    return {
+      message: 'Your request has been submitted and is pending approval.',
+    };
   },
 });
 

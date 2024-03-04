@@ -1,9 +1,18 @@
 import { useCallback, useRef, useState } from 'react';
-import { Modal, View, TextInput, Button, StyleSheet, Text } from 'react-native';
+import {
+  Modal,
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 export function useInputModal() {
   const [visible, setVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [placeholder, setPlaceholder] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const resolver = useRef((result: string): void => {
     throw new Error('resolve not initialized');
   });
@@ -11,30 +20,37 @@ export function useInputModal() {
   const reset = useCallback(() => {
     setTitle('');
     setPlaceholder('');
+    setInputValue('');
   }, []);
   const element = (
     <AlertInputModal
       visible={visible}
       title={title}
       placeholder={placeholder}
+      value={inputValue}
+      setValue={setInputValue}
       onClose={function (): void {
-        setVisible(false);
         reset();
+        setVisible(false);
       }}
       onSubmit={function (result: { value: string }): void {
-        console.log('on submit');
         resolver.current(result.value);
       }}
     />
   );
   return {
-    show: async (title: string, placeholder?: string) => {
+    show: async (
+      title: string,
+      opts: { placeholder?: string; onSubmit: (val: string) => void }
+    ) => {
       setTitle(title);
-      setPlaceholder(placeholder || '');
+      setPlaceholder(opts.placeholder || '');
       setVisible(true);
-      return await new Promise<string>((resolve, reject) => {
-        resolver.current = resolve;
-      });
+      resolver.current = opts.onSubmit;
+    },
+    close: () => {
+      reset();
+      setVisible(false);
     },
     element,
   };
@@ -46,6 +62,8 @@ export interface AlertInputModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (result: { value: string }) => void;
+  value: string;
+  setValue: (v: string) => void;
 }
 
 export const AlertInputModal = ({
@@ -54,30 +72,45 @@ export const AlertInputModal = ({
   visible,
   onClose,
   onSubmit,
+  value,
+  setValue,
 }: AlertInputModalProps) => {
-  const [inputValue, setInputValue] = useState('');
-
   return (
     <Modal
       transparent={true}
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
       <View style={styles.centeredView}>
-        <Text>{title}</Text>
-        <View style={styles.modalView}>
+        <View
+          className="rounded-lg w-2/3 bg-blue-200 border-blue-400"
+          style={styles.modalView}
+        >
+          <Text className="pt-4 text-lg font-bold">{title}</Text>
           <TextInput
+            className="border-2 rounded-lg border-gray-400"
             style={styles.input}
-            onChangeText={setInputValue}
-            value={inputValue}
+            onChangeText={setValue}
+            value={value}
             placeholder={placeholder}
           />
-          <Button
-            title="Submit"
-            onPress={() => onSubmit({ value: inputValue })}
-          />
-          <Button title="Cancel" onPress={onClose} />
+          <View className="flex-row pb-2 px-3">
+            <TouchableOpacity
+              className="p-2 flex-1 mr-3 rounded-md bg-red-500"
+              onPress={onClose}
+            >
+              <Text className="text-white text-center font-bold">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="p-2 flex-1 rounded-md bg-blue-800"
+              onPress={() => {
+                onSubmit({ value });
+              }}
+            >
+              <Text className="text-white text-center font-bold">Submit</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -91,10 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
+    // backgroundColor: 'white',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -108,7 +138,7 @@ const styles = StyleSheet.create({
   input: {
     height: 40,
     margin: 12,
-    borderWidth: 1,
+    // borderWidth: 1,
     padding: 10,
     width: '80%',
   },
