@@ -24,7 +24,7 @@ export default function Home() {
             activity: {
               timestamp: DateTime.now().toISO(),
               type: 'diaper_change',
-              diaper_change: {
+              diaperChange: {
                 type: 'wet',
               },
             },

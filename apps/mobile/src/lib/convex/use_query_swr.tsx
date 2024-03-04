@@ -13,11 +13,14 @@ type Query = Parameters<typeof _useQuery>[0];
 function applySwrUseQuery(queryHook: typeof _useQuery): typeof _useQuery {
   const useSwrQuery: typeof _useQuery = (query: Query, ...args: any) => {
     const liveData = queryHook(query, ...args);
+    const isLoading = liveData === undefined;
     const { set, get } = useQueryCache();
     const key = createCacheKey(getFunctionName(query), args);
     useEffect(() => {
-      set(key, liveData);
-    }, [key, liveData, set]);
+      if (!isLoading) {
+        set(key, liveData);
+      }
+    }, [isLoading, key, liveData, set]);
     return get(key);
   };
   return useSwrQuery;

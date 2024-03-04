@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import {
   createContext,
   useCallback,
@@ -11,6 +11,7 @@ import { Doc, api } from '../services/api';
 import { useDeviceInfoStore } from '../storage/stores/device';
 import { deviceName, osName, osVersion } from 'expo-device';
 import { useMount } from 'react-use';
+import { useQuery } from '../lib/convex/use_query_swr';
 
 type Device = Doc<'device'>;
 type AppContextData = {

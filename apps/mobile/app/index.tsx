@@ -1,5 +1,4 @@
 import { Text, View } from 'react-native';
-import { usePaginatedQuery, useQuery } from 'convex/react';
 import AppNav from '../src/components/organisms/AppNav';
 import Page, { withPage } from '../src/components/organisms/Page';
 import {} from '../src/providers/AppDataProvider';
