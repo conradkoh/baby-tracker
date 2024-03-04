@@ -2,6 +2,7 @@ import { useQuery as _useQuery } from 'convex/react';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { usePaginatedQuery as _usePaginatedQuery } from './use_paginated_query_fixed';
+import { getFunctionName } from 'convex/server';
 export const useQuery = applySwrUseQuery(_useQuery);
 export const usePaginatedQuery = applySwrUsePaginatedQuery(_usePaginatedQuery);
 type Query = Parameters<typeof _useQuery>[0];
@@ -13,7 +14,7 @@ function applySwrUseQuery(queryHook: typeof _useQuery): typeof _useQuery {
   const useSwrQuery: typeof _useQuery = (query: Query, ...args: any) => {
     const liveData = queryHook(query, ...args);
     const { set, get } = useQueryCache();
-    const key = createCacheKey(query, args);
+    const key = createCacheKey(getFunctionName(query), args);
     useEffect(() => {
       set(key, liveData);
     }, [key, liveData, set]);
@@ -28,10 +29,10 @@ function applySwrUseQuery(queryHook: typeof _useQuery): typeof _useQuery {
 function applySwrUsePaginatedQuery(
   queryHook: typeof _usePaginatedQuery
 ): typeof _usePaginatedQuery {
-  const useSwrQuery: typeof _usePaginatedQuery = (...params) => {
-    const { results: liveData, ...returnVals } = queryHook(...params);
+  const useSwrQuery: typeof _usePaginatedQuery = (query, ...args) => {
+    const { results: liveData, ...returnVals } = queryHook(query, ...args);
     const { set, get } = useQueryCache();
-    const key = createCacheKey(...params);
+    const key = createCacheKey(getFunctionName(query), ...args);
     useEffect(() => {
       if (!returnVals.isLoading) {
         set(key, liveData);
