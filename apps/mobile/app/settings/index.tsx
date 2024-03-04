@@ -61,49 +61,48 @@ export default function SettingsPage() {
                 <Text>Family ID: {family._id}</Text>
                 <Text className="font-bold text-md py-2">Devices</Text>
                 {family.devices.map((d) => (
-                  <>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (d.status === DeviceStatus.Pending) {
-                          Alert.alert(
-                            'Pending Device',
-                            'Please confirm if this device belongs to your family.',
-                            [
-                              {
-                                text: 'Deny',
-                                onPress: () => {
-                                  //TOOD: deny the request
-                                },
+                  <TouchableOpacity
+                    key={d.deviceId}
+                    onPress={() => {
+                      if (d.status === DeviceStatus.Pending) {
+                        Alert.alert(
+                          'Pending Device',
+                          'Please confirm if this device belongs to your family.',
+                          [
+                            {
+                              text: 'Deny',
+                              onPress: () => {
+                                //TOOD: deny the request
                               },
-                              {
-                                text: 'Accept',
-                                onPress: async () => {
-                                  const device = deviceInfo.device;
-                                  if (device) {
-                                    await approveJoinRequest({
-                                      deviceId: d.deviceId,
-                                      authorizingDeviceId: device.deviceId,
-                                      familyId: family._id,
-                                    });
-                                  } else {
-                                    Alert.alert(
-                                      'Approval Failed',
-                                      'Unable to approve without device info.'
-                                    );
-                                  }
-                                },
+                            },
+                            {
+                              text: 'Accept',
+                              onPress: async () => {
+                                const device = deviceInfo.device;
+                                if (device) {
+                                  await approveJoinRequest({
+                                    deviceId: d.deviceId,
+                                    authorizingDeviceId: device.deviceId,
+                                    familyId: family._id,
+                                  });
+                                } else {
+                                  Alert.alert(
+                                    'Approval Failed',
+                                    'Unable to approve without device info.'
+                                  );
+                                }
                               },
-                            ]
-                          );
-                        }
-                      }}
-                    >
-                      <View className="border border-blue-300 rounded-lg p-2">
-                        <Text>Device ID: {d.deviceId}</Text>
-                        <Text>Status: {toPascalCase(d.status)}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  </>
+                            },
+                          ]
+                        );
+                      }
+                    }}
+                  >
+                    <View className="border border-blue-300 rounded-lg p-2">
+                      <Text>Device ID: {d.deviceId}</Text>
+                      <Text>Status: {toPascalCase(d.status)}</Text>
+                    </View>
+                  </TouchableOpacity>
                 ))}
                 <PrimaryButton
                   className="my-2 w-1/2 bg-red-500"
