@@ -92,7 +92,9 @@ function AppIndexPage() {
     const totalDurationMins = latest.activity.dateTime
       .diff(earliest.activity.dateTime)
       .as('minutes');
-    const minutelyVolume = last24HrFeedStats.totalVol.ml / totalDurationMins;
+    const minutelyVolume =
+      (last24HrFeedStats.totalVol.ml - (latest.activity.feed.volume.ml || 0)) /
+      totalDurationMins;
     feedStats.threeHourlyVolume = Math.ceil(minutelyVolume * 60 * 3); //2 decimal places, 3 hours
     feedStats.isLoading = false;
     feedStats.isValid = true;
