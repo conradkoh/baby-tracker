@@ -100,12 +100,22 @@ export function ConnectionStatus() {
   const conn = useConnection();
   const inset = useSafeAreaInsets();
   return (
-    <Conditional render={conn.isReconnecting}>
-      <View
-        className="bg-orange-200 pb-2 items-center"
-        style={{ height: inset.top }}
-      ></View>
-    </Conditional>
+    <>
+      <Conditional
+        render={!conn.isReconnecting}
+        fallback={
+          <View
+            className="bg-orange-200 pb-2 items-center"
+            style={{ height: inset.top }}
+          />
+        }
+      >
+        <View
+          className="bg-blue-200 pb-2 items-center"
+          style={{ height: inset.top }}
+        />
+      </Conditional>
+    </>
   );
 }
 
