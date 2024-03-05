@@ -114,7 +114,7 @@ function AppIndexPage() {
             </Text>
             <Conditional render={!feedStats.isLoading}>
               <Text>
-                Feed volume:{' '}
+                Feed volume (3h):{' '}
                 {feedStats.isValid
                   ? `${feedStats.threeHourlyVolume} ml`
                   : 'insufficient data'}
