@@ -42,8 +42,7 @@ export const get = query({
 
     const joinRequests = await ctx.db
       .query('familyJoinRequests')
-      .withIndex('by_familyId')
-      .filter((v) => v.eq(v.field('familyId'), args.familyId))
+      .withIndex('by_familyId', (v) => v.eq('familyId', familyId))
       .collect();
     return {
       ...family,
@@ -71,8 +70,7 @@ export const del = mutation({
     //delete all pending requests for the family
     const requests = await ctx.db
       .query('familyJoinRequests')
-      .withIndex('by_familyId')
-      .filter((v) => v.eq(v.field('familyId'), family._id))
+      .withIndex('by_familyId', (v) => v.eq('familyId', family._id))
       .collect();
     await Promise.all(requests.map((r) => ctx.db.delete(r._id)));
   },
@@ -103,8 +101,7 @@ export const requestJoin = mutation({
     }
     const familyJoinRequests = await ctx.db
       .query('familyJoinRequests')
-      .withIndex('by_deviceId')
-      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .withIndex('by_deviceId', (v) => v.eq('deviceId', args.deviceId))
       .collect();
 
     //delete all requests not from this family id bc each device can only belong to one family
@@ -160,20 +157,15 @@ export const approveJoinRequest = mutation({
     }
     const device = await ctx.db
       .query('device')
-      .withIndex('by_deviceId')
-      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .withIndex('by_deviceId', (v) => v.eq('deviceId', args.deviceId))
       .first();
     if (!device) {
       throw new Error('failed to get device');
     }
     const familyJoinRequest = await ctx.db
       .query('familyJoinRequests')
-      .withIndex('by_familyId_and_deviceId')
-      .filter((v) =>
-        v.and(
-          v.eq(v.field('familyId'), args.familyId),
-          v.eq(v.field('deviceId'), args.deviceId)
-        )
+      .withIndex('by_familyId_and_deviceId', (q) =>
+        q.eq('familyId', args.familyId).eq('deviceId', args.deviceId)
       )
       .first();
     if (familyJoinRequest == null) {
@@ -210,8 +202,7 @@ export const leave = mutation({
     }
     const device = await ctx.db
       .query('device')
-      .withIndex('by_deviceId')
-      .filter((v) => v.eq(v.field('deviceId'), args.deviceId))
+      .withIndex('by_deviceId', (v) => v.eq('deviceId', args.deviceId))
       .first();
     if (!device) {
       throw new Error('failed to get device');

@@ -148,54 +148,27 @@ export const getById = query({
     id: v.id('activities'),
   },
   handler: async (ctx, args) => {
-    const activity = await ctx.db
-      .query('activities')
-      .filter((v) => v.eq(v.field('_id'), args.id))
-      .first();
+    const activity = await ctx.db.get(args.id);
     return activity;
   },
 });
 
-//WARNING: queries should not use the luxon date time library, because it can result in the cache always being invalidated.
-//This is due to how convex determines when a query can be cached. If a query uses the date constructor, it cannot be cached.
-export const getByTimestampDesc = query({
-  args: {
-    fromTs: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const activities = await ctx.db
-      .query('activities')
-      .withIndex('by_timestamp')
-      .filter((v) => v.and(v.gte(v.field('activity.timestamp'), args.fromTs)))
-      .order('desc')
-      .collect();
-    return activities;
-  },
-});
 export const getByTimestampDescPaginated = query({
   args: {
-    strictBeforeTs: v.string(),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
     const activitiesPaginatedResult = await ctx.db
       .query('activities')
       .withIndex('by_timestamp')
-      .filter((v) => v.lt(v.field('activity.timestamp'), args.strictBeforeTs))
       .order('desc')
       .paginate(args.paginationOpts);
 
     return activitiesPaginatedResult;
   },
 });
-export const count = query({
-  args: {},
-  handler: async (ctx, args) => {
-    const activities = await ctx.db.query('activities').collect();
-    return activities.length;
-  },
-});
 
+//TODO: Deprecate this query
 export const expGetByTimestampDescPaginated = query({
   args: {
     paginationOpts: paginationOptsValidator,

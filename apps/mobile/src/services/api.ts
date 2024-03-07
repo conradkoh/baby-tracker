@@ -11,7 +11,7 @@ export type { Doc } from '@workspace/backend/convex/_generated/dataModel';
  */
 export function useActivitiesPaginated(args: { fromTs: DateTime<true> }) {
   const { results: activities, loadMore } = usePaginatedQuery(
-    api.activities.expGetByTimestampDescPaginated,
+    api.activities.getByTimestampDescPaginated,
     {},
     { initialNumItems: 20, sharingKey: 'app-index' }
   );
