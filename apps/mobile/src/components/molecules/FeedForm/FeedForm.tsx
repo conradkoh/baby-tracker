@@ -90,6 +90,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
         setDisableSubmit(false);
         throw err;
       }
+      setDisableSubmit(false);
     }, [onSubmit, date, duration, feedType, volume]);
     useImperativeHandle(ref, () => ({
       load(formData: FeedFormData) {

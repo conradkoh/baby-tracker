@@ -50,6 +50,7 @@ export const DiaperChangeForm = forwardRef<
       setDisableSubmit(false);
       throw err;
     }
+    setDisableSubmit(false);
   }, [date, diaperChangeType, onSubmit]);
   useImperativeHandle(ref, () => ({
     load(formData: DiaperChangeFormData) {
