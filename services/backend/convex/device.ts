@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { action, mutation, query } from './_generated/server';
+import { mutation, query } from './_generated/server';
 import { Doc, Id } from './_generated/dataModel';
 
 export const get = query({
@@ -35,7 +35,15 @@ export const sync = mutation({
         osName: args.osName,
         osVersion: args.osVersion,
       });
+
       const device = await getDeviceByDeviceId(deviceId);
+      //create a new activity stream for this device
+      await ctx.db.insert('activityStream', {
+        type: 'device',
+        device: {
+          deviceId,
+        },
+      });
       return device;
     };
     const updateDevice = async (prevState: Doc<'device'>) => {
@@ -66,10 +74,71 @@ export const sync = mutation({
         device = await updateDevice(prevDeviceState);
       }
     }
-    if (device == null) {
+    if (!device) {
       throw new Error('sync failed: no device.');
     }
-    return device;
+    if (device.familyId) {
+      //check if family is valid
+      const family = await ctx.db.get(device.familyId);
+      if (!family) {
+        //remove device from family
+        await ctx.db.patch(device._id, { familyId: undefined });
+      }
+    }
+
+    //TEMP: Enforce activity streams for device and family if not found
+    const deviceActivityStream = await ctx.db
+      .query('activityStream')
+      .withIndex('by_deviceId', (v) =>
+        v.eq('device.deviceId', device?.deviceId)
+      )
+      .first();
+    if (!deviceActivityStream) {
+      await ctx.db.insert('activityStream', {
+        type: 'device',
+        device: {
+          deviceId: device.deviceId,
+        },
+      });
+    }
+    if (device.familyId) {
+      const familyActivityStream = await ctx.db
+        .query('activityStream')
+        .withIndex('by_familyId', (v) => v.eq('family.id', device?.familyId))
+        .first();
+      if (!familyActivityStream) {
+        await ctx.db.insert('activityStream', {
+          type: 'family',
+          family: {
+            id: device.familyId,
+          },
+        });
+      }
+    }
+
+    //TEMP: If there are any activities that have no activity stream, transfer all to the activity stream of the first family found
+    const activitiesWithoutActivityStream = await ctx.db
+      .query('activities')
+      .filter((v) => v.eq(v.field('activityStreamId'), undefined))
+      .collect();
+    if (activitiesWithoutActivityStream.length > 0) {
+      const firstFamily = await ctx.db.query('family').first();
+      if (firstFamily) {
+        const familyActivityStream = await ctx.db
+          .query('activityStream')
+          .withIndex('by_familyId', (v) => v.eq('family.id', firstFamily._id))
+          .first();
+        if (familyActivityStream) {
+          await Promise.all(
+            activitiesWithoutActivityStream.map((activity) =>
+              ctx.db.patch(activity._id, {
+                activityStreamId: familyActivityStream._id,
+              })
+            )
+          );
+        }
+      }
+    }
   },
 });
 

@@ -1,8 +1,10 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
-import { Doc } from '../convex/_generated/dataModel';
+import { DataModel, Doc } from '../convex/_generated/dataModel';
 import { DateTime } from 'luxon';
-import { paginationOptsValidator } from 'convex/server';
+import { GenericMutationCtx, paginationOptsValidator } from 'convex/server';
+import { activityStreamForDevice } from '../domain/entities/usecase/activityStreamForDevice';
+import { requireActivityAccess } from '../domain/entities/usecase/requireActivityAccess';
 export type Activity = Doc<'activities'>;
 export enum ActivityType {
   Feed = 'feed',
@@ -10,6 +12,7 @@ export enum ActivityType {
 }
 export const create = mutation({
   args: {
+    deviceId: v.string(),
     activity: v.union(
       //feed activity
       v.object({
@@ -55,8 +58,14 @@ export const create = mutation({
     if (!ts.isValid) {
       throw new Error(`invalid timestamp: ${args.activity.timestamp}`);
     }
-
+    const activityStream = await activityStreamForDevice(ctx, {
+      deviceId: args.deviceId,
+    });
+    if (!activityStream) {
+      throw new Error(`activity stream not found for device: ${args.deviceId}`);
+    }
     const activityId = await ctx.db.insert('activities', {
+      activityStreamId: activityStream._id,
       activity: {
         ...args.activity,
         timestamp: ts.toUTC().toISO(),
@@ -78,6 +87,7 @@ export const get = query({
 
 export const update = mutation({
   args: {
+    deviceId: v.string(),
     activityId: v.id('activities'),
     activity: v.union(
       //feed activity
@@ -119,6 +129,10 @@ export const update = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await requireActivityAccess(ctx, {
+      deviceId: args.deviceId,
+      activityId: args.activityId,
+    });
     const activities = await ctx.db.query('activities').collect();
     //ensure that the activity timestamp is correct
     const ts = DateTime.fromISO(args.activity.timestamp);
@@ -145,22 +159,36 @@ export const deleteActivity = mutation({
 
 export const getById = query({
   args: {
-    id: v.id('activities'),
+    deviceId: v.string(),
+    activityId: v.id('activities'),
   },
   handler: async (ctx, args) => {
-    const activity = await ctx.db.get(args.id);
+    await requireActivityAccess(ctx, {
+      deviceId: args.deviceId,
+      activityId: args.activityId,
+    });
+    const activity = await ctx.db.get(args.activityId);
     return activity;
   },
 });
 
 export const getByTimestampDescPaginated = query({
   args: {
+    deviceId: v.string(),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
+    const activityStream = await activityStreamForDevice(ctx, {
+      deviceId: args.deviceId,
+    });
+    if (!activityStream) {
+      throw new Error(`activity stream not found for device: ${args.deviceId}`);
+    }
     const activitiesPaginatedResult = await ctx.db
       .query('activities')
-      .withIndex('by_timestamp')
+      .withIndex('by_activityStreamId_by_timestamp', (q) =>
+        q.eq('activityStreamId', activityStream._id)
+      )
       .order('desc')
       .paginate(args.paginationOpts);
 

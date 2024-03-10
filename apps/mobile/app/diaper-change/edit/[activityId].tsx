@@ -13,10 +13,12 @@ import {
 } from '../../../src/components/molecules/DiaperChangeForm/DiaperChangeForm';
 import { diaperChangeFromLiteral } from '@workspace/domain/entities/DiaperChange';
 import { useQuery } from '../../../src/lib/convex/use_query_swr';
+import { useDeviceId } from '../../../src/hooks/useDeviceId';
 export default function EditDiaperChangePage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;
-  const activity = useQuery(api.activities.getById, { id: activityId });
+  const deviceId = useDeviceId();
+  const activity = useQuery(api.activities.getById, { deviceId, activityId });
   const updateActivity = useMutation(api.activities.update);
   const deleteActivity = useMutation(api.activities.deleteActivity);
   const diaperChangeFormRef = useRef<DiaperChangeFormRef>(null);
@@ -49,6 +51,7 @@ export default function EditDiaperChangePage() {
           if (ts === null)
             throw new Error('invalid timestamp: ' + formData.timestamp);
           await updateActivity({
+            deviceId,
             activityId,
             activity: {
               timestamp: ts,

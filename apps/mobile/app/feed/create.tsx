@@ -5,8 +5,10 @@ import { FeedForm } from '../../src/components/molecules/FeedForm';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { router } from 'expo-router';
 import { requestAllowFutureDate } from '../../src/lib/time/requestAllowFutureDate';
+import { useDeviceId } from '../../src/hooks/useDeviceId';
 export default function CreateFeedPage() {
   const createActivity = useMutation(api.activities.create);
+  const deviceId = useDeviceId();
   return (
     <Page title="Create Feed">
       <FeedForm
@@ -26,6 +28,7 @@ export default function CreateFeedPage() {
               case FeedType.Formula: {
                 //default: assume there is volume
                 await createActivity({
+                  deviceId,
                   activity: {
                     timestamp: ts,
                     type: 'feed',
@@ -42,6 +45,7 @@ export default function CreateFeedPage() {
               case FeedType.Latch: {
                 //default: assume there is volume
                 await createActivity({
+                  deviceId,
                   activity: {
                     timestamp: ts,
                     type: 'feed',

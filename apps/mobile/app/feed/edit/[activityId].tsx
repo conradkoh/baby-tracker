@@ -13,10 +13,12 @@ import { FeedType } from '@workspace/domain/entities/Feed';
 import { DateTime } from 'luxon';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useQuery } from '../../../src/lib/convex/use_query_swr';
+import { useDeviceId } from '../../../src/hooks/useDeviceId';
 export default function EditFeedPage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;
-  const activity = useQuery(api.activities.getById, { id: activityId });
+  const deviceId = useDeviceId();
+  const activity = useQuery(api.activities.getById, { deviceId, activityId });
   const updateActivity = useMutation(api.activities.update);
   const deleteActivity = useMutation(api.activities.deleteActivity);
   const feedFormRef = useRef<FeedFormRef>(null);
@@ -76,6 +78,7 @@ export default function EditFeedPage() {
             formData.type === FeedType.Formula
           ) {
             await updateActivity({
+              deviceId,
               activityId,
               activity: {
                 timestamp: ts,
@@ -90,6 +93,7 @@ export default function EditFeedPage() {
             });
           } else if (formData.type === FeedType.Latch) {
             await updateActivity({
+              deviceId,
               activityId,
               activity: {
                 timestamp: ts,

@@ -4,9 +4,11 @@ import { useMutation } from 'convex/react';
 import { api } from '../../src/services/api';
 import { router } from 'expo-router';
 import { requestAllowFutureDate } from '../../src/lib/time/requestAllowFutureDate';
+import { useDeviceId } from '../../src/hooks/useDeviceId';
 
 export default function DiaperChangeCreatePage() {
   const createActivity = useMutation(api.activities.create);
+  const deviceId = useDeviceId();
   return (
     <Page title="Diaper Change">
       <DiaperChangeForm
@@ -20,6 +22,7 @@ export default function DiaperChangeCreatePage() {
             if (ts === null)
               throw new Error('invalid timestamp: ' + formData.timestamp);
             await createActivity({
+              deviceId,
               activity: {
                 timestamp: ts,
                 type: 'diaper_change',

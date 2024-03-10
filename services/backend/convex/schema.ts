@@ -4,6 +4,7 @@ import { v } from 'convex/values';
 export default defineSchema({
   //TABLE: activities
   activities: defineTable({
+    activityStreamId: v.optional(v.id('activityStream')), //TODO: Make this mandatory when migration is done
     activity: v.union(
       //feed activity
       v.object({
@@ -44,7 +45,12 @@ export default defineSchema({
     ),
   })
     .index('by_timestamp', ['activity.timestamp'])
-    .index('by_type', ['activity.type']),
+    .index('by_type', ['activity.type'])
+    .index('by_activityStreamId_by_timestamp', [
+      'activityStreamId',
+      'activity.timestamp',
+    ])
+    .index('by_activityStreamId', ['activityStreamId']),
   //TABLE: DEVICE
   device: defineTable({
     deviceId: v.string(),
@@ -78,4 +84,24 @@ export default defineSchema({
     .index('by_familyId', ['familyId'])
     .index('by_deviceId', ['deviceId'])
     .index('by_familyId_and_deviceId', ['familyId', 'deviceId']),
+
+  //TABLE: Activity Stream
+  activityStream: defineTable(
+    v.union(
+      v.object({
+        type: v.literal('family'),
+        family: v.object({
+          id: v.id('family'),
+        }),
+      }),
+      v.object({
+        type: v.literal('device'),
+        device: v.object({
+          deviceId: v.string(),
+        }),
+      })
+    )
+  )
+    .index('by_familyId', ['family.id'])
+    .index('by_deviceId', ['device.deviceId']),
 });

@@ -1,6 +1,10 @@
-import { ConvexError, v } from 'convex/values';
+import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { DeviceStatus } from '../domain/entities/device/DeviceStatus';
+import {
+  transferActivitiesFromDeviceToFamily,
+  transferActivitiesFromFamilyToDevice,
+} from '../domain/entities/usecase/transferActivities';
 export const create = mutation({
   args: {
     deviceId: v.string(),
@@ -22,6 +26,20 @@ export const create = mutation({
     //link the device to the family
     await ctx.db.patch(device._id, {
       familyId: familyID,
+    });
+
+    //create an activity stream
+    await ctx.db.insert('activityStream', {
+      type: 'family',
+      family: {
+        id: familyID,
+      },
+    });
+
+    //transfer activities from device to family
+    await transferActivitiesFromDeviceToFamily(ctx, {
+      familyId: familyID,
+      deviceId: args.deviceId,
     });
 
     return familyID;
@@ -65,6 +83,13 @@ export const del = mutation({
     if (!authorizingDevice?.deviceId) {
       throw new Error('not authorized');
     }
+    //transfer all family records to the authorizing device
+    await transferActivitiesFromFamilyToDevice(ctx, {
+      familyId: args.familyId,
+      deviceId: args.authorizingDeviceId,
+    });
+
+    //delete the family record
     await ctx.db.delete(args.familyId);
 
     //delete all pending requests for the family
@@ -190,6 +215,12 @@ export const approveJoinRequest = mutation({
 
     //delete the request
     await ctx.db.delete(familyJoinRequest._id);
+
+    //transfer activities from device to family
+    await transferActivitiesFromDeviceToFamily(ctx, {
+      familyId: family._id,
+      deviceId: args.deviceId,
+    });
   },
 });
 
@@ -214,8 +245,39 @@ export const leave = mutation({
       ],
     });
 
+    //unset device's family id
     await ctx.db.patch(device._id, { familyId: undefined });
 
-    //unset device family id
+    //if you are the last member of the family, transfer activities to the device's activity stream
+    if (
+      family.devices.length === 1 &&
+      family.devices[0].deviceId === device.deviceId
+    ) {
+      const deviceActivityStream = await ctx.db
+        .query('activityStream')
+        .withIndex('by_deviceId', (v) =>
+          v.eq('device.deviceId', device.deviceId)
+        )
+        .first();
+      const familyActivityStream = await ctx.db
+        .query('activityStream')
+        .withIndex('by_familyId', (v) => v.eq('family.id', family._id))
+        .first();
+      if (deviceActivityStream && familyActivityStream) {
+        const familyActivities = await ctx.db
+          .query('activities')
+          .withIndex('by_activityStreamId', (v) =>
+            v.eq('activityStreamId', familyActivityStream._id)
+          )
+          .collect();
+        await Promise.all(
+          familyActivities.map((activity) =>
+            ctx.db.patch(activity._id, {
+              activityStreamId: deviceActivityStream._id,
+            })
+          )
+        );
+      }
+    }
   },
 });

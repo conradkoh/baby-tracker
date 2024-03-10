@@ -14,11 +14,13 @@ import { Loader } from '../src/components/molecules/Loader';
 import { FeedType } from '@workspace/domain/entities/Feed';
 import { Conditional } from '../src/components/atoms/Condition';
 import { withReloadOnReconnect } from '../src/providers/ConvexClientProvider';
+import { useDeviceId } from '../src/hooks/useDeviceId';
 
 function AppIndexPage() {
   const fromTs = useMemo(() => {
     return DateTime.now().minus({ days: 7 }).startOf('day');
   }, []);
+  const deviceId = useDeviceId();
   const { results: activities, loadMore } = useActivitiesPaginated({ fromTs });
   const curDate = useCurrentDateTime();
   const lastFeedTimestamp = activities?.find(

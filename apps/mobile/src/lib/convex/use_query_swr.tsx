@@ -42,7 +42,7 @@ function applySwrUsePaginatedQuery(
       }
     }, [key, liveData, returnVals.isLoading, set]);
     return {
-      results: get(key) || [],
+      results: get(key),
       ...returnVals,
     };
   };
