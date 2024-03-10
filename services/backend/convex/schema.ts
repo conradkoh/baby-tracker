@@ -4,7 +4,7 @@ import { v } from 'convex/values';
 export default defineSchema({
   //TABLE: activities
   activities: defineTable({
-    activityStreamId: v.optional(v.id('activityStream')), //TODO: Make this mandatory when migration is done
+    activityStreamId: v.id('activityStream'),
     activity: v.union(
       //feed activity
       v.object({

@@ -115,30 +115,6 @@ export const sync = mutation({
         });
       }
     }
-
-    //TEMP: If there are any activities that have no activity stream, transfer all to the activity stream of the first family found
-    const activitiesWithoutActivityStream = await ctx.db
-      .query('activities')
-      .filter((v) => v.eq(v.field('activityStreamId'), undefined))
-      .collect();
-    if (activitiesWithoutActivityStream.length > 0) {
-      const firstFamily = await ctx.db.query('family').first();
-      if (firstFamily) {
-        const familyActivityStream = await ctx.db
-          .query('activityStream')
-          .withIndex('by_familyId', (v) => v.eq('family.id', firstFamily._id))
-          .first();
-        if (familyActivityStream) {
-          await Promise.all(
-            activitiesWithoutActivityStream.map((activity) =>
-              ctx.db.patch(activity._id, {
-                activityStreamId: familyActivityStream._id,
-              })
-            )
-          );
-        }
-      }
-    }
   },
 });
 

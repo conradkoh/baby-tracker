@@ -134,12 +134,19 @@ export const update = mutation({
       activityId: args.activityId,
     });
     const activities = await ctx.db.query('activities').collect();
+    const activityStream = await activityStreamForDevice(ctx, {
+      deviceId: args.deviceId,
+    });
+    if (!activityStream) {
+      throw new Error(`activity stream not found for device: ${args.deviceId}`);
+    }
     //ensure that the activity timestamp is correct
     const ts = DateTime.fromISO(args.activity.timestamp);
     if (!ts.isValid) {
       throw new Error(`invalid timestamp: ${args.activity.timestamp}`);
     }
     await ctx.db.replace(args.activityId, {
+      activityStreamId: activityStream._id,
       activity: {
         ...args.activity,
         timestamp: ts.toUTC().toISO(),
