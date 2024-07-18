@@ -36,7 +36,7 @@ export interface FeedFormRef {
 
 type FeedFormData =
   | {
-      type: FeedType.Expressed | FeedType.Formula;
+      type: FeedType.Expressed | FeedType.Formula | FeedType.Water;
       timestamp: DateTime;
       volume: number;
     }
@@ -68,6 +68,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
       setDisableSubmit(true);
       try {
         switch (feedType) {
+          case FeedType.Water:
           case FeedType.Expressed:
           case FeedType.Formula: {
             onSubmit({
@@ -85,6 +86,11 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
             });
             break;
           }
+          default: {
+            // exhaustive
+            const _: never = feedType;
+            throw new Error(`invalid feed type: ${_}`);
+          }
         }
       } catch (err) {
         setDisableSubmit(false);
@@ -95,6 +101,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
     useImperativeHandle(ref, () => ({
       load(formData: FeedFormData) {
         switch (formData.type) {
+          case FeedType.Water:
           case FeedType.Expressed:
           case FeedType.Formula: {
             setVolume(formData.volume);

@@ -24,6 +24,7 @@ export default function CreateFeedPage() {
             if (ts === null)
               throw new Error('invalid timestamp: ' + formData.timestamp);
             switch (formData.type) {
+              case FeedType.Water:
               case FeedType.Expressed:
               case FeedType.Formula: {
                 //default: assume there is volume
@@ -60,6 +61,11 @@ export default function CreateFeedPage() {
                   },
                 });
                 break;
+              }
+              default: {
+                // exhaustive
+                const _: never = formData;
+                throw new Error(`invalid feed type: ${_}`);
               }
             }
             router.navigate('/');

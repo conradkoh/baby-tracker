@@ -26,6 +26,7 @@ export default function EditFeedPage() {
     if (activity?.activity.type === ActivityType.Feed) {
       const feed = activity.activity.feed;
       switch (feed.type) {
+        case FeedType.Water:
         case FeedType.Expressed:
         case FeedType.Formula: {
           feedFormRef.current?.load({
@@ -50,6 +51,10 @@ export default function EditFeedPage() {
           });
           break;
         }
+        default: {
+          // exhaustive
+          throw new Error(`invalid feed type: ${feed.type}`);
+        }
       }
     }
   }, [activity?.activity]);
@@ -73,41 +78,51 @@ export default function EditFeedPage() {
           const ts = formData.timestamp.toISO();
           if (ts === null)
             throw new Error('invalid timestamp: ' + formData.timestamp);
-          if (
-            formData.type === FeedType.Expressed ||
-            formData.type === FeedType.Formula
-          ) {
-            await updateActivity({
-              deviceId,
-              activityId,
-              activity: {
-                timestamp: ts,
-                type: 'feed',
-                feed: {
-                  type: formData.type,
-                  volume: {
-                    ml: formData.volume,
+          switch (formData.type) {
+            case FeedType.Water:
+            case FeedType.Expressed:
+            case FeedType.Formula: {
+              await updateActivity({
+                deviceId,
+                activityId,
+                activity: {
+                  timestamp: ts,
+                  type: 'feed',
+                  feed: {
+                    type: formData.type,
+                    volume: {
+                      ml: formData.volume,
+                    },
                   },
                 },
-              },
-            });
-          } else if (formData.type === FeedType.Latch) {
-            await updateActivity({
-              deviceId,
-              activityId,
-              activity: {
-                timestamp: ts,
-                type: 'feed',
-                feed: {
-                  type: formData.type,
-                  duration: {
-                    left: formData.duration.left,
-                    right: formData.duration.right,
+              });
+              break;
+            }
+            case FeedType.Latch: {
+              await updateActivity({
+                deviceId,
+                activityId,
+                activity: {
+                  timestamp: ts,
+                  type: 'feed',
+                  feed: {
+                    type: formData.type,
+                    duration: {
+                      left: formData.duration.left,
+                      right: formData.duration.right,
+                    },
                   },
                 },
-              },
-            });
+              });
+              break;
+            }
+            default: {
+              // exhaustive
+              const _: never = formData;
+              throw new Error(`invalid feed type: ${_}`);
+            }
           }
+
           router.back();
         }}
       />

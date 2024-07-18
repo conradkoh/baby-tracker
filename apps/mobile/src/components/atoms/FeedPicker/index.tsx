@@ -12,6 +12,7 @@ const FeedPicker = (props: {
         { value: FeedType.Expressed, label: 'Expressed' },
         { value: FeedType.Latch, label: 'Latch' },
         { value: FeedType.Formula, label: 'Formula' },
+        { value: FeedType.Water, label: 'Water' },
       ]}
       value={props.value}
       onChange={(v) => props.onChange(v as FeedType)}

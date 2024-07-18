@@ -23,7 +23,11 @@ export default defineSchema({
             }),
           }),
           v.object({
-            type: v.union(v.literal('expressed'), v.literal('formula')),
+            type: v.union(
+              v.literal('expressed'),
+              v.literal('formula'),
+              v.literal('water')
+            ),
             volume: v.object({
               ml: v.number(),
             }),

@@ -62,6 +62,9 @@ function ActivityItem(props: {
   switch (activity.activity.type) {
     case ActivityType.Feed: {
       icon = <Text>🍼</Text>;
+      if (activity.activity.feed.type === FeedType.Water) {
+        icon = <Text>💧</Text>;
+      }
       break;
     }
     case ActivityType.DiaperChange: {
@@ -101,6 +104,7 @@ function ActivityItem(props: {
                 : `${duration.toFormat("m 'mins'")}`;
             break;
           }
+          case FeedType.Water:
           case FeedType.Expressed:
           case FeedType.Formula: {
             subContent = `${feed.volume.ml} ml`;
