@@ -70,6 +70,9 @@ function ActivityItem(props: {
     }
     case ActivityType.Medical: {
       icon = <Text>💊</Text>;
+      if (activity.activity.medical.type === 'temperature') {
+        icon = <Text>🌡️</Text>;
+      }
       break;
     }
     default: {
