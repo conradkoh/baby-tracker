@@ -8,9 +8,9 @@
     "dev": "yarn workspace @workspace/backend dev & yarn workspace @workspace/web dev & yarn workspace @workspace/mobile ios",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
+    "deploy": "yarn deploy:backend && yarn update:frontend:preview",
     "deploy:backend": "yarn workspace @workspace/backend deploy",
-    "update:frontend:preview": "yarn workspace @workspace/mobile update:preview",
-    "update": "yarn deploy:backend && yarn update:frontend:preview"
+    "update:frontend:preview": "yarn workspace @workspace/mobile update:preview"
   },
   "keywords": [],
   "author": "",
