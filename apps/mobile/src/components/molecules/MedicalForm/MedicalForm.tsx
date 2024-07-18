@@ -155,12 +155,13 @@ const MedicalActivityForm = forwardRef<
               >
                 <TextInput
                   keyboardType="numeric"
-                  style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+                  className="flex-grow text-center"
                   placeholder="Degrees"
                   value={temperature}
                   onChangeText={setTemperature}
                 />
-                <Text> °C</Text>
+                <View className="border-r border-gray-400" />
+                <Text className="pl-2">°C</Text>
               </View>
             ) : (
               <>
@@ -170,7 +171,7 @@ const MedicalActivityForm = forwardRef<
                   style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                 >
                   <TextInput
-                    style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+                    className="flex-grow text-center"
                     placeholder="Name"
                     value={medicineName}
                     onChangeText={setMedicineName}
@@ -184,7 +185,6 @@ const MedicalActivityForm = forwardRef<
                   <TextInput
                     className="text-center flex-1"
                     keyboardType="numeric"
-                    // style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                     placeholder="Value"
                     value={value}
                     onChangeText={setValue}
