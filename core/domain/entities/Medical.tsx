@@ -1,4 +1,5 @@
 export enum MedicalType {
   Temperature = 'temperature',
-  Medication = 'medication',
+  Medicine = 'medicine',
 }
+export type MedicalTypeLiteral = `${MedicalType}`;

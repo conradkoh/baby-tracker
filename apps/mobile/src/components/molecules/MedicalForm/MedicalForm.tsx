@@ -11,12 +11,14 @@ import {
   View,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from 'luxon';
 import PrimaryButton from '../../atoms/Button/Primary';
 import SelectPicker from '../../atoms/SelectPicker';
 import { usePage } from '../../organisms/Page';
+import { useMedicalFormStore } from '../../../storage/stores/medical-form-store';
 
 // Define the types for medical activities
 type ActivityType = 'temperature' | 'medicine';
@@ -48,12 +50,21 @@ const MedicalActivityForm = forwardRef<
   MedicalActivityFormRef,
   MedicalActivityFormProps
 >(({ onSubmit, mode }, ref) => {
-  const [activityType, setActivityType] = useState<ActivityType>('temperature');
+  const {
+    medicalType,
+    setMedicalType: setActivityType,
+    // temperature
+    temperatureValue: temperature,
+    setTemperatureValue: setTemperature,
+    // medicine
+    medicineName,
+    medicineUnit,
+    medicineValue,
+    setMedicineName,
+    setMedicineUnit,
+    setMedicineValue,
+  } = useMedicalFormStore();
   const [date, setDate] = useState(new Date());
-  const [temperature, setTemperature] = useState('');
-  const [medicineName, setMedicineName] = useState('');
-  const [unit, setUnit] = useState('pills');
-  const [value, setValue] = useState('');
   const [isReady, setReady] = useState(false);
   const [disableSubmit, setDisableSubmit] = useState(false);
 
@@ -62,11 +73,11 @@ const MedicalActivityForm = forwardRef<
       setDate(formData.timestamp.toJSDate());
       setActivityType(formData.type);
       if (formData.type === 'temperature') {
-        setTemperature(formData.temperature.toString());
+        setTemperature('' + formData.temperature);
       } else {
         setMedicineName(formData.name);
-        setUnit(formData.unit);
-        setValue(formData.value.toString());
+        setMedicineUnit(formData.unit);
+        setMedicineValue('' + formData.value);
       }
       setReady(true);
     },
@@ -83,25 +94,35 @@ const MedicalActivityForm = forwardRef<
   const onCreateActivityPress = useCallback(() => {
     setDisableSubmit(true);
     try {
-      if (activityType === 'temperature') {
-        const temp = parseFloat(temperature);
-        if (isNaN(temp)) throw new Error('Invalid temperature');
-        onSubmit({
-          type: 'temperature',
-          timestamp: DateTime.fromJSDate(date),
-          temperature: temp,
-        });
-      } else {
-        const val = parseFloat(value);
-        if (isNaN(val)) throw new Error('Invalid value');
-        if (!medicineName.trim()) throw new Error('Medicine name is required');
-        onSubmit({
-          type: 'medicine',
-          timestamp: DateTime.fromJSDate(date),
-          name: medicineName,
-          unit,
-          value: val,
-        });
+      switch (medicalType) {
+        case 'temperature': {
+          const temp = parseFloat(temperature);
+          if (isNaN(temp)) {
+            // show dialog
+            Alert.alert('Invalid temperature');
+          }
+          onSubmit({
+            type: 'temperature',
+            timestamp: DateTime.fromJSDate(date),
+            temperature: temp,
+          });
+          break;
+        }
+        case 'medicine': {
+          const val = parseFloat(medicineValue);
+          if (isNaN(val)) {
+            // show dialog
+            Alert.alert('Invalid medicine value');
+          }
+          onSubmit({
+            type: 'medicine',
+            timestamp: DateTime.fromJSDate(date),
+            name: medicineName,
+            unit: medicineUnit,
+            value: val,
+          });
+          break;
+        }
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'An error occurred');
@@ -109,7 +130,15 @@ const MedicalActivityForm = forwardRef<
       return;
     }
     setDisableSubmit(false);
-  }, [onSubmit, date, activityType, temperature, medicineName, unit, value]);
+  }, [
+    medicalType,
+    onSubmit,
+    date,
+    temperature,
+    medicineName,
+    medicineUnit,
+    medicineValue,
+  ]);
 
   useEffect(() => {
     if (mode === 'create') setReady(true);
@@ -130,7 +159,7 @@ const MedicalActivityForm = forwardRef<
                   { value: 'temperature', label: 'Temperature' },
                   { value: 'medicine', label: 'Medicine' },
                 ]}
-                value={activityType}
+                value={medicalType}
                 onChange={(v) => setActivityType(v as ActivityType)}
               />
             </View>
@@ -148,7 +177,7 @@ const MedicalActivityForm = forwardRef<
             </View>
 
             {/* Temperature Input */}
-            {activityType === 'temperature' ? (
+            {medicalType === 'temperature' ? (
               <View
                 className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
                 style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
@@ -186,8 +215,8 @@ const MedicalActivityForm = forwardRef<
                     className="text-center flex-1"
                     keyboardType="numeric"
                     placeholder="Value"
-                    value={value}
-                    onChangeText={setValue}
+                    value={medicineValue}
+                    onChangeText={setMedicineValue}
                   />
                   <View className="border-r border-gray-400" />
                   <View className="flex-grow flex-1">
@@ -199,8 +228,8 @@ const MedicalActivityForm = forwardRef<
                         { value: 'g', label: 'g' },
                         { value: 'mg', label: 'mg' },
                       ]}
-                      value={unit}
-                      onChange={setUnit}
+                      value={medicineUnit}
+                      onChange={setMedicineUnit}
                     />
                   </View>
                 </View>

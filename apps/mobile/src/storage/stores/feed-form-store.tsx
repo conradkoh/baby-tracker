@@ -12,7 +12,7 @@ interface FeedFormStoreState {
 export const useFeedFormStore = create<FeedFormStoreState>()(
   persist(
     (set, get) => ({
-      feedType: FeedType.Expressed,
+      feedType: FeedType.Expressed as FeedType,
       volume: DEFAULT_VOL,
       setVolume: (volume: number) => set(() => ({ volume })),
       setFeedType: (feedType: FeedType) => set(() => ({ feedType })),

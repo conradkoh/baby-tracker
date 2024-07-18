@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "deploy": "yarn deploy:backend && yarn update:frontend:preview",
     "deploy:backend": "yarn workspace @workspace/backend deploy",
-    "update:frontend:preview": "yarn workspace @workspace/mobile update:preview"
+    "update:frontend:preview": "yarn workspace @workspace/mobile update:preview",
+    "typecheck": "yarn workspace @workspace/mobile tsc --noEmit"
   },
   "keywords": [],
   "author": "",
