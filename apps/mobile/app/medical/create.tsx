@@ -3,6 +3,7 @@ import MedicalActivityForm from '../../src/components/molecules/MedicalForm/Medi
 import { api } from '@workspace/backend/convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { useDeviceId } from '../../src/hooks/useDeviceId';
+import { router } from 'expo-router';
 
 export default function CreateMedicalPage() {
   const deviceId = useDeviceId();
@@ -51,6 +52,7 @@ export default function CreateMedicalPage() {
               break;
             }
           }
+          router.navigate('/');
         }}
       />
     </Page>

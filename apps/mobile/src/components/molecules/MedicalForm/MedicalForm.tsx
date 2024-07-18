@@ -172,7 +172,7 @@ const MedicalActivityForm = forwardRef<
                 >
                   <TextInput
                     className="flex-grow text-center"
-                    placeholder="Name"
+                    placeholder="Medicine Name"
                     value={medicineName}
                     onChangeText={setMedicineName}
                   />
