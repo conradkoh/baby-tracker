@@ -14,9 +14,6 @@ interface DeviceInfoStore {
 export const useDeviceInfoStore = create<DeviceInfoStore>()(
   persist(
     (set, get) => ({
-      device: {
-        deviceId: uuid(),
-      },
       deviceId: uuid(), //this is the source of truth for device id
       clearDevice: () => set((p) => ({ ...p, deviceId: uuid() })),
     }),
