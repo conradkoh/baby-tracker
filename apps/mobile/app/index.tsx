@@ -134,6 +134,10 @@ function AppIndexPage() {
                 router.push(`/diaper-change/edit/${a.activity._id}`);
                 break;
               }
+              case ActivityType.Medical: {
+                router.push(`/medical/edit/${a.activity._id}`);
+                break;
+              }
               default: {
                 break;
               }
