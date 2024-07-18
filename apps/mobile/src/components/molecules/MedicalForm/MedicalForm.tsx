@@ -223,7 +223,7 @@ const MedicalActivityForm = forwardRef<
                     <SelectPicker
                       options={[
                         { value: 'pills', label: 'pills' },
-                        { value: 'drop', label: 'drop' },
+                        { value: 'drops', label: 'drops' },
                         { value: 'ml', label: 'ml' },
                         { value: 'g', label: 'g' },
                         { value: 'mg', label: 'mg' },
