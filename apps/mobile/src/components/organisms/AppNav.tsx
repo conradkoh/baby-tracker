@@ -1,10 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { BabyBottleIcon } from '../atoms/icons/BabyBottle';
 import { HomeIcon } from '../atoms/icons/Home';
 import { router } from 'expo-router';
 import IconButton from '../atoms/Button/Icon';
 import { DiaperChangeIcon } from '../atoms/icons/DiaperChange';
 import { SettingsIcon } from '../atoms/icons/Settings';
+import { MedicalIcon } from '../atoms/icons/MedicalIcon';
 
 export default function AppNav() {
   return (
@@ -18,6 +19,9 @@ export default function AppNav() {
         </IconButton>
         <IconButton onPress={() => router.push('/diaper-change/create')}>
           <DiaperChangeIcon />
+        </IconButton>
+        <IconButton onPress={() => router.push('/medical/create')}>
+          <MedicalIcon />
         </IconButton>
         <IconButton onPress={() => router.push('/settings')}>
           <SettingsIcon />

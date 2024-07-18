@@ -41,6 +41,27 @@ export default defineSchema({
             v.literal('mixed')
           ),
         }),
+      }),
+      // medical activity
+      v.object({
+        timestamp: v.string(),
+        type: v.literal('medical'),
+        medical: v.union(
+          v.object({
+            type: v.literal('temperature'),
+            temperature: v.object({
+              value: v.number(),
+            }),
+          }),
+          v.object({
+            type: v.literal('medicine'),
+            medicine: v.object({
+              name: v.string(),
+              unit: v.string(),
+              value: v.number(),
+            }),
+          })
+        ),
       })
     ),
   })

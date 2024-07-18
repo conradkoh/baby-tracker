@@ -7,9 +7,13 @@ import {
   Text,
   Platform,
   Pressable,
+  ViewStyle,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Modal from './Modal/Modal';
+const defaultStyle = {
+  backgroundColor: 'rgba(184, 207, 237, 255)',
+};
 
 function SelectPicker<T>(props: {
   value: string;
@@ -18,20 +22,19 @@ function SelectPicker<T>(props: {
     label: string;
   }[];
   onChange: (v: string) => void;
+  className?: string;
+  style?: ViewStyle;
 }) {
   const [visible, setVisible] = useState(false);
 
   return (
     <>
-      <View className="w-full flex items-center rounded">
+      <View className="w-full flex items-center rounded" style={props.style}>
         <Pressable
           className="w-full items-center"
           onPress={() => setVisible(true)}
         >
-          <View
-            className="place-self-center w-auto rounded-md p-2"
-            style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
-          >
+          <View className="place-self-center w-auto rounded-md p-2">
             <Text>
               {props.options.find((o) => o.value === props.value)?.label ||
                 'Unknown'}

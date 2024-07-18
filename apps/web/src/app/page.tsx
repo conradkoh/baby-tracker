@@ -19,16 +19,16 @@ export default function Home() {
       </span>
       <button
         onClick={() => {
-          //TODO: replace this with actual logic
-          createActivity({
-            activity: {
-              timestamp: DateTime.now().toISO(),
-              type: 'diaper_change',
-              diaperChange: {
-                type: 'wet',
-              },
-            },
-          });
+          // //TODO: replace this with actual logic
+          // createActivity({
+          //   activity: {
+          //     timestamp: DateTime.now().toISO(),
+          //     type: 'diaper_change',
+          //     diaperChange: {
+          //       type: 'wet',
+          //     },
+          //   },
+          // });
         }}
       >
         Test

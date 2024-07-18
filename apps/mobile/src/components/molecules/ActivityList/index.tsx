@@ -58,7 +58,6 @@ function ActivityItem(props: {
 }) {
   const activity = props.activity;
   const activityTimestamp = DateTime.fromISO(activity.activity.timestamp);
-  const curDateTime = useCurrentDateTime();
   let icon = <></>;
   switch (activity.activity.type) {
     case ActivityType.Feed: {
@@ -67,6 +66,10 @@ function ActivityItem(props: {
     }
     case ActivityType.DiaperChange: {
       icon = <Text>💩</Text>;
+      break;
+    }
+    case ActivityType.Medical: {
+      icon = <Text>💊</Text>;
       break;
     }
     default: {
@@ -108,6 +111,22 @@ function ActivityItem(props: {
         mainContent = `${toPascalCase(diaperChange.type)}`;
         break;
       }
+      case ActivityType.Medical: {
+        const medical = activity.activity.medical;
+        switch (medical.type) {
+          case 'temperature': {
+            mainContent = `Temperature`;
+            subContent = `${medical.temperature.value} °C`;
+            break;
+          }
+          case 'medicine': {
+            mainContent = `${medical.medicine.name}`;
+            subContent = `${medical.medicine.value} ${medical.medicine.unit}`;
+            break;
+          }
+        }
+        break;
+      }
     }
     return { mainContent, subContent };
   }, [activity.activity]);
@@ -126,7 +145,7 @@ function ActivityItem(props: {
           <View className="flex-row grow">
             {/* Content next to the icon */}
             <View>
-              <View className="flex-1 w-20 align-middle justify-center">
+              <View className="flex-1 w-24 align-middle justify-center">
                 <Text>{mainContent}</Text>
               </View>
             </View>

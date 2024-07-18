@@ -20,7 +20,6 @@ function AppIndexPage() {
   const fromTs = useMemo(() => {
     return DateTime.now().minus({ days: 7 }).startOf('day');
   }, []);
-  const deviceId = useDeviceId();
   const { results: activities, loadMore } = useActivitiesPaginated({ fromTs });
   const curDate = useCurrentDateTime();
   const lastFeedTimestamp = activities?.find(
