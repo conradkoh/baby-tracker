@@ -1,12 +1,4 @@
-import {
-  Button,
-  Pressable,
-  Text,
-  View,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TouchableOpacity,
-} from 'react-native';
+import { Text, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 import { useEffect, useState } from 'react';
 import DateTimePicker, {
@@ -157,8 +149,8 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                   style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                 >
                   <TextInput
+                    className="flex-grow text-center"
                     keyboardType="number-pad"
-                    style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                     placeholder="Volume (ml)"
                     value={'' + volume}
                     onChangeText={(v) => {
