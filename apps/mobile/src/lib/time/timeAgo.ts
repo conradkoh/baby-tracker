@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 export enum Format {
   HourAndMinutes = "h 'hour,' m 'mins ago'",
   HoursAndMinutes = "h 'hours,' m 'mins ago'",
@@ -21,6 +21,12 @@ export function timeAgo(p: { curDateTime: DateTime; dateTime: DateTime }) {
     'seconds',
   ]);
 
+  return {
+    toString: () => formatDiffAsString(diff),
+  };
+}
+
+function formatDiffAsString(diff: Duration) {
   // Format the duration
   if (diff.days == 0) {
     if (diff.hours == 1) return diff.toFormat(Format.HourAndMinutes);

@@ -15,6 +15,7 @@ import { FeedType } from '@workspace/domain/entities/Feed';
 import { Conditional } from '../src/components/atoms/Condition';
 import { withReloadOnReconnect } from '../src/providers/ConvexClientProvider';
 import { useDeviceId } from '../src/hooks/useDeviceId';
+import ActivitySummary from '../src/components/molecules/ActivitySummary/ActivitySummary';
 
 function AppIndexPage() {
   const fromTs = useMemo(() => {
@@ -104,32 +105,23 @@ function AppIndexPage() {
     feedStats.isValid = true;
     return feedStats;
   }, [activities, curDate]);
+  const lastFeedTimeAgo = useMemo(() => {
+    if (!lastFeedTimestamp) return undefined;
+    return timeAgo({
+      curDateTime: curDate,
+      dateTime: DateTime.fromISO(lastFeedTimestamp),
+    }).toString();
+  }, [curDate, lastFeedTimestamp]);
   return (
     <Loader loading={isLoading}>
       <View style={{ minHeight: 2 }} className="grow">
         {lastFeedTimestamp ? (
-          <View className="border p-4 border-red-200 bg-red-300 rounded-lg">
-            <Text>
-              Last Feed:{' '}
-              {timeAgo({
-                curDateTime: curDate,
-                dateTime: DateTime.fromISO(lastFeedTimestamp),
-              })}
-            </Text>
-            <Conditional render={!feedStats.isLoading}>
-              <Text>
-                Feed volume (3h avg):{' '}
-                {feedStats.isValid
-                  ? `${feedStats.threeHourlyVolume} ml`
-                  : 'insufficient data'}
-              </Text>
-              <Text>
-                Feed volume (last 24h):{' '}
-                {feedStats.isValid
-                  ? `${feedStats.twentyFourHourVolume} ml`
-                  : 'insufficient data'}
-              </Text>
-            </Conditional>
+          <View className=" bg-red-300 rounded-lg">
+            <ActivitySummary
+              lastFeed={`${lastFeedTimeAgo}`}
+              feedVolume3HAvg={feedStats.threeHourlyVolume}
+              feedVolume24HTotal={feedStats.twentyFourHourVolume}
+            />
           </View>
         ) : null}
         <ActivityList
