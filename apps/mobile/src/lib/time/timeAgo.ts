@@ -1,7 +1,6 @@
 import { DateTime, Duration } from 'luxon';
 export enum Format {
-  HourAndMinutes = "h 'hour,' m 'mins ago'",
-  HoursAndMinutes = "h 'hours,' m 'mins ago'",
+  HoursAndMinutes = "h'h,' m'm ago'",
   Day = "d 'day ago'",
   Days = "d 'days ago'",
 }
@@ -29,7 +28,8 @@ export function timeAgo(p: { curDateTime: DateTime; dateTime: DateTime }) {
 function formatDiffAsString(diff: Duration) {
   // Format the duration
   if (diff.days == 0) {
-    if (diff.hours == 1) return diff.toFormat(Format.HourAndMinutes);
+    // if (diff.hours == 1) return diff.toFormat(Format.HourAndMinutes); //changed to h'h,' m'm ago' so no need for this
+    if (diff.hours == 1) return diff.toFormat(Format.HoursAndMinutes);
     return diff.toFormat(Format.HoursAndMinutes);
   } else if (diff.days > 0) {
     if (diff.days == 1) return diff.toFormat(Format.Day);
