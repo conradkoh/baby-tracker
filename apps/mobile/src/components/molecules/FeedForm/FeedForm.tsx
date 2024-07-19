@@ -2,7 +2,6 @@ import {
   Button,
   Pressable,
   Text,
-  TextInput,
   View,
   TouchableWithoutFeedback,
   Keyboard,
@@ -26,6 +25,7 @@ import { Conditional } from '../../atoms/Condition';
 import { BreastTimer } from '../BreastTimer/BreastTimer';
 import DurationPicker from '../../atoms/DurationPicker/DurationPicker';
 import { FormulaCalculator } from '../FormulaCalculator';
+import { TextInput } from '../../atoms/TextInput/TextInput';
 interface FeedFormProps {
   onSubmit: (p: FeedFormData) => Promise<void>;
   mode: 'create' | 'edit';
@@ -56,7 +56,6 @@ type FeedFormData =
 export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
   ({ mode, onSubmit }: FeedFormProps, ref) => {
     const [date, setDate] = useState(new Date());
-    const volInputRef = useRef<TextInput>(null);
     const { feedType, setFeedType, volume, setVolume } = useFeedFormStore();
     const [duration, setDuration] = useState({
       left: { seconds: 0 },
@@ -153,13 +152,11 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                 />
               </View>
               <Conditional render={feedType != FeedType.Latch}>
-                <TouchableOpacity
+                <View
                   className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
                   style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
-                  onPress={() => volInputRef.current?.focus()}
                 >
                   <TextInput
-                    ref={volInputRef}
                     keyboardType="number-pad"
                     style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
                     placeholder="Volume (ml)"
@@ -172,16 +169,11 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                         setVolume(0);
                       }
                     }}
-                    onFocus={() => {
-                      volInputRef.current?.setSelection(
-                        0,
-                        ('' + volume).length
-                      );
-                    }}
                     selectTextOnFocus={true}
-                  />
-                  <Text> ml</Text>
-                </TouchableOpacity>
+                  >
+                    <Text> ml</Text>
+                  </TextInput>
+                </View>
               </Conditional>
               <Conditional render={feedType == FeedType.Latch}>
                 <View className="mt-2 flex-row">
