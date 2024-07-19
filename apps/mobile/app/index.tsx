@@ -33,11 +33,13 @@ function AppIndexPage() {
     isLoading: boolean;
     isValid: boolean;
     threeHourlyVolume: number;
+    twentyFourHourVolume: number;
   }>(() => {
     const feedStats = {
       isLoading: true,
-      isValid: false,
+      isValid: false, //always starts as false. as long as one data point is added, it is valid
       threeHourlyVolume: -1,
+      twentyFourHourVolume: 0,
     };
     if (!activities) return feedStats; // activities not loaded
 
@@ -97,6 +99,7 @@ function AppIndexPage() {
       (last24HrFeedStats.totalVol.ml - (latest.activity.feed.volume.ml || 0)) /
       totalDurationMins;
     feedStats.threeHourlyVolume = Math.ceil(minutelyVolume * 60 * 3); //2 decimal places, 3 hours
+    feedStats.twentyFourHourVolume = last24HrFeedStats.totalVol.ml;
     feedStats.isLoading = false;
     feedStats.isValid = true;
     return feedStats;
@@ -115,9 +118,15 @@ function AppIndexPage() {
             </Text>
             <Conditional render={!feedStats.isLoading}>
               <Text>
-                Feed volume (3h):{' '}
+                Feed volume (3h avg):{' '}
                 {feedStats.isValid
                   ? `${feedStats.threeHourlyVolume} ml`
+                  : 'insufficient data'}
+              </Text>
+              <Text>
+                Feed volume (last 24h):{' '}
+                {feedStats.isValid
+                  ? `${feedStats.twentyFourHourVolume} ml`
                   : 'insufficient data'}
               </Text>
             </Conditional>
