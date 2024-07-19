@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import {
   Text,
-  TextInput,
   View,
   TouchableWithoutFeedback,
   Keyboard,
@@ -19,6 +18,7 @@ import PrimaryButton from '../../atoms/Button/Primary';
 import SelectPicker from '../../atoms/SelectPicker';
 import { usePage } from '../../organisms/Page';
 import { useMedicalFormStore } from '../../../storage/stores/medical-form-store';
+import { TextInput } from '../../atoms/TextInput/TextInput';
 
 // Define the types for medical activities
 type ActivityType = 'temperature' | 'medicine';
@@ -188,6 +188,7 @@ const MedicalActivityForm = forwardRef<
                   placeholder="Degrees"
                   value={temperature}
                   onChangeText={setTemperature}
+                  selectTextOnFocus={true}
                 />
                 <View className="border-r border-gray-400" />
                 <Text className="pl-2">°C</Text>
@@ -204,6 +205,7 @@ const MedicalActivityForm = forwardRef<
                     placeholder="Medicine Name"
                     value={medicineName}
                     onChangeText={setMedicineName}
+                    selectTextOnFocus={true}
                   />
                 </View>
                 {/* Medicine Value and Unit Input */}
@@ -217,6 +219,7 @@ const MedicalActivityForm = forwardRef<
                     placeholder="Value"
                     value={medicineValue}
                     onChangeText={setMedicineValue}
+                    selectTextOnFocus={true}
                   />
                   <View className="border-r border-gray-400" />
                   <View className="flex-grow flex-1">
