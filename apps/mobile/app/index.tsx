@@ -39,7 +39,7 @@ function AppIndexPage() {
     const feedStats = {
       isLoading: true,
       isValid: false, //always starts as false. as long as one data point is added, it is valid
-      threeHourlyVolume: -1,
+      threeHourlyVolume: 0,
       twentyFourHourVolume: 0,
     };
     if (!activities) return feedStats; // activities not loaded
