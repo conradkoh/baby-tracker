@@ -26,9 +26,9 @@ export default function EditFeedPage() {
     if (activity?.activity.type === ActivityType.Feed) {
       const feed = activity.activity.feed;
       switch (feed.type) {
-        case FeedType.Water:
-        case FeedType.Expressed:
-        case FeedType.Formula: {
+        case 'water':
+        case 'expressed':
+        case 'formula': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Expressed | FeedType.Formula,
             timestamp: DateTime.fromISO(activity.activity.timestamp),
@@ -36,7 +36,7 @@ export default function EditFeedPage() {
           });
           break;
         }
-        case FeedType.Latch: {
+        case 'latch': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Latch,
             timestamp: DateTime.fromISO(activity.activity.timestamp),
@@ -51,9 +51,18 @@ export default function EditFeedPage() {
           });
           break;
         }
+        case 'solids': {
+          feedFormRef.current?.load({
+            type: feed.type as FeedType.Solids,
+            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            description: feed.description,
+          });
+          break;
+        }
         default: {
           // exhaustive
-          throw new Error(`invalid feed type: ${feed.type}`);
+          const _: never = feed;
+          throw new Error(`invalid feed type: ${_}`);
         }
       }
     }
@@ -111,6 +120,21 @@ export default function EditFeedPage() {
                       left: formData.duration.left,
                       right: formData.duration.right,
                     },
+                  },
+                },
+              });
+              break;
+            }
+            case FeedType.Solids: {
+              await updateActivity({
+                deviceId,
+                activityId,
+                activity: {
+                  timestamp: ts,
+                  type: 'feed',
+                  feed: {
+                    type: formData.type,
+                    description: formData.description,
                   },
                 },
               });
