@@ -43,6 +43,11 @@ type FeedFormData =
           seconds: number;
         };
       };
+    }
+  | {
+      type: FeedType.Solids;
+      timestamp: DateTime;
+      description: string;
     };
 
 export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
@@ -53,6 +58,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
       left: { seconds: 0 },
       right: { seconds: 0 },
     });
+    const [description, setDescription] = useState('');
     const [isReady, setReady] = useState(false);
     const [disableSubmit, setDisableSubmit] = useState(false);
     const onCreateFeedPress = useCallback(() => {
@@ -77,6 +83,14 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
             });
             break;
           }
+          case FeedType.Solids: {
+            onSubmit({
+              type: feedType,
+              timestamp: DateTime.fromJSDate(date),
+              description,
+            });
+            break;
+          }
           default: {
             // exhaustive
             const _: never = feedType;
@@ -88,7 +102,7 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
         throw err;
       }
       setDisableSubmit(false);
-    }, [onSubmit, date, duration, feedType, volume]);
+    }, [onSubmit, date, duration, feedType, volume, description]);
     useImperativeHandle(ref, () => ({
       load(formData: FeedFormData) {
         switch (formData.type) {
@@ -100,6 +114,10 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
           }
           case FeedType.Latch: {
             setDuration(formData.duration);
+            break;
+          }
+          case FeedType.Solids: {
+            setDescription(formData.description);
             break;
           }
         }
@@ -143,7 +161,11 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                   onChange={handleDateChange}
                 />
               </View>
-              <Conditional render={feedType != FeedType.Latch}>
+              <Conditional
+                render={
+                  feedType !== FeedType.Latch && feedType !== FeedType.Solids
+                }
+              >
                 <View
                   className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
                   style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
@@ -165,6 +187,20 @@ export const FeedForm = forwardRef<FeedFormRef, FeedFormProps>(
                   >
                     <Text> ml</Text>
                   </TextInput>
+                </View>
+              </Conditional>
+              <Conditional render={feedType === FeedType.Solids}>
+                <View
+                  className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
+                  style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+                >
+                  <TextInput
+                    className="flex-grow text-center"
+                    placeholder="Description"
+                    value={description}
+                    onChangeText={setDescription}
+                    selectTextOnFocus={true}
+                  />
                 </View>
               </Conditional>
               <Conditional render={feedType == FeedType.Latch}>

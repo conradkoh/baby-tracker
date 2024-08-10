@@ -62,6 +62,20 @@ export default function CreateFeedPage() {
                 });
                 break;
               }
+              case FeedType.Solids: {
+                await createActivity({
+                  deviceId,
+                  activity: {
+                    timestamp: ts,
+                    type: 'feed',
+                    feed: {
+                      type: formData.type,
+                      description: formData.description,
+                    },
+                  },
+                });
+                break;
+              }
               default: {
                 // exhaustive
                 const _: never = formData;

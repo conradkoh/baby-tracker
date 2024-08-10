@@ -110,6 +110,10 @@ function ActivityItem(props: {
             subContent = `${feed.volume.ml} ml`;
             break;
           }
+          case FeedType.Solids: {
+            subContent = feed.description;
+            break;
+          }
         }
         break;
       }

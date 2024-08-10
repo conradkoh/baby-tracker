@@ -40,6 +40,10 @@ export const create = mutation({
             volume: v.object({
               ml: v.number(),
             }),
+          }),
+          v.object({
+            type: v.literal('solids'),
+            description: v.string(),
           })
         ),
       }),
@@ -141,6 +145,10 @@ export const update = mutation({
             volume: v.object({
               ml: v.number(),
             }),
+          }),
+          v.object({
+            type: v.literal('solids'),
+            description: v.string(),
           })
         ),
       }),

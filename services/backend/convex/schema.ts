@@ -31,6 +31,10 @@ export default defineSchema({
             volume: v.object({
               ml: v.number(),
             }),
+          }),
+          v.object({
+            type: v.literal('solids'),
+            description: v.string(),
           })
         ),
       }),

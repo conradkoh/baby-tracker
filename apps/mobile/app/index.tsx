@@ -53,6 +53,7 @@ function AppIndexPage() {
       if (
         f.activity.type === ActivityType.Feed &&
         f.activity.feed.type !== FeedType.Latch &&
+        f.activity.feed.type !== FeedType.Solids &&
         DateTime.fromISO(f.activity.timestamp).toMillis() >
           last24HrRange.from.toMillis() &&
         DateTime.fromISO(f.activity.timestamp).toMillis() <=
