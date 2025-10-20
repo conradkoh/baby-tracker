@@ -2,16 +2,18 @@
 
 ## Version Changes
 
-This document outlines the upgrade from Expo SDK 50 to SDK 54, including React Native and React version updates.
+This document outlines the upgrade from Expo SDK 50 to SDK 55 (canary), including React Native and React version updates.
 
 ### Major Version Updates
 
 | Package | Previous Version | New Version |
 |---------|-----------------|-------------|
-| expo | ~50.0.6 | ~54.0.0 |
-| react-native | 0.73.9 | 0.81.4 |
-| react | 18.2.0 | 19.1.0 |
-| react-dom | - | 19.1.0 (new) |
+| expo | ~50.0.6 | 55.0.0-canary-20251015-a6a1272 |
+| react-native | 0.73.9 | 0.82.0 |
+| react | 18.2.0 | 19.1.1 |
+| react-dom | - | 19.1.1 (new) |
+
+**Note:** This upgrade uses Expo SDK 55 canary release, which is a pre-release version. Canary builds may have stability issues but provide access to the latest React Native 0.82 features.
 
 ## Breaking Changes & Migration Steps
 
@@ -104,36 +106,41 @@ For detailed React 19 changes, see: https://react.dev/blog/2025/10/15/react-19
 ### Expo Packages
 | Package | Old Version | New Version |
 |---------|------------|-------------|
-| expo-router | ~3.4.7 | ~6.0.11 |
-| expo-constants | ~15.4.5 | ~18.0.9 |
-| expo-updates | ~0.24.10 | ~29.0.12 |
-| expo-clipboard | ~5.0.1 | ~8.0.7 |
-| expo-crypto | ~12.8.1 | ~15.0.7 |
-| expo-device | ~5.9.3 | ~8.0.9 |
-| expo-linking | ~6.2.2 | ~8.0.8 |
-| expo-status-bar | ~1.11.1 | ~3.0.8 |
+| expo-router | ~3.4.7 | 6.1.0-canary-20251015-a6a1272 |
+| expo-constants | ~15.4.5 | 18.0.10-canary-20251015-a6a1272 |
+| expo-updates | ~0.24.10 | 29.1.0-canary-20251015-a6a1272 |
+| expo-clipboard | ~5.0.1 | 8.0.8-canary-20251015-a6a1272 |
+| expo-crypto | ~12.8.1 | 15.0.8-canary-20251015-a6a1272 |
+| expo-device | ~5.9.3 | 8.0.10-canary-20251015-a6a1272 |
+| expo-linking | ~6.2.2 | 8.0.9-canary-20251015-a6a1272 |
+| expo-status-bar | ~1.11.1 | 3.0.9-canary-20251015-a6a1272 |
+| @expo/metro-runtime | ~6.1.2 | 6.1.3-canary-20251015-a6a1272 |
 
 ### React Native Packages
 | Package | Old Version | New Version |
 |---------|------------|-------------|
 | @react-native-async-storage/async-storage | 1.21.0 | 2.2.0 |
 | @react-native-community/datetimepicker | 8.2.0 | 8.4.4 |
-| @react-native-picker/picker | 2.6.1 | 2.11.1 |
+| @react-native-picker/picker | 2.6.1 | 2.11.2 |
 | react-native-safe-area-context | 4.8.2 | ~5.6.0 |
 | react-native-screens | ~3.29.0 | ~4.16.0 |
 
 ## New Features Available
 
-### Expo SDK 54 Highlights
-- **React Native 0.81 Support**: Latest React Native version with improved performance
+### Expo SDK 55 Canary Highlights
+- **React Native 0.82 Support**: Latest React Native version with New Architecture improvements
+- **React 19.1.1**: Latest React with improved error handling and performance
+- **Hermes V1**: Updated JavaScript engine with better performance
 - **Faster iOS Builds**: Precompiled React Native for iOS reduces build times
 - **Android API Level 36 Support**: Enhanced Android compatibility
-- **Reanimated v4**: Better animation performance (if you choose to upgrade)
+- **Reanimated v4**: Better animation performance
 - **Improved Edge-to-Edge Layouts**: Better support for modern Android UI patterns
 
-### React Native 0.81 Highlights
-- **Android 16 Support**: Latest Android version compatibility
-- **Performance Improvements**: Faster iOS builds and improved runtime performance
+### React Native 0.82 Highlights
+- **New Architecture Enhancements**: Improved bridge and performance
+- **Hermes V1**: Major update to the JavaScript engine
+- **Better TypeScript Support**: Improved type definitions
+- **Performance Improvements**: Faster runtime and build times
 - **Bug Fixes**: Numerous stability improvements
 
 ## Testing Recommendations
@@ -148,6 +155,13 @@ After upgrading, thoroughly test the following areas:
 6. **Third-Party Integrations**: Verify Convex, analytics, and other integrations
 
 ## Known Issues
+
+### Canary Release Warning
+This upgrade uses Expo SDK 55 canary release (55.0.0-canary-20251015-a6a1272), which is a pre-release version. Canary builds:
+- May have stability issues or bugs
+- Are not recommended for production use
+- Should be tested thoroughly before deployment
+- May receive updates that introduce breaking changes
 
 ### Workspaces Warning
 You may see a warning: "Workspaces can only be enabled in private projects."
@@ -167,9 +181,9 @@ If you need to rollback this upgrade:
 
 ## References
 
-- [Expo SDK 54 Changelog](https://expo.dev/changelog/sdk-54)
+- [Expo SDK 55 (Canary)](https://www.npmjs.com/package/expo/v/55.0.0-canary-20251015-a6a1272)
+- [React Native 0.82 Release Notes](https://reactnative.dev/blog/2025/10/08/react-native-0.82)
 - [Expo SDK Upgrade Guide](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/)
-- [React Native 0.81 Release Notes](https://reactnative.dev/blog/2025/08/12/react-native-0.81)
 - [React 19 Release Notes](https://react.dev/blog/2025/10/15/react-19)
 - [FlashList 2.0 Migration](https://shopify.github.io/flash-list/)
 

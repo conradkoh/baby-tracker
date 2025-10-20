@@ -3,10 +3,12 @@
 ## Recent Updates
 
 ### React Native & Expo SDK Upgrade (October 2025)
-The mobile app has been upgraded to the latest versions:
-- **Expo SDK**: 50 → 54
-- **React Native**: 0.73.9 → 0.81.4
-- **React**: 18.2.0 → 19.1.0
+The mobile app has been upgraded to the latest canary versions:
+- **Expo SDK**: 50 → 55 (canary)
+- **React Native**: 0.73.9 → 0.82.0
+- **React**: 18.2.0 → 19.1.1
+
+⚠️ **Note**: This uses Expo SDK 55 canary release, which is a pre-release version. Test thoroughly before production deployment.
 
 For detailed information about breaking changes and migration notes, see [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md).
 
