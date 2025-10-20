@@ -1,5 +1,15 @@
 # Baby Tracker
 
+## Recent Updates
+
+### React Native & Expo SDK Upgrade (October 2025)
+The mobile app has been upgraded to the latest versions:
+- **Expo SDK**: 50 → 54
+- **React Native**: 0.73.9 → 0.81.4
+- **React**: 18.2.0 → 19.1.0
+
+For detailed information about breaking changes and migration notes, see [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md).
+
 ## Development
 
 ### Adding a new device for iOS for preview builds
