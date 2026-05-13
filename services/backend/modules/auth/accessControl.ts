@@ -44,12 +44,3 @@ export function hasAccessLevel(user: Doc<'users'>, requiredLevel: AccessLevel): 
   return false;
 }
 
-/**
- * Gets a user's access level as a string.
- * @param user - The user document
- * @returns The user's access level
- * @deprecated Use getAccessLevel instead for consistency
- */
-export function getUserAccessLevel(user: Doc<'users'>): AccessLevel {
-  return getAccessLevel(user);
-}
