@@ -7,6 +7,7 @@ const readline = require('node:readline');
 
 const backendEnvPath = path.join(__dirname, '..', 'services', 'backend', '.env.local');
 const webappEnvPath = path.join(__dirname, '..', 'apps', 'webapp', '.env.local');
+const mobileEnvPath = path.join(__dirname, '..', 'apps', 'mobile', '.env');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -209,6 +210,29 @@ function setupWebappEnv(convexUrl) {
 
   // Write the content to the webapp .env.local file
   fs.writeFileSync(webappEnvPath, envContent);
+}
+
+function setupMobileEnv(convexUrl) {
+  // Create the mobile directory if it doesn't exist
+  const mobileEnvDir = path.dirname(mobileEnvPath);
+  if (!fs.existsSync(mobileEnvDir)) {
+    fs.mkdirSync(mobileEnvDir, { recursive: true });
+  }
+
+  let envContent = '';
+
+  // If the mobile .env already exists, read its content
+  if (fs.existsSync(mobileEnvPath)) {
+    envContent = fs.readFileSync(mobileEnvPath, 'utf8');
+  }
+
+  // Update or add the Expo Convex URL variables (same URL for both dev and prod during setup)
+  envContent = updateEnvVariable(envContent, 'EXPO_PUBLIC_CONVEX_URL_DEV', convexUrl);
+  envContent = updateEnvVariable(envContent, 'EXPO_PUBLIC_CONVEX_URL_PROD', convexUrl);
+  console.log('✅ Mobile .env configured with EXPO_PUBLIC_CONVEX_URL_DEV/PROD');
+
+  // Write the content to the mobile .env file
+  fs.writeFileSync(mobileEnvPath, envContent);
 }
 
 /**
@@ -737,6 +761,11 @@ function continueSetup() {
   console.log('📄 Setting up webapp .env.local file...');
   setupWebappEnv(convexUrl);
   console.log('✅ Webapp .env.local file created/updated successfully.');
+
+  // Set up the mobile .env file
+  console.log('📝 Configuring mobile .env...');
+  setupMobileEnv(convexUrl);
+  console.log('✅ Mobile .env file created/updated successfully.');
 
   console.log('\n🎉 Setup completed successfully!');
   console.log('You can now run "pnpm run dev" to start both the frontend and backend services.');
