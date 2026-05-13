@@ -82,11 +82,6 @@ This command will start:
 yarn workspace @workspace/backend dev
 ```
 
-**Web app only:**
-```bash
-yarn workspace @workspace/web dev
-```
-
 **Mobile app only:**
 ```bash
 yarn workspace @workspace/mobile dev
@@ -131,11 +126,6 @@ The web application is built with Next.js and shares the same backend and domain
 - `yarn workspace @workspace/mobile android` - Run on Android emulator
 - `yarn workspace @workspace/mobile build:preview:ios` - Build preview for iOS
 - `yarn workspace @workspace/mobile update:preview` - Update preview build
-
-### Web App Commands:
-- `yarn workspace @workspace/web dev` - Start Next.js development server
-- `yarn workspace @workspace/web build` - Build for production
-- `yarn workspace @workspace/web start` - Start production server
 
 ### Backend Commands:
 - `yarn workspace @workspace/backend dev` - Start Convex development server
