@@ -1,3 +1,20 @@
 node_modules
 .env
 .env.local
+.DS_Store
+dist/
+*.tsbuildinfo
+
+# Turborepo
+.turbo
+
+# Next.js
+.next/
+out/
+
+# Testing
+coverage/
+
+# Misc
+.env*.local
+package-lock.json
