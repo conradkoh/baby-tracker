@@ -6,7 +6,7 @@ import { useEnv } from '../../lib/env/useEnv';
 import { useBranch } from './branch';
 import { useActiveBranch } from '../../../branch';
 import * as Crypto from 'expo-crypto';
-import { LegacyDeviceId, toLegacyDeviceId } from '../types';
+import { LegacyDeviceId, toLegacyDeviceId } from '../../types';
 const uuid = () => Crypto.randomUUID();
 interface DeviceInfoStore {
   deviceId: LegacyDeviceId; // DEPRECATED_DEVICE_SESSION — this is the source of truth for all branches for all environments

@@ -8,6 +8,7 @@ import { FeedType } from '@workspace/domain/entities/Feed';
 import { Conditional } from '../../atoms/Condition';
 import { FC, useMemo } from 'react';
 import {
+  ActivityListViewableItem,
   ActivityListViewableItemType,
   viewModelFromActivities,
 } from './ActivityListViewModel';
@@ -29,7 +30,7 @@ export function ActivityList(props: ActivityListProps) {
       <FlashList
         className="grow"
         data={listItems}
-        renderItem={(val) => {
+        renderItem={(val: { item: ActivityListViewableItem }) => {
           if (val.item.type === ActivityListViewableItemType.Section) {
             return (
               <View className="py-1 px-2 border border-blue-300 bg-blue-300 shadow-xl">

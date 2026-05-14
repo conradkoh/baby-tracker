@@ -1,6 +1,13 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Assuming you're using Expo
+import { Ionicons as _Ionicons } from '@expo/vector-icons';
+// Cast to bypass cross-version @types/react incompatibility (hoisted pnpm + RN 0.76 + @types/react 18.3)
+const Ionicons = _Ionicons as unknown as React.ComponentType<{
+  name: keyof typeof _Ionicons.glyphMap;
+  size?: number;
+  color?: string;
+  style?: any;
+}>;
 
 interface ToolbarProps {
   lastFeed: string;
@@ -9,7 +16,7 @@ interface ToolbarProps {
 }
 
 interface InfoItemProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof _Ionicons.glyphMap;
   label: string;
   value: string;
 }

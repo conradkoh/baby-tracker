@@ -81,7 +81,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
             <Text>Hours</Text>
             <Picker
               selectedValue={selectedHours}
-              onValueChange={(itemValue) => {
+              onValueChange={(itemValue: string) => {
                 setSelectedHours(itemValue);
                 handleDurationChange(
                   itemValue,
@@ -104,7 +104,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
             <Text>Mins</Text>
             <Picker
               selectedValue={selectedMinutes}
-              onValueChange={(itemValue) => {
+              onValueChange={(itemValue: string) => {
                 setSelectedMinutes(itemValue);
                 handleDurationChange(selectedHours, itemValue, selectedSeconds);
               }}
@@ -123,7 +123,7 @@ const DurationPicker: React.FC<DurationPickerProps> = ({
             <Text>Seconds</Text>
             <Picker
               selectedValue={selectedSeconds}
-              onValueChange={(itemValue) => {
+              onValueChange={(itemValue: string) => {
                 setSelectedSeconds(itemValue);
                 handleDurationChange(selectedHours, selectedMinutes, itemValue);
               }}

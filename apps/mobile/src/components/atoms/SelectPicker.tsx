@@ -50,7 +50,7 @@ function SelectPicker<T>(props: {
         >
           <Picker
             selectedValue={props.value}
-            onValueChange={(itemValue) => {
+            onValueChange={(itemValue: string) => {
               return props.onChange(itemValue);
             }}
             style={{ width: '100%' }}
