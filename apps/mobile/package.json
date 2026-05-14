@@ -4,11 +4,11 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "start:clean": "yarn cache clean && yarn install --network-timeout 100000 && yarn expo start --ios -c",
+    "start:clean": "pnpm store prune && pnpm install --network-timeout 100000 && pnpm expo start --ios -c",
     "dev": "BRANCH=dev expo start",
     "android": "expo run:android",
-    "ios": "yarn dev --ios",
-    "web": "yarn dev --web",
+    "ios": "pnpm dev --ios",
+    "web": "pnpm dev --web",
     "build": "eas build --platform all",
     "build:ios": "eas build --platform ios",
     "build:local:ios": "expo run:ios",
@@ -21,7 +21,7 @@
     "device:add": "eas device:create",
     "submit:ios": "eas submit -p ios",
     "doc": "npx expo-doctor",
-    "sysreset": "yarn cache clean && lsof -t -i :8081 | xargs kill",
+    "sysreset": "pnpm store prune && lsof -t -i :8081 | xargs kill",
     "test": "jest"
   },
   "workspaces": {
