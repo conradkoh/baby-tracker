@@ -87,7 +87,7 @@ export default defineSchema({
 
   //TABLE: DEVICE
   device: defineTable({
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
     familyId: v.optional(v.id('family')),
     deviceName: v.optional(v.string()),
     osName: v.optional(v.string()),
@@ -106,14 +106,14 @@ export default defineSchema({
     ),
     devices: v.array(
       v.object({
-        deviceId: v.string(),
+        deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
       })
     ),
   }),
 
   //TABLE: Family Join Requests
   familyJoinRequests: defineTable({
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
     familyId: v.id('family'),
     status: v.string(), //pending or rejected
   })
@@ -133,7 +133,7 @@ export default defineSchema({
       v.object({
         type: v.literal('device'),
         device: v.object({
-          deviceId: v.string(),
+          deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
         }),
       })
     )

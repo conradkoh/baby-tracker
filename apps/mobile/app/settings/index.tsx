@@ -29,11 +29,11 @@ export default function SettingsPage() {
   });
   const leaveFamily = useMutation(api.family.leave);
   const deviceFamilyJoinRequests = useQuery(api.device.getFamilyJoinRequests, {
-    deviceId: deviceInfo.device?.deviceId,
+    deviceId: deviceInfo.device?.deviceId, // DEPRECATED_DEVICE_SESSION
   });
   const InputModal = useInputModal();
   const isFamilyLoading = family === undefined;
-  const deviceId = deviceInfo.device?.deviceId;
+  const deviceId = deviceInfo.device?.deviceId; // DEPRECATED_DEVICE_SESSION
   return (
     <Page title="Settings">
       <View className="p-2 grow ">
@@ -103,8 +103,8 @@ export default function SettingsPage() {
                                   const device = deviceInfo.device;
                                   if (device) {
                                     await approveJoinRequest({
-                                      deviceId: d.deviceId,
-                                      authorizingDeviceId: device.deviceId,
+                                      deviceId: d.deviceId, // DEPRECATED_DEVICE_SESSION
+                                      authorizingDeviceId: device.deviceId, // DEPRECATED_DEVICE_SESSION
                                       familyId: family._id,
                                     });
                                   } else {
@@ -146,7 +146,7 @@ export default function SettingsPage() {
                             text: 'Confirm',
                             onPress: async () => {
                               await deleteFamily({
-                                authorizingDeviceId: authorizingDevice.deviceId,
+                                authorizingDeviceId: authorizingDevice.deviceId, // DEPRECATED_DEVICE_SESSION
                                 familyId,
                               });
                             },
@@ -184,7 +184,7 @@ export default function SettingsPage() {
                             text: 'Confirm',
                             onPress: async () => {
                               await leaveFamily({
-                                deviceId,
+                                deviceId, // DEPRECATED_DEVICE_SESSION
                                 familyId,
                               });
                             },
@@ -228,10 +228,10 @@ export default function SettingsPage() {
                       <PrimaryButton
                         title="Create Family"
                         onPress={async () => {
-                          const deviceId = deviceInfo.device?.deviceId;
+                          const deviceId = deviceInfo.device?.deviceId; // DEPRECATED_DEVICE_SESSION
                           if (deviceId) {
                             await createFamily({
-                              deviceId,
+                              deviceId, // DEPRECATED_DEVICE_SESSION
                             });
                           } else {
                             Alert.alert(
@@ -254,7 +254,7 @@ export default function SettingsPage() {
                               if (deviceId) {
                                 try {
                                   const joinRequest = await createJoinRequest({
-                                    deviceId,
+                                    deviceId, // DEPRECATED_DEVICE_SESSION
                                     familyId: result,
                                   });
                                   if (joinRequest.isError) {

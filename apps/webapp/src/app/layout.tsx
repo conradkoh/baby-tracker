@@ -27,15 +27,15 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next Convex App',
-  description: 'A Next.js app with Convex backend',
+  title: 'Baby Tracker',
+  description: 'Baby Tracker',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Next Convex App',
+    title: 'Baby Tracker',
   },
-  applicationName: 'Next Convex App',
+  applicationName: 'Baby Tracker',
   formatDetection: {
     telephone: false,
   },
