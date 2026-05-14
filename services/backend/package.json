@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/luxon": "^3.4.2",
-    "@workspace/domain": "*",
+    "@workspace/domain": "workspace:*",
     "convex": "^1.8.0",
     "immer": "^10.0.3",
     "luxon": "^3.4.4"
