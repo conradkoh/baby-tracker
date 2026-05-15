@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 const navItems = [
   { href: '/', label: 'Home', icon: '🏠' },
-  { href: '/feed', label: 'Feed', icon: '🍼' },
-  { href: '/diaper', label: 'Diaper', icon: '💩' },
+  { href: '/feed/create', label: 'Feed', icon: '🍼' },
+  { href: '/diaper-change/create', label: 'Diaper', icon: '💩' },
   { href: '/medical', label: 'Medical', icon: '💊' },
 ];
 

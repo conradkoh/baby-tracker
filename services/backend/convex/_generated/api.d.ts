@@ -11,6 +11,7 @@
 import type * as activities from "../activities.js";
 import type * as device from "../device.js";
 import type * as family from "../family.js";
+import type * as web_babyTracker_activities from "../web/babyTracker/activities.js";
 
 import type {
   ApiFromModules,
@@ -22,6 +23,7 @@ declare const fullApi: ApiFromModules<{
   activities: typeof activities;
   device: typeof device;
   family: typeof family;
+  "web/babyTracker/activities": typeof web_babyTracker_activities;
 }>;
 
 /**

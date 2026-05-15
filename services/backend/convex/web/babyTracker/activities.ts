@@ -13,8 +13,8 @@ import {
   updateActivity as updateActivityUsecase,
   deleteActivity as deleteActivityUsecase,
   getActivityById as getActivityByIdUsecase,
-  getActivities as getActivitiesUsecase,
 } from '../../../src/domain/usecases/activity';
+import { activityStreamForDevice } from '../../../domain/entities/usecase/activityStreamForDevice';
 
 // ── Mutations ──────────────────────────────────────────────────
 
@@ -187,7 +187,17 @@ export const getByTimestampDescPaginated = query({
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const repo = new ConvexActivityRepository(ctx);
-    return await getActivitiesUsecase(repo, args.deviceId, args.paginationOpts);
+    // Query DB directly to return full docs with _id (needed for edit navigation)
+    const stream = await activityStreamForDevice(ctx, { deviceId: args.deviceId });
+    if (!stream) {
+      throw new Error(`activity stream not found for device: ${args.deviceId}`);
+    }
+    return await ctx.db
+      .query('activities')
+      .withIndex('by_activityStreamId_by_timestamp', (q) =>
+        q.eq('activityStreamId', stream._id)
+      )
+      .order('desc')
+      .paginate(args.paginationOpts);
   },
 });
