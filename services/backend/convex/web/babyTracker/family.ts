@@ -3,20 +3,27 @@
  * Auth is session-based (no device IDs).
  * Pattern: sessionId → userId → family → activityStream
  *
- * Schema note: the family table currently uses devices:[{deviceId}] for mobile.
- * For web, a parallel members:[{userId}] field will be added to family (TODO: schema migration).
+ * Uses the userFamily join table for session-based (web) family membership
+ * alongside the existing family.devices array for mobile devices.
  */
 import { ConvexError, v } from 'convex/values';
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { mutation, query } from '../../_generated/server';
+import { ConvexWebFamilyRepository } from '../../../src/infra/ConvexWebFamilyRepository';
+import {
+  createFamily,
+  requestJoin as requestJoinUseCase,
+  approveJoinRequest as approveJoinRequestUseCase,
+  leaveFamily as leaveFamilyUseCase,
+} from '../../../src/domain/usecases/family';
 import { requireAuth } from './helpers';
+
+// ── Mutations ──────────────────────────────────────────────────
 
 /**
  * Initialize a family for the authenticated web user.
  * Idempotent: if the user already belongs to a family, returns the existing family.
  * On first call, creates a single-member family and its activityStream.
- *
- * TODO: requires schema addition — family.members: [{userId}] and index by_userId
  */
 export const initUser = mutation({
   args: {
@@ -24,32 +31,15 @@ export const initUser = mutation({
   },
   handler: async (ctx, args) => {
     const { userId } = await requireAuth(ctx, args.sessionId);
-    // TODO: implement
-    throw new ConvexError({ code: 'NOT_IMPLEMENTED', message: 'initUser not yet implemented' });
-  },
-});
-
-/**
- * Get the family the authenticated user belongs to, including any pending join requests.
- *
- * TODO: requires schema addition — family.members: [{userId}] and index by_userId
- */
-export const get = query({
-  args: {
-    ...SessionIdArg,
-  },
-  handler: async (ctx, args) => {
-    const { userId } = await requireAuth(ctx, args.sessionId);
-    // TODO: implement
-    throw new ConvexError({ code: 'NOT_IMPLEMENTED', message: 'get not yet implemented' });
+    const repo = new ConvexWebFamilyRepository(ctx);
+    const familyId = await createFamily(repo, userId.toString());
+    return { familyId };
   },
 });
 
 /**
  * Request to join an existing family.
- * The requesting user's join request will appear in the family owner's pending list.
- *
- * TODO: requires schema addition — familyJoinRequests.userId field (alongside or replacing deviceId)
+ * The requesting user's join request will appear in the family members' pending list.
  */
 export const requestJoin = mutation({
   args: {
@@ -58,17 +48,14 @@ export const requestJoin = mutation({
   },
   handler: async (ctx, args) => {
     const { userId } = await requireAuth(ctx, args.sessionId);
-    // TODO: implement
-    throw new ConvexError({ code: 'NOT_IMPLEMENTED', message: 'requestJoin not yet implemented' });
+    const repo = new ConvexWebFamilyRepository(ctx);
+    return await requestJoinUseCase(repo, args.familyId.toString(), userId.toString());
   },
 });
 
 /**
  * Approve a join request from another user.
  * The approving user must already be a member of the family.
- * On approval, the requester's activities are transferred to the family stream.
- *
- * TODO: requires schema addition — familyJoinRequests.userId field
  */
 export const approveJoin = mutation({
   args: {
@@ -76,17 +63,31 @@ export const approveJoin = mutation({
     requesterUserId: v.id('users'),
   },
   handler: async (ctx, args) => {
-    const { userId } = await requireAuth(ctx, args.sessionId);
-    // TODO: implement
-    throw new ConvexError({ code: 'NOT_IMPLEMENTED', message: 'approveJoin not yet implemented' });
+    const { userId: authorizingUserId } = await requireAuth(ctx, args.sessionId);
+
+    // Verify the authorizing user is a member of a family
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', authorizingUserId))
+      .first();
+    if (!membership) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Not a family member' });
+    }
+
+    const repo = new ConvexWebFamilyRepository(ctx);
+    await approveJoinRequestUseCase(
+      repo,
+      membership.familyId.toString(),
+      args.requesterUserId.toString(),
+      authorizingUserId.toString()
+    );
   },
 });
 
 /**
  * Leave the authenticated user's current family.
- * If the user is the last member, activities are transferred back to a personal stream.
- *
- * TODO: requires schema addition — family.members: [{userId}]
+ * If the user is the last member, the family's activity stream becomes orphaned
+ * (future work: dissolve family and transfer activities).
  */
 export const leave = mutation({
   args: {
@@ -94,7 +95,56 @@ export const leave = mutation({
   },
   handler: async (ctx, args) => {
     const { userId } = await requireAuth(ctx, args.sessionId);
-    // TODO: implement
-    throw new ConvexError({ code: 'NOT_IMPLEMENTED', message: 'leave not yet implemented' });
+
+    // Verify the user is a member of a family
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Not a family member' });
+    }
+
+    const repo = new ConvexWebFamilyRepository(ctx);
+    await leaveFamilyUseCase(repo, userId.toString(), membership.familyId.toString());
+  },
+});
+
+// ── Queries ────────────────────────────────────────────────────
+
+/**
+ * Get the family the authenticated user belongs to, including any pending
+ * join requests (both device-based mobile and userId-based web requests).
+ *
+ * Uses direct DB access because ConvexWebFamilyRepository is mutation-only.
+ */
+export const get = query({
+  args: {
+    ...SessionIdArg,
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    // Find the user's family membership via the userFamily join table
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) return null;
+
+    // Fetch the family document
+    const family = await ctx.db.get(membership.familyId);
+    if (!family) return null;
+
+    // Fetch pending join requests for this family
+    const joinRequests = await ctx.db
+      .query('familyJoinRequests')
+      .withIndex('by_familyId', (q) => q.eq('familyId', membership.familyId))
+      .collect();
+
+    return {
+      ...family,
+      joinRequests,
+    };
   },
 });
