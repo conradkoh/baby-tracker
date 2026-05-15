@@ -15,6 +15,16 @@ import { ConvexError } from 'convex/values';
 export class ConvexWebFamilyRepository implements IFamilyRepository {
   constructor(private ctx: GenericMutationCtx<DataModel>) {}
 
+  /** Narrow a string user ID to the Convex Id type. */
+  private uid(s: string): Id<'users'> {
+    return s as Id<'users'>;
+  }
+
+  /** Narrow a string family ID to the Convex Id type. */
+  private fid(s: string): Id<'family'> {
+    return s as Id<'family'>;
+  }
+
   /**
    * Create a family for a web user. Idempotent: if the user already
    * belongs to a family, returns the existing familyId.
@@ -22,7 +32,7 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
    * @param userId - The web user's ID (maps to IFamilyRepository.create's deviceId param)
    */
   async create(userId: string): Promise<string> {
-    const uid = userId as Id<'users'>;
+    const uid = this.uid(userId);
 
     // Idempotent: return existing family if user already has one
     const existing = await this.ctx.db
@@ -54,12 +64,12 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
    * mobile requests and userId-based web requests).
    */
   async getById(familyId: string): Promise<(Family & { joinRequests: FamilyJoinRequest[] }) | null> {
-    const family = await this.ctx.db.get(familyId as Id<'family'>);
+    const family = await this.ctx.db.get(this.fid(familyId));
     if (!family) return null;
 
     const joinRequests = await this.ctx.db
       .query('familyJoinRequests')
-      .withIndex('by_familyId', (q) => q.eq('familyId', familyId as Id<'family'>))
+      .withIndex('by_familyId', (q) => q.eq('familyId', this.fid(familyId)))
       .collect();
 
     return {
@@ -81,12 +91,12 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
    * in current schema.
    */
   async delete(authorizingUserId: string, familyId: string): Promise<void> {
-    const fid = familyId as Id<'family'>;
+    const fid = this.fid(familyId);
 
     // Verify authorizing user is a member
     const membership = await this.ctx.db
       .query('userFamily')
-      .withIndex('by_userId', (q) => q.eq('userId', authorizingUserId as Id<'users'>))
+      .withIndex('by_userId', (q) => q.eq('userId', this.uid(authorizingUserId)))
       .first();
     if (!membership || membership.familyId !== fid) {
       throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to delete this family' });
@@ -120,8 +130,8 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
    * web-based join requests.
    */
   async requestJoin(familyId: string, userId: string): Promise<{ isError: boolean; message: string }> {
-    const uid = userId as Id<'users'>;
-    const fid = familyId as Id<'family'>;
+    const uid = this.uid(userId);
+    const fid = this.fid(familyId);
 
     // Verify family exists
     const family = await this.ctx.db.get(fid);
@@ -182,9 +192,9 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
     requesterUserId: string,
     authorizingUserId: string
   ): Promise<void> {
-    const fid = familyId as Id<'family'>;
-    const ruid = requesterUserId as Id<'users'>;
-    const auid = authorizingUserId as Id<'users'>;
+    const fid = this.fid(familyId);
+    const ruid = this.uid(requesterUserId);
+    const auid = this.uid(authorizingUserId);
 
     // Verify authorizer is a member of the family
     const authorizerMembership = await this.ctx.db
@@ -232,8 +242,8 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
    * TODO: dissolve family and handle orphaned activity stream when last member leaves
    */
   async leave(userId: string, familyId: string): Promise<void> {
-    const uid = userId as Id<'users'>;
-    const fid = familyId as Id<'family'>;
+    const uid = this.uid(userId);
+    const fid = this.fid(familyId);
 
     // Find and delete the userFamily entry
     const membership = await this.ctx.db
