@@ -1,16 +1,27 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
-import { DataModel, Doc } from '../convex/_generated/dataModel';
-import { DateTime } from 'luxon';
-import { GenericMutationCtx, paginationOptsValidator } from 'convex/server';
-import { activityStreamForDevice } from '../domain/entities/usecase/activityStreamForDevice';
-import { requireActivityAccess } from '../domain/entities/usecase/requireActivityAccess';
+import { Doc } from '../convex/_generated/dataModel';
+import { paginationOptsValidator } from 'convex/server';
+import { ConvexActivityRepository } from '../src/infra/ConvexActivityRepository';
+import {
+  createActivity as createActivityUsecase,
+  updateActivity as updateActivityUsecase,
+  deleteActivity as deleteActivityUsecase,
+  getActivityById as getActivityByIdUsecase,
+  getActivities as getActivitiesUsecase,
+} from '../src/domain/usecases/activity';
+
+// ── Public types (backward-compatible exports) ─────────────────
+
 export type Activity = Doc<'activities'>;
 export enum ActivityType {
   Feed = 'feed',
   DiaperChange = 'diaper_change',
   Medical = 'medical',
 }
+
+// ── Mutations ──────────────────────────────────────────────────
+
 export const create = mutation({
   args: {
     deviceId: v.string(),
@@ -83,35 +94,9 @@ export const create = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    //ensure that the activity timestamp is correct
-    const ts = DateTime.fromISO(args.activity.timestamp);
-    if (!ts.isValid) {
-      throw new Error(`invalid timestamp: ${args.activity.timestamp}`);
-    }
-    const activityStream = await activityStreamForDevice(ctx, {
-      deviceId: args.deviceId,
-    });
-    if (!activityStream) {
-      throw new Error(`activity stream not found for device: ${args.deviceId}`);
-    }
-    const activityId = await ctx.db.insert('activities', {
-      activityStreamId: activityStream._id,
-      activity: {
-        ...args.activity,
-        timestamp: ts.toUTC().toISO(),
-      },
-    });
-    return {
-      activityId,
-    };
-  },
-});
-
-export const get = query({
-  args: {},
-  handler: async (ctx, args) => {
-    const activities = await ctx.db.query('activities').collect();
-    return activities;
+    const repo = new ConvexActivityRepository(ctx);
+    const activityId = await createActivityUsecase(repo, args.deviceId, args.activity as any);
+    return { activityId };
   },
 });
 
@@ -188,38 +173,32 @@ export const update = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    await requireActivityAccess(ctx, {
-      deviceId: args.deviceId,
-      activityId: args.activityId,
-    });
+    const repo = new ConvexActivityRepository(ctx);
+    await updateActivityUsecase(repo, args.deviceId, args.activityId, args.activity as any);
+    // Maintain backward-compatible return: all activities
     const activities = await ctx.db.query('activities').collect();
-    const activityStream = await activityStreamForDevice(ctx, {
-      deviceId: args.deviceId,
-    });
-    if (!activityStream) {
-      throw new Error(`activity stream not found for device: ${args.deviceId}`);
-    }
-    //ensure that the activity timestamp is correct
-    const ts = DateTime.fromISO(args.activity.timestamp);
-    if (!ts.isValid) {
-      throw new Error(`invalid timestamp: ${args.activity.timestamp}`);
-    }
-    await ctx.db.replace(args.activityId, {
-      activityStreamId: activityStream._id,
-      activity: {
-        ...args.activity,
-        timestamp: ts.toUTC().toISO(),
-      },
-    });
     return activities;
   },
 });
+
 export const deleteActivity = mutation({
   args: {
     activityId: v.id('activities'),
   },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.activityId);
+    const repo = new ConvexActivityRepository(ctx);
+    await deleteActivityUsecase(repo, args.activityId);
+  },
+});
+
+// ── Queries ────────────────────────────────────────────────────
+
+export const get = query({
+  args: {},
+  handler: async (ctx, args) => {
+    // Unscoped "get all" — no device context; kept as direct DB query
+    const activities = await ctx.db.query('activities').collect();
+    return activities;
   },
 });
 
@@ -229,12 +208,8 @@ export const getById = query({
     activityId: v.id('activities'),
   },
   handler: async (ctx, args) => {
-    await requireActivityAccess(ctx, {
-      deviceId: args.deviceId,
-      activityId: args.activityId,
-    });
-    const activity = await ctx.db.get(args.activityId);
-    return activity;
+    const repo = new ConvexActivityRepository(ctx);
+    return await getActivityByIdUsecase(repo, args.deviceId, args.activityId);
   },
 });
 
@@ -244,21 +219,8 @@ export const getByTimestampDescPaginated = query({
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const activityStream = await activityStreamForDevice(ctx, {
-      deviceId: args.deviceId,
-    });
-    if (!activityStream) {
-      throw new Error(`activity stream not found for device: ${args.deviceId}`);
-    }
-    const activitiesPaginatedResult = await ctx.db
-      .query('activities')
-      .withIndex('by_activityStreamId_by_timestamp', (q) =>
-        q.eq('activityStreamId', activityStream._id)
-      )
-      .order('desc')
-      .paginate(args.paginationOpts);
-
-    return activitiesPaginatedResult;
+    const repo = new ConvexActivityRepository(ctx);
+    return await getActivitiesUsecase(repo, args.deviceId, args.paginationOpts);
   },
 });
 
