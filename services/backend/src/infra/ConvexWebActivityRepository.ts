@@ -28,7 +28,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
     const id = await db.insert('activities', {
       activityStreamId: this.activityStreamId,
-      activity: activity as any,
+      activity: activity as any, // domain Activity shape matches the Convex schema 'activity' field union
     });
     return id;
   }
@@ -48,14 +48,25 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
     await db.replace(activityId as Id<'activities'>, {
       activityStreamId: this.activityStreamId,
-      activity: activity as any,
+      activity: activity as any, // domain Activity shape matches the Convex schema 'activity' field union
     });
   }
 
   /**
-   * Delete an activity by ID.
+   * Delete an activity by ID. Verifies the activity belongs to this
+   * repository's activity stream before allowing the deletion.
+   *
+   * @throws ConvexError({ code: 'NOT_FOUND' }) if the activity does not exist
+   * @throws ConvexError({ code: 'FORBIDDEN' }) if the activity belongs to a different stream
    */
   async delete(activityId: string): Promise<void> {
+    const doc = await this.ctx.db.get(activityId as Id<'activities'>);
+    if (!doc) {
+      throw new ConvexError({ code: 'NOT_FOUND', message: 'Activity not found' });
+    }
+    if (doc.activityStreamId !== this.activityStreamId) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to delete this activity' });
+    }
     const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
     await db.delete(activityId as Id<'activities'>);
   }
@@ -68,7 +79,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     const doc = await this.ctx.db.get(activityId as Id<'activities'>);
     if (!doc) return null;
     if (doc.activityStreamId !== this.activityStreamId) return null;
-    return doc.activity as Activity;
+    return doc.activity as Activity; // domain Activity shape matches the Convex schema 'activity' field union
   }
 
   /**
@@ -88,7 +99,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
       .paginate(paginationOpts);
 
     return {
-      page: result.page.map((doc) => doc.activity as Activity),
+      page: result.page.map((doc) => doc.activity as Activity), // domain Activity shape matches the Convex schema 'activity' field union
       isDone: result.isDone,
       continueCursor: result.continueCursor,
     };

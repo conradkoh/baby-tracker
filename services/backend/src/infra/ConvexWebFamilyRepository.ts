@@ -129,6 +129,15 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
       return { isError: true, message: 'The provided family ID does not exist' };
     }
 
+    // Prevent a user who is already a member of any family from submitting a request
+    const currentMembership = await this.ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', uid))
+      .first();
+    if (currentMembership) {
+      return { isError: true, message: 'You are already a member of a family.' };
+    }
+
     // Check for existing requests from this user
     const existingRequests = await this.ctx.db
       .query('familyJoinRequests')
@@ -192,7 +201,18 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
       .withIndex('by_userId', (q) => q.eq('userId', ruid))
       .first();
     if (!joinRequest || joinRequest.familyId !== fid) {
-      throw new Error('join request not found');
+      throw new ConvexError({ code: 'NOT_FOUND', message: 'join request not found' });
+    }
+
+    // Guard: if the requester is already a member (e.g. approve called twice), skip insert
+    const alreadyMember = await this.ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', ruid))
+      .first();
+    if (alreadyMember && alreadyMember.familyId === fid) {
+      // Already approved — delete the stale join request and return idempotently
+      await this.ctx.db.delete(joinRequest._id);
+      return;
     }
 
     // Add requester to userFamily
@@ -221,7 +241,7 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
       .withIndex('by_userId', (q) => q.eq('userId', uid))
       .first();
     if (!membership || membership.familyId !== fid) {
-      throw new Error('user is not a member of this family');
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'user is not a member of this family' });
     }
     await this.ctx.db.delete(membership._id);
 

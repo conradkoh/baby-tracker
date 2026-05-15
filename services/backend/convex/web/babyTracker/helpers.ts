@@ -120,25 +120,11 @@ export async function requireActivityAccess(
     throw new ConvexError({ code: 'NOT_FOUND', message: 'Activity not found' });
   }
 
-  // Resolve the user's family activity stream
-  const membership = await ctx.db
-    .query('userFamily')
-    .withIndex('by_userId', (q) => q.eq('userId', userId))
-    .first();
-  if (!membership) {
-    throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to access this activity' });
-  }
-
-  const stream = await ctx.db
-    .query('activityStream')
-    .withIndex('by_familyId', (q) => q.eq('family.id', membership.familyId))
-    .first();
-  if (!stream) {
-    throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to access this activity' });
-  }
+  // Resolve the user's family activity stream (reuses requireFamilyAccess to avoid duplication)
+  const { activityStreamId } = await requireFamilyAccess(ctx, userId);
 
   // Verify the activity belongs to the user's family stream
-  if (activity.activityStreamId !== stream._id) {
+  if (activity.activityStreamId !== activityStreamId) {
     throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to access this activity' });
   }
 
