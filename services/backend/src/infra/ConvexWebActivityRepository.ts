@@ -22,13 +22,22 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     private activityStreamId: Id<'activityStream'>
   ) {}
 
+  /** Narrow a string activity ID to the Convex Id type. */
+  private actId(s: string): Id<'activities'> {
+    return s as Id<'activities'>;
+  }
+
+  /** Cast ctx.db to the mutable writer interface for insert/replace/delete operations. */
+  private get dbWriter(): GenericDatabaseWriter<DataModel> {
+    return this.ctx.db as GenericDatabaseWriter<DataModel>;
+  }
+
   /**
    * Create a new activity in the family's activity stream.
    * The deviceId parameter is ignored — the activity stream is already resolved.
    */
   async create(deviceId: string, activity: Activity): Promise<string> {
-    const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
-    const id = await db.insert('activities', {
+    const id = await this.dbWriter.insert('activities', {
       activityStreamId: this.activityStreamId,
       activity: activity,
     });
@@ -40,15 +49,14 @@ export class ConvexWebActivityRepository implements IActivityRepository {
    * repository's activity stream before allowing the update.
    */
   async update(deviceId: string, activityId: string, activity: Activity): Promise<void> {
-    const doc = await this.ctx.db.get(activityId as Id<'activities'>);
+    const doc = await this.ctx.db.get(this.actId(activityId));
     if (!doc) {
       throw new ConvexError({ code: 'NOT_FOUND', message: 'Activity not found' });
     }
     if (doc.activityStreamId !== this.activityStreamId) {
       throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to update this activity' });
     }
-    const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
-    await db.replace(activityId as Id<'activities'>, {
+    await this.dbWriter.replace(this.actId(activityId), {
       activityStreamId: this.activityStreamId,
       activity: activity,
     });
@@ -62,15 +70,14 @@ export class ConvexWebActivityRepository implements IActivityRepository {
    * @throws ConvexError({ code: 'FORBIDDEN' }) if the activity belongs to a different stream
    */
   async delete(activityId: string): Promise<void> {
-    const doc = await this.ctx.db.get(activityId as Id<'activities'>);
+    const doc = await this.ctx.db.get(this.actId(activityId));
     if (!doc) {
       throw new ConvexError({ code: 'NOT_FOUND', message: 'Activity not found' });
     }
     if (doc.activityStreamId !== this.activityStreamId) {
       throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to delete this activity' });
     }
-    const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
-    await db.delete(activityId as Id<'activities'>);
+    await this.dbWriter.delete(this.actId(activityId));
   }
 
   /**
@@ -78,7 +85,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
    * Returns null if the activity doesn't exist or belongs to a different stream.
    */
   async getById(deviceId: string, activityId: string): Promise<Activity | null> {
-    const doc = await this.ctx.db.get(activityId as Id<'activities'>);
+    const doc = await this.ctx.db.get(this.actId(activityId));
     if (!doc) return null;
     if (doc.activityStreamId !== this.activityStreamId) return null;
     return doc.activity;
