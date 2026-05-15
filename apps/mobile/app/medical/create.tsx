@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 import { requestAllowFutureDate } from '../../src/lib/time/requestAllowFutureDate';
 
 export default function CreateMedicalPage() {
-  const deviceId = useDeviceId();
+  const deviceId = useDeviceId(); // DEPRECATED_DEVICE_SESSION
   const createActivity = useMutation(api.activities.create);
   return (
     <Page title="Create Medical">

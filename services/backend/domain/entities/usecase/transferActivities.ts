@@ -1,5 +1,5 @@
-import { GenericMutationCtx, GenericQueryCtx } from 'convex/server';
-import { DataModel, Doc, Id } from '../../../convex/_generated/dataModel';
+import { GenericMutationCtx } from 'convex/server';
+import { DataModel, Id } from '../../../convex/_generated/dataModel';
 
 export async function tryTransferActivitiesFromDeviceToFamily(
   ctx: GenericMutationCtx<DataModel>,

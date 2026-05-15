@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "tht13.html-preview-vscode",
+    "christian-kohler.path-intellisense"
+  ]
+}

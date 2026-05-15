@@ -1,8 +1,8 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
-import { DataModel, Doc } from '../convex/_generated/dataModel';
+import { Doc } from '../convex/_generated/dataModel';
 import { DateTime } from 'luxon';
-import { GenericMutationCtx, paginationOptsValidator } from 'convex/server';
+import { paginationOptsValidator } from 'convex/server';
 import { activityStreamForDevice } from '../domain/entities/usecase/activityStreamForDevice';
 import { requireActivityAccess } from '../domain/entities/usecase/requireActivityAccess';
 export type Activity = Doc<'activities'>;
@@ -13,7 +13,7 @@ export enum ActivityType {
 }
 export const create = mutation({
   args: {
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
     activity: v.union(
       //feed activity
       v.object({
@@ -109,7 +109,7 @@ export const create = mutation({
 
 export const get = query({
   args: {},
-  handler: async (ctx, args) => {
+  handler: async (ctx, _args) => {
     const activities = await ctx.db.query('activities').collect();
     return activities;
   },
@@ -117,7 +117,7 @@ export const get = query({
 
 export const update = mutation({
   args: {
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
     activityId: v.id('activities'),
     activity: v.union(
       //feed activity
@@ -225,7 +225,7 @@ export const deleteActivity = mutation({
 
 export const getById = query({
   args: {
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
     activityId: v.id('activities'),
   },
   handler: async (ctx, args) => {
@@ -240,7 +240,7 @@ export const getById = query({
 
 export const getByTimestampDescPaginated = query({
   args: {
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {

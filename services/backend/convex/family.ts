@@ -7,7 +7,7 @@ import {
 } from '../domain/entities/usecase/transferActivities';
 export const create = mutation({
   args: {
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
   },
   handler: async (ctx, args) => {
     const device = await ctx.db
@@ -70,7 +70,7 @@ export const get = query({
 });
 
 export const del = mutation({
-  args: { authorizingDeviceId: v.string(), familyId: v.id('family') },
+  args: { authorizingDeviceId: v.string(), familyId: v.id('family') }, // DEPRECATED_DEVICE_SESSION (authorizingDeviceId)
   handler: async (ctx, args) => {
     //check if device belongs to family
     const family = await ctx.db.get(args.familyId);
@@ -104,7 +104,7 @@ export const del = mutation({
 export const requestJoin = mutation({
   args: {
     familyId: v.string(),
-    deviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
   },
   handler: async (ctx, args) => {
     const family = await ctx.db
@@ -169,8 +169,8 @@ export const requestJoin = mutation({
 export const approveJoinRequest = mutation({
   args: {
     familyId: v.id('family'),
-    deviceId: v.string(),
-    authorizingDeviceId: v.string(),
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
+    authorizingDeviceId: v.string(), // DEPRECATED_DEVICE_SESSION
   },
   handler: async (ctx, args) => {
     const family = await ctx.db
@@ -225,7 +225,7 @@ export const approveJoinRequest = mutation({
 });
 
 export const leave = mutation({
-  args: { deviceId: v.string(), familyId: v.id('family') },
+  args: { deviceId: v.string(), familyId: v.id('family') }, // DEPRECATED_DEVICE_SESSION
   handler: async (ctx, args) => {
     const family = await ctx.db.get(args.familyId);
     if (!family) {
