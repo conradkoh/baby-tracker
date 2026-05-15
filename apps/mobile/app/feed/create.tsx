@@ -8,7 +8,7 @@ import { requestAllowFutureDate } from '../../src/lib/time/requestAllowFutureDat
 import { useDeviceId } from '../../src/hooks/useDeviceId';
 export default function CreateFeedPage() {
   const createActivity = useMutation(api.activities.create);
-  const deviceId = useDeviceId();
+  const deviceId = useDeviceId(); // DEPRECATED_DEVICE_SESSION
   return (
     <Page title="Create Feed">
       <FeedForm

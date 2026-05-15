@@ -35,7 +35,7 @@ export default function AppDataProvider({
   children: React.ReactNode;
 }) {
   const syncDevice = useMutation(api.device.sync);
-  const { deviceId, clearDevice } = useDeviceInfoStore();
+  const { deviceId, clearDevice } = useDeviceInfoStore(); // DEPRECATED_DEVICE_SESSION
   const device = useQuery(api.device.get, { deviceId });
   useEffect(() => {
     (async () => {

@@ -8,7 +8,7 @@ import { useDeviceId } from '../../src/hooks/useDeviceId';
 
 export default function DiaperChangeCreatePage() {
   const createActivity = useMutation(api.activities.create);
-  const deviceId = useDeviceId();
+  const deviceId = useDeviceId(); // DEPRECATED_DEVICE_SESSION
   return (
     <Page title="Diaper Change">
       <DiaperChangeForm

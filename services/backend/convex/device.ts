@@ -1,9 +1,9 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { Doc, Id } from './_generated/dataModel';
+import { Doc } from './_generated/dataModel';
 
 export const get = query({
-  args: { deviceId: v.string() },
+  args: { deviceId: v.string() }, // DEPRECATED_DEVICE_SESSION
   handler: async (ctx, args) => {
     return await ctx.db
       .query('device')
@@ -13,7 +13,7 @@ export const get = query({
 });
 export const sync = mutation({
   args: {
-    deviceId: v.string(), //this must be generate on the client
+    deviceId: v.string(), // DEPRECATED_DEVICE_SESSION — this must be generated on the client
     deviceName: v.optional(v.string()),
     osName: v.optional(v.string()),
     osVersion: v.optional(v.string()),
@@ -119,7 +119,7 @@ export const sync = mutation({
 });
 
 export const getFamilyJoinRequests = query({
-  args: { deviceId: v.optional(v.string()) },
+  args: { deviceId: v.optional(v.string()) }, // DEPRECATED_DEVICE_SESSION
   handler: async (ctx, args) => {
     const deviceId = args.deviceId;
     if (!deviceId) {

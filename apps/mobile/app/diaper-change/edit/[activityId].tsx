@@ -17,7 +17,7 @@ import { useDeviceId } from '../../../src/hooks/useDeviceId';
 export default function EditDiaperChangePage() {
   const p = useLocalSearchParams();
   const activityId = p['activityId'] as Id<'activities'>;
-  const deviceId = useDeviceId();
+  const deviceId = useDeviceId(); // DEPRECATED_DEVICE_SESSION
   const activity = useQuery(api.activities.getById, { deviceId, activityId });
   const updateActivity = useMutation(api.activities.update);
   const deleteActivity = useMutation(api.activities.deleteActivity);

@@ -11,7 +11,7 @@ export type { Doc } from '@workspace/backend/convex/_generated/dataModel';
  * @returns
  */
 export function useActivitiesPaginated(args: { fromTs: DateTime<true> }) {
-  const deviceId = useDeviceId();
+  const deviceId = useDeviceId(); // DEPRECATED_DEVICE_SESSION
   const { results: activities, loadMore } = usePaginatedQuery(
     api.activities.getByTimestampDescPaginated,
     { deviceId },
