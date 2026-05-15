@@ -50,7 +50,6 @@ export function withPage(
   Component: React.FC
 ) {
   return function PageWrapper() {
-    console.log('re-rendering page');
     return (
       <Page {...props}>
         <Component />

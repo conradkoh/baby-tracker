@@ -1,14 +1,13 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 
 const IconButton = ({
   style,
   className = '',
   onPress = undefined,
   children,
-}: Pick<
-  TouchableOpacity['props'],
-  'style' | 'className' | 'onPress' | 'children'
+}: Partial<
+  Pick<React.ComponentProps<typeof TouchableOpacity>, 'style' | 'onPress' | 'children'> & { className?: string }
 >) => {
   return (
     <TouchableOpacity
