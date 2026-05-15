@@ -1,8 +1,15 @@
 /**
  * Shared test utilities for rendering Next.js pages and components.
  *
- * Provides mock helpers for Next.js navigation, Convex, auth state,
- * and feature flags — all colocated for consistent test setup.
+ * Provides mock factories for Next.js navigation, Convex, auth state,
+ * and feature flags. Each test file calls `vi.mock()` at the top level
+ * using these factories — this ensures Vitest's hoisting mechanism works.
+ *
+ * @example
+ * ```tsx
+ * import { createNextNavMock } from '@/__tests__/test-utils';
+ * vi.mock('next/navigation', () => createNextNavMock());
+ * ```
  */
 import { render, type RenderOptions } from '@testing-library/react';
 import type { ComponentProps, ReactNode } from 'react';
@@ -13,19 +20,19 @@ import { vi } from 'vitest';
 export { render, screen, within, fireEvent, waitFor, act } from '@testing-library/react';
 export { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-// ── next/navigation mocks ───────────────────────────────────────
+// ── next/navigation mock factory ────────────────────────────────
 
 /**
- * Mock `next/navigation` hooks (useRouter, useSearchParams, usePathname).
- * Call in a `beforeEach` or at the top of a test file.
+ * Create a mock for `next/navigation` hooks.
+ * Use in a top-level `vi.mock('next/navigation', () => createNextNavMock())` call.
  *
- * @param overrides - Optional partial overrides for router and search params
+ * @param overrides - Optional pathname and search params
  */
-export function mockNextNavigation(overrides?: {
+export function createNextNavMock(overrides?: {
   pathname?: string;
   searchParams?: Record<string, string>;
 }) {
-  vi.mock('next/navigation', () => ({
+  return {
     useRouter: () => ({
       push: vi.fn(),
       replace: vi.fn(),
@@ -46,23 +53,24 @@ export function mockNextNavigation(overrides?: {
         values: () => params.values(),
         toString: () => params.toString(),
         size: Array.from(params.keys()).length,
+        [Symbol.iterator]: () => params[Symbol.iterator](),
       };
     },
     usePathname: () => overrides?.pathname ?? '/',
     useParams: () => ({}),
     notFound: vi.fn(),
     redirect: vi.fn(),
-  }));
+  };
 }
 
-// ── next/link mock ──────────────────────────────────────────────
+// ── next/link mock factory ──────────────────────────────────────
 
 /**
- * Mock `next/link` to render as a plain `<a>` tag.
- * Call `vi.mock('next/link', ...)` in test files or setup.
+ * Mock implementation for `next/link` that renders a plain `<a>` tag.
+ * Use in: `vi.mock('next/link', () => createNextLinkMock())`
  */
-export function mockNextLink() {
-  vi.mock('next/link', () => ({
+export function createNextLinkMock() {
+  return {
     default: ({
       href,
       children,
@@ -72,114 +80,92 @@ export function mockNextLink() {
         {children}
       </a>
     ),
-  }));
+  };
 }
 
-// ── Convex mocks ────────────────────────────────────────────────
+// ── Convex mock factory ─────────────────────────────────────────
 
 /**
- * Mock `convex/react` and `convex-helpers/react/sessions`.
- * Provides no-op implementations for all commonly used hooks.
+ * Create mocks for `convex/react` and `convex-helpers/react/sessions`.
+ * Use in top-level `vi.mock()` calls.
  */
-export function mockConvexReact() {
-  vi.mock('convex/react', () => ({
+export function createConvexReactMock() {
+  return {
     ConvexProvider: ({ children }: { children: ReactNode }) => children,
     ConvexReactClient: vi.fn(),
     useQuery: vi.fn().mockReturnValue(undefined),
     useMutation: vi.fn().mockReturnValue(vi.fn()),
     useAction: vi.fn().mockReturnValue(vi.fn()),
     useConvex: vi.fn().mockReturnValue({}),
-    useConvexAuth: vi.fn().mockReturnValue({
-      isLoading: false,
-      isAuthenticated: false,
-    }),
-  }));
+    useConvexAuth: vi.fn().mockReturnValue({ isLoading: false, isAuthenticated: false }),
+  };
+}
 
-  vi.mock('convex-helpers/react/sessions', () => ({
+export function createSessionHelpersMock() {
+  return {
     SessionProvider: ({ children }: { children: ReactNode }) => children,
     useSessionQuery: vi.fn().mockReturnValue(undefined),
     useSessionMutation: vi.fn().mockReturnValue(vi.fn()),
-  }));
+    useSessionId: vi.fn().mockReturnValue('test-session-id'),
+  };
 }
 
-// ── Backend API mock ────────────────────────────────────────────
+// ── Backend API mock factory ────────────────────────────────────
 
 /**
- * Mock the Convex generated API module.
+ * Create a mock for the Convex generated API module.
+ * Use in: `vi.mock('@workspace/backend/convex/_generated/api', () => createApiMock())`
  */
-export function mockConvexApi() {
-  vi.mock('@workspace/backend/convex/_generated/api', () => ({
-    api: {},
-  }));
+export function createApiMock() {
+  return { api: {} };
 }
 
-// ── Auth state mocks ────────────────────────────────────────────
+// ── Auth state mock factory ─────────────────────────────────────
 
-/**
- * Mock `@/modules/auth/AuthProvider` with a configurable auth state.
- *
- * @param state - Auth state to return from `useAuthState()`. Pass `undefined` for loading.
- *                Defaults to an unauthenticated state.
- */
-export function mockAuthState(state?: {
-  sessionId?: string;
-  state?: 'authenticated' | 'unauthenticated';
+export type MockAuthState = {
+  sessionId: string;
+  state: 'authenticated' | 'unauthenticated';
   reason?: string;
   user?: Record<string, unknown>;
   accessLevel?: string;
   isSystemAdmin?: boolean;
-}) {
-  const defaultState = {
+};
+
+/**
+ * Create a mock auth state for `@/modules/auth/AuthProvider`.
+ * Use in: `vi.mock('@/modules/auth/AuthProvider', () => createAuthMock(...))`
+ */
+export function createAuthMock(state?: Partial<MockAuthState>) {
+  const authState: MockAuthState = {
     sessionId: 'test-session',
-    state: 'unauthenticated' as const,
+    state: 'unauthenticated',
     reason: 'test',
+    ...state,
   };
 
-  const authState = state
-    ? {
-        sessionId: state.sessionId ?? 'test-session',
-        state: state.state ?? 'unauthenticated',
-        reason: state.reason ?? 'test',
-        ...(state.state === 'authenticated'
-          ? {
-              user: state.user ?? { _id: 'test-user', _creationTime: Date.now(), type: 'anonymous', name: 'Test User' },
-              accessLevel: state.accessLevel ?? 'user',
-              isSystemAdmin: state.isSystemAdmin ?? false,
-            }
-          : {}),
-      }
-    : defaultState;
-
-  vi.mock('@/modules/auth/AuthProvider', () => ({
+  return {
     AuthProvider: ({ children }: { children: ReactNode }) => children,
     useAuthState: () => authState,
     useCurrentUser: () => (authState.state === 'authenticated' ? authState.user : undefined),
-  }));
+  };
 }
 
-// ── Feature flag mocks ──────────────────────────────────────────
+// ── Feature flag mock factory ───────────────────────────────────
 
 /**
- * Mock `@workspace/backend/config/featureFlags` with optional overrides.
- *
- * @param overrides - Partial feature flag values to merge with defaults
+ * Create a mock for `@workspace/backend/config/featureFlags`.
+ * Use in: `vi.mock('@workspace/backend/config/featureFlags', () => createFeatureFlagsMock(...))`
  */
-export function mockFeatureFlags(overrides?: Record<string, unknown>) {
+export function createFeatureFlagsMock(overrides?: Record<string, unknown>) {
   const defaults = { disableLogin: false };
-
-  vi.mock('@workspace/backend/config/featureFlags', () => ({
-    featureFlags: { ...defaults, ...overrides },
-  }));
+  return { featureFlags: { ...defaults, ...overrides } };
 }
 
 // ── Render wrapper ──────────────────────────────────────────────
 
 /**
  * Render a component with all standard providers mocked.
- * Wraps `@testing-library/react`'s `render` with common setup.
- *
- * @example
- * renderWithProviders(<MyPage />)
+ * Thin wrapper around `@testing-library/react`'s `render`.
  */
 export function renderWithProviders(
   ui: ReactNode,
@@ -191,23 +177,17 @@ export function renderWithProviders(
 // ── Convenience: setup all mocks at once ────────────────────────
 
 /**
- * Setup all standard mocks for a test file.
- * Call in a top-level `beforeAll` or directly in the test file.
+ * Set up all common mocks for a test file.
+ * Call AFTER all `vi.mock()` calls at the top of the test file.
  *
- * Mocks: next/navigation, next/link, convex, convex API, auth state, feature flags.
- *
- * @param opts - Optional overrides
+ * @example
+ * ```tsx
+ * vi.mock('next/navigation', () => createNextNavMock());
+ * vi.mock('next/link', () => createNextLinkMock());
+ * vi.mock('convex/react', () => createConvexReactMock());
+ * vi.mock('convex-helpers/react/sessions', () => createSessionHelpersMock());
+ * vi.mock('@workspace/backend/convex/_generated/api', () => createApiMock());
+ * vi.mock('@/modules/auth/AuthProvider', () => createAuthMock({ state: 'authenticated' }));
+ * vi.mock('@workspace/backend/config/featureFlags', () => createFeatureFlagsMock());
+ * ```
  */
-export function setupTestMocks(opts?: {
-  pathname?: string;
-  searchParams?: Record<string, string>;
-  authState?: Parameters<typeof mockAuthState>[0];
-  featureFlags?: Record<string, unknown>;
-}) {
-  mockNextNavigation({ pathname: opts?.pathname, searchParams: opts?.searchParams });
-  mockNextLink();
-  mockConvexReact();
-  mockConvexApi();
-  mockAuthState(opts?.authState);
-  mockFeatureFlags(opts?.featureFlags);
-}
