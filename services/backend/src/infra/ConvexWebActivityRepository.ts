@@ -7,10 +7,12 @@
  * each method and keeps the repository focused on data access.
  */
 import type { GenericMutationCtx, GenericQueryCtx, GenericDatabaseWriter } from 'convex/server';
-import type { DataModel, Id } from '../../convex/_generated/dataModel';
+import type { DataModel, Doc, Id } from '../../convex/_generated/dataModel';
 import type { IActivityRepository, PaginationOpts, PaginationResult } from '../domain/repositories/IActivityRepository';
 import type { Activity } from '../domain/activity/Activity';
 import { ConvexError } from 'convex/values';
+
+type ActivityField = Doc<'activities'>['activity'];
 
 type Ctx = GenericMutationCtx<DataModel> | GenericQueryCtx<DataModel>;
 
@@ -28,7 +30,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
     const id = await db.insert('activities', {
       activityStreamId: this.activityStreamId,
-      activity: activity as any, // domain Activity shape matches the Convex schema 'activity' field union
+      activity: activity,
     });
     return id;
   }
@@ -48,7 +50,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     const db = this.ctx.db as GenericDatabaseWriter<DataModel>;
     await db.replace(activityId as Id<'activities'>, {
       activityStreamId: this.activityStreamId,
-      activity: activity as any, // domain Activity shape matches the Convex schema 'activity' field union
+      activity: activity,
     });
   }
 
@@ -79,7 +81,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     const doc = await this.ctx.db.get(activityId as Id<'activities'>);
     if (!doc) return null;
     if (doc.activityStreamId !== this.activityStreamId) return null;
-    return doc.activity as Activity; // domain Activity shape matches the Convex schema 'activity' field union
+    return doc.activity;
   }
 
   /**
@@ -99,7 +101,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
       .paginate(paginationOpts);
 
     return {
-      page: result.page.map((doc) => doc.activity as Activity), // domain Activity shape matches the Convex schema 'activity' field union
+      page: result.page.map((doc) => doc.activity),
       isDone: result.isDone,
       continueCursor: result.continueCursor,
     };
