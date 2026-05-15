@@ -9,26 +9,7 @@
 import { ConvexError, v } from 'convex/values';
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { mutation, query } from '../../_generated/server';
-import { MutationCtx, QueryCtx } from '../../_generated/server';
-import { Id } from '../../_generated/dataModel';
-
-/**
- * Resolves the authenticated userId from a session.
- * Throws ConvexError with code UNAUTHENTICATED if the session is invalid or has no linked user.
- */
-async function requireAuth(
-  ctx: MutationCtx | QueryCtx,
-  sessionId: string
-): Promise<{ userId: Id<'users'> }> {
-  const session = await ctx.db
-    .query('sessions')
-    .withIndex('by_sessionId', (q) => q.eq('sessionId', sessionId))
-    .first();
-  if (!session?.userId) {
-    throw new ConvexError({ code: 'UNAUTHENTICATED', message: 'Not authenticated' });
-  }
-  return { userId: session.userId };
-}
+import { requireAuth } from './helpers';
 
 /**
  * Initialize a family for the authenticated web user.
