@@ -1,18 +1,20 @@
-// TODO: refactor to use usecases and ConvexDeviceRepository
-
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { Doc } from './_generated/dataModel';
+import { ConvexDeviceRepository } from '../src/infra/ConvexDeviceRepository';
+import {
+  syncDevice as syncDeviceUsecase,
+  getDevice as getDeviceUsecase,
+  getFamilyJoinRequests as getFamilyJoinRequestsUsecase,
+} from '../src/domain/usecases/device';
 
 export const get = query({
   args: { deviceId: v.string() }, // DEPRECATED_DEVICE_SESSION
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query('device')
-      .withIndex('by_deviceId', (v) => v.eq('deviceId', args.deviceId))
-      .first();
+    const repo = new ConvexDeviceRepository(ctx);
+    return await getDeviceUsecase(repo, args.deviceId);
   },
 });
+
 export const sync = mutation({
   args: {
     deviceId: v.string(), // DEPRECATED_DEVICE_SESSION — this must be generated on the client
@@ -22,115 +24,21 @@ export const sync = mutation({
     brand: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const getDeviceByDeviceId = async (deviceId: string) => {
-      return await ctx.db
-        .query('device')
-        .withIndex('by_deviceId', (v) => v.eq('deviceId', deviceId))
-        .first();
-    };
-    const createNewDevice = async () => {
-      const deviceId = args.deviceId; //get device id from params
-
-      await ctx.db.insert('device', {
-        deviceId,
-        deviceName: args.deviceName,
-        osName: args.osName,
-        osVersion: args.osVersion,
-      });
-
-      const device = await getDeviceByDeviceId(deviceId);
-      //create a new activity stream for this device
-      await ctx.db.insert('activityStream', {
-        type: 'device',
-        device: {
-          deviceId,
-        },
-      });
-      return device;
-    };
-    const updateDevice = async (prevState: Doc<'device'>) => {
-      if (
-        args.deviceName != prevState.deviceName ||
-        args.osName != prevState.osName ||
-        args.osVersion != prevState.osVersion ||
-        args.brand != prevState.brand
-      ) {
-        await ctx.db.patch(prevState._id, {
-          deviceName: args.deviceName,
-          osName: args.osName,
-          osVersion: args.osVersion,
-          brand: args.brand,
-        }); //update the DB with device info
-      }
-      return getDeviceByDeviceId(prevState.deviceId);
-    };
-
-    let device: Doc<'device'> | null;
-    if (!args.deviceId) {
-      device = await createNewDevice(); //create if no id
-    } else {
-      const prevDeviceState = await getDeviceByDeviceId(args.deviceId);
-      if (!prevDeviceState) {
-        device = await createNewDevice(); //create if not found
-      } else {
-        device = await updateDevice(prevDeviceState);
-      }
-    }
-    if (!device) {
-      throw new Error('sync failed: no device.');
-    }
-    if (device.familyId) {
-      //check if family is valid
-      const family = await ctx.db.get(device.familyId);
-      if (!family) {
-        //remove device from family
-        await ctx.db.patch(device._id, { familyId: undefined });
-      }
-    }
-
-    //TEMP: Enforce activity streams for device and family if not found
-    const deviceActivityStream = await ctx.db
-      .query('activityStream')
-      .withIndex('by_deviceId', (v) =>
-        v.eq('device.deviceId', device?.deviceId)
-      )
-      .first();
-    if (!deviceActivityStream) {
-      await ctx.db.insert('activityStream', {
-        type: 'device',
-        device: {
-          deviceId: device.deviceId,
-        },
-      });
-    }
-    if (device.familyId) {
-      const familyActivityStream = await ctx.db
-        .query('activityStream')
-        .withIndex('by_familyId', (v) => v.eq('family.id', device?.familyId))
-        .first();
-      if (!familyActivityStream) {
-        await ctx.db.insert('activityStream', {
-          type: 'family',
-          family: {
-            id: device.familyId,
-          },
-        });
-      }
-    }
+    const repo = new ConvexDeviceRepository(ctx);
+    await syncDeviceUsecase(repo, {
+      deviceId: args.deviceId,
+      deviceName: args.deviceName,
+      osName: args.osName,
+      osVersion: args.osVersion,
+      brand: args.brand,
+    });
   },
 });
 
 export const getFamilyJoinRequests = query({
   args: { deviceId: v.optional(v.string()) }, // DEPRECATED_DEVICE_SESSION
   handler: async (ctx, args) => {
-    const deviceId = args.deviceId;
-    if (!deviceId) {
-      return [];
-    }
-    const requests = await ctx.db
-      .query('familyJoinRequests')
-      .withIndex('by_deviceId', (v) => v.eq('deviceId', deviceId))
-      .collect();
-    return requests;
+    const repo = new ConvexDeviceRepository(ctx);
+    return await getFamilyJoinRequestsUsecase(repo, args.deviceId);
   },
 });
