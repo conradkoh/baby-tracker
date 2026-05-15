@@ -19,6 +19,12 @@ export interface FamilyJoinRequest {
   familyId: string;
   /** 'pending' | 'rejected' */
   status: string;
+  userId?: string;
+}
+
+export interface UserFamily {
+  userId: string;
+  familyId: string;
 }
 
 export interface Family {
