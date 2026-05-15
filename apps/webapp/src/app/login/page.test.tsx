@@ -1,7 +1,7 @@
 /**
  * Login page smoke test — verifies the page mounts and renders core content.
  */
-import { render, screen } from '@/__tests__/test-utils';
+import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -49,23 +49,31 @@ describe('Login page', () => {
     expect(() => render(<LoginPage />)).not.toThrow();
   });
 
-  it('displays the welcome heading', () => {
+  it('displays the welcome heading', async () => {
     render(<LoginPage />);
-    expect(screen.getByText('Welcome Back')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Welcome Back')).toBeInTheDocument();
+    });
   });
 
-  it('shows the login code option', () => {
+  it('shows the login code option', async () => {
     render(<LoginPage />);
-    expect(screen.getByText('Enter Login Code')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Enter Login Code')).toBeInTheDocument();
+    });
   });
 
-  it('shows the account recovery link', () => {
+  it('shows the account recovery link', async () => {
     render(<LoginPage />);
-    expect(screen.getByText('Lost access to your account?')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Lost access to your account?')).toBeInTheDocument();
+    });
   });
 
-  it('shows the terms footer', () => {
+  it('shows the terms footer', async () => {
     render(<LoginPage />);
-    expect(screen.getByText(/terms of service/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/terms of service/)).toBeInTheDocument();
+    });
   });
 });

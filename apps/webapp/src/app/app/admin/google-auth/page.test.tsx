@@ -2,7 +2,7 @@
  * Google Auth configuration page smoke test — verifies the page mounts
  * and renders the configuration form.
  */
-import { render, screen } from '@/__tests__/test-utils';
+import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -53,25 +53,33 @@ describe('Google Auth config page', () => {
     expect(() => render(<GoogleAuthConfigPage />)).not.toThrow();
   });
 
-  it('displays the configuration heading', () => {
+  it('displays the configuration heading', async () => {
     render(<GoogleAuthConfigPage />);
-    expect(
-      screen.getByText('Google Authentication Configuration')
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText('Google Authentication Configuration')
+      ).toBeInTheDocument();
+    });
   });
 
-  it('displays the authentication control section', () => {
+  it('displays the authentication control section', async () => {
     render(<GoogleAuthConfigPage />);
-    expect(screen.getByText('Google Authentication Control')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Google Authentication Control')).toBeInTheDocument();
+    });
   });
 
-  it('displays the configuration status section', () => {
+  it('displays the configuration status section', async () => {
     render(<GoogleAuthConfigPage />);
-    expect(screen.getByText('Configuration Status')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Configuration Status')).toBeInTheDocument();
+    });
   });
 
-  it('displays the setup guide', () => {
+  it('displays the setup guide', async () => {
     render(<GoogleAuthConfigPage />);
-    expect(screen.getByText('Setup Guide')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Setup Guide')).toBeInTheDocument();
+    });
   });
 });

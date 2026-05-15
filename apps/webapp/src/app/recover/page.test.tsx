@@ -2,7 +2,7 @@
  * Recover account page smoke test — verifies the page mounts and
  * renders the recovery form.
  */
-import { render, screen } from '@/__tests__/test-utils';
+import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -42,27 +42,35 @@ describe('Recover account page', () => {
     expect(() => render(<RecoverAccountPage />)).not.toThrow();
   });
 
-  it('displays the recover account heading', () => {
+  it('displays the recover account heading', async () => {
     render(<RecoverAccountPage />);
-    expect(screen.getByText('Recover Account')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Recover Account')).toBeInTheDocument();
+    });
   });
 
-  it('displays the recovery code input area', () => {
+  it('displays the recovery code input area', async () => {
     render(<RecoverAccountPage />);
-    expect(
-      screen.getByPlaceholderText('Paste your recovery code here')
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('Paste your recovery code here')
+      ).toBeInTheDocument();
+    });
   });
 
-  it('shows the recover button', () => {
+  it('shows the recover button', async () => {
     render(<RecoverAccountPage />);
-    expect(
-      screen.getByRole('button', { name: /recover account/i })
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /recover account/i })
+      ).toBeInTheDocument();
+    });
   });
 
-  it('shows the back to login link', () => {
+  it('shows the back to login link', async () => {
     render(<RecoverAccountPage />);
-    expect(screen.getByText('Back to Login')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Back to Login')).toBeInTheDocument();
+    });
   });
 });

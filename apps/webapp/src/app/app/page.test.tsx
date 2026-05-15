@@ -2,7 +2,7 @@
  * App dashboard page smoke test — verifies the page mounts and
  * renders different content based on auth state.
  */
-import { render, screen } from '@/__tests__/test-utils';
+import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 
@@ -47,15 +47,17 @@ describe('App dashboard page', () => {
       expect(() => render(<AppPage />)).not.toThrow();
     });
 
-    it('displays the welcome heading', () => {
+    it('displays the welcome heading', async () => {
       currentAuthState = { sessionId: 'test-session', state: 'unauthenticated', reason: 'test' };
       render(<AppPage />);
-      expect(screen.getByText('Welcome to the App')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Welcome to the App')).toBeInTheDocument();
+      });
     });
   });
 
   describe('when authenticated as anonymous user', () => {
-    it("renders the what's next section when authenticated", () => {
+    it("renders the what's next section when authenticated", async () => {
       currentAuthState = {
         sessionId: 'test-session',
         state: 'authenticated',
@@ -64,7 +66,9 @@ describe('App dashboard page', () => {
         isSystemAdmin: false,
       };
       render(<AppPage />);
-      expect(screen.getByText("What's Next?")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("What's Next?")).toBeInTheDocument();
+      });
     });
   });
 });

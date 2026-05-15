@@ -2,7 +2,7 @@
  * Admin dashboard page smoke test — verifies the page mounts and
  * renders system status cards.
  */
-import { render, screen } from '@/__tests__/test-utils';
+import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -53,23 +53,31 @@ describe('Admin dashboard page', () => {
     expect(() => render(<AdminDashboard />)).not.toThrow();
   });
 
-  it('displays the admin dashboard heading', () => {
+  it('displays the admin dashboard heading', async () => {
     render(<AdminDashboard />);
-    expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
+    });
   });
 
-  it('displays the app version status card', () => {
+  it('displays the app version status card', async () => {
     render(<AdminDashboard />);
-    expect(screen.getByText('App Version')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('App Version')).toBeInTheDocument();
+    });
   });
 
-  it('displays the google auth status card', () => {
+  it('displays the google auth status card', async () => {
     render(<AdminDashboard />);
-    expect(screen.getByText('Google Auth')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Google Auth')).toBeInTheDocument();
+    });
   });
 
-  it('displays the system information section', () => {
+  it('displays the system information section', async () => {
     render(<AdminDashboard />);
-    expect(screen.getByText('System Information')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('System Information')).toBeInTheDocument();
+    });
   });
 });

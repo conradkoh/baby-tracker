@@ -2,7 +2,7 @@
  * Profile page smoke test — verifies the page mounts and renders
  * different content based on auth state.
  */
-import { render, screen } from '@/__tests__/test-utils';
+import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -59,28 +59,38 @@ describe('Profile page', () => {
     expect(() => render(<ProfilePage />)).not.toThrow();
   });
 
-  it('displays the profile heading', () => {
+  it('displays the profile heading', async () => {
     render(<ProfilePage />);
-    expect(screen.getByText('Profile')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Profile')).toBeInTheDocument();
+    });
   });
 
-  it('renders the account information section', () => {
+  it('renders the account information section', async () => {
     render(<ProfilePage />);
-    expect(screen.getByText('Account Information')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Account Information')).toBeInTheDocument();
+    });
   });
 
-  it('renders the name edit form', () => {
+  it('renders the name edit form', async () => {
     render(<ProfilePage />);
-    expect(screen.getByTestId('name-edit-form')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('name-edit-form')).toBeInTheDocument();
+    });
   });
 
-  it('renders the theme settings', () => {
+  it('renders the theme settings', async () => {
     render(<ProfilePage />);
-    expect(screen.getByTestId('theme-settings')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('theme-settings')).toBeInTheDocument();
+    });
   });
 
-  it('renders the account recovery section', () => {
+  it('renders the account recovery section', async () => {
     render(<ProfilePage />);
-    expect(screen.getByText('Account Recovery')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Account Recovery')).toBeInTheDocument();
+    });
   });
 });
