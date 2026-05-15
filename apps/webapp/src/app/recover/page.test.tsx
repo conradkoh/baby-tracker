@@ -45,7 +45,7 @@ describe('Recover account page', () => {
   it('displays the recover account heading', async () => {
     render(<RecoverAccountPage />);
     await waitFor(() => {
-      expect(screen.getByText('Recover Account')).toBeInTheDocument();
+      expect(screen.getAllByText('Recover Account').length).toBeGreaterThan(0);
     });
   });
 

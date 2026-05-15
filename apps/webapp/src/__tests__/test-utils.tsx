@@ -106,6 +106,7 @@ export function createSessionHelpersMock() {
     SessionProvider: ({ children }: { children: ReactNode }) => children,
     useSessionQuery: vi.fn().mockReturnValue(undefined),
     useSessionMutation: vi.fn().mockReturnValue(vi.fn()),
+    useSessionAction: vi.fn().mockReturnValue(vi.fn()),
     useSessionId: vi.fn().mockReturnValue('test-session-id'),
   };
 }
@@ -117,7 +118,21 @@ export function createSessionHelpersMock() {
  * Use in: `vi.mock('@workspace/backend/convex/_generated/api', () => createApiMock())`
  */
 export function createApiMock() {
-  return { api: {} };
+  const createDeepProxy = (): Record<string, unknown> =>
+    new Proxy<Record<string, unknown>>(
+      {},
+      {
+        get: (target, prop) => {
+          if (typeof prop === 'symbol' || prop === 'then') return undefined;
+          const key = prop as string;
+          if (!(key in target)) {
+            target[key] = createDeepProxy();
+          }
+          return target[key];
+        },
+      }
+    );
+  return { api: createDeepProxy() };
 }
 
 // ── Auth state mock factory ─────────────────────────────────────

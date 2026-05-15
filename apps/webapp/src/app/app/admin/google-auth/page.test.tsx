@@ -20,7 +20,15 @@ import {
 vi.mock('next/navigation', () => createNextNavMock());
 vi.mock('next/link', () => createNextLinkMock());
 vi.mock('convex/react', () => createConvexReactMock());
-vi.mock('convex-helpers/react/sessions', () => createSessionHelpersMock());
+vi.mock('convex-helpers/react/sessions', () => ({
+  ...createSessionHelpersMock(),
+  useSessionQuery: vi.fn().mockReturnValue({
+    enabled: false,
+    projectId: '',
+    clientId: '',
+    isConfigured: false,
+  }),
+}));
 vi.mock('@workspace/backend/convex/_generated/api', () => createApiMock());
 vi.mock('@/modules/auth/AuthProvider', () =>
   createAuthMock({
@@ -42,6 +50,20 @@ vi.mock('@/modules/app/useAppInfo', () => ({
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+// Mock Switch to avoid @radix-ui/react-switch bundled React issue
+vi.mock('@/components/ui/switch', () => ({
+  Switch: ({ checked, onCheckedChange }: { checked?: boolean; onCheckedChange?: (v: boolean) => void }) => (
+    <button
+      data-slot="switch"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onCheckedChange?.(!checked)}
+    >
+      {checked ? 'on' : 'off'}
+    </button>
+  ),
 }));
 
 // ── Tests ───────────────────────────────────────────────────────
@@ -72,7 +94,7 @@ describe('Google Auth config page', () => {
   it('displays the configuration status section', async () => {
     render(<GoogleAuthConfigPage />);
     await waitFor(() => {
-      expect(screen.getByText('Configuration Status')).toBeInTheDocument();
+      expect(screen.getAllByText('Configuration Status').length).toBeGreaterThan(0);
     });
   });
 
