@@ -144,18 +144,18 @@ export default function SettingsPage() {
 
       {/* ── Account Section ─────────────────────────────────── */}
       <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <User className="h-5 w-5" />
             Account
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
+        <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-3">
+          <div className="space-y-0.5">
             <Label className="text-sm text-muted-foreground">Name</Label>
             <p className="text-foreground font-medium">{userName}</p>
           </div>
-          <div>
+          <div className="space-y-0.5">
             <Label className="text-sm text-muted-foreground">Auth method</Label>
             <p className="text-foreground">{authMethod}</p>
           </div>
@@ -169,13 +169,13 @@ export default function SettingsPage() {
 
       {/* ── Family Section ──────────────────────────────────── */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <Users className="h-5 w-5" />
             Family
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {family ? renderInFamily(family as any) : renderNotInFamily()}
         </CardContent>
@@ -195,9 +195,9 @@ export default function SettingsPage() {
     return (
       <div className="space-y-4">
         {/* Family ID with copy */}
-        <div>
+        <div className="space-y-1.5">
           <Label className="text-sm text-muted-foreground">Family ID</Label>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2">
             <code className="bg-muted px-2 py-1 rounded text-sm font-mono flex-grow">
               {familyId}
             </code>
@@ -321,18 +321,19 @@ export default function SettingsPage() {
           <Label className="text-sm text-muted-foreground mb-2 block">
             Or join an existing family:
           </Label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <Input
               placeholder="Family ID"
               value={joinFamilyId}
               onChange={(e) => setJoinFamilyId(e.target.value)}
               disabled={submitting}
-              className="flex-grow"
+              className="flex-grow h-11"
             />
             <Button
               variant="outline"
               onClick={handleRequestJoin}
               disabled={submitting || !joinFamilyId.trim()}
+              className="h-11"
             >
               Request to Join
             </Button>
