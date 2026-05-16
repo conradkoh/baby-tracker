@@ -25,6 +25,9 @@ const mockDeleteActivity = vi.fn().mockResolvedValue(undefined);
 // Mutable query result for useSessionQuery
 let mockQueryResult: Record<string, unknown> | undefined = undefined;
 
+// Mutable mutation mock — one for all mutations
+let mockMutate = vi.fn().mockResolvedValue(undefined);
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockRouterPush,
@@ -47,21 +50,10 @@ vi.mock('@workspace/backend/convex/_generated/api', () => createApiMock());
 
 // ── Mutable session hooks mock ──────────────────────────────────
 
-let sessionMutations: Record<string, ReturnType<typeof vi.fn>> = {
-  update: mockUpdateActivity,
-  deleteActivity: mockDeleteActivity,
-};
-
 vi.mock('convex-helpers/react/sessions', () => ({
   SessionProvider: ({ children }: { children: ReactNode }) => children,
   useSessionQuery: () => mockQueryResult,
-  useSessionMutation: (ref: any) => {
-    // Return the appropriate mock based on the function reference name
-    // For simplicity in testing, we return a fn that checks the name
-    const name = ref?.name ?? '';
-    if (name.includes('delete')) return mockDeleteActivity;
-    return mockUpdateActivity;
-  },
+  useSessionMutation: () => mockMutate,
   useSessionPaginatedQuery: () => ({
     results: [],
     status: 'Exhausted',
@@ -93,6 +85,8 @@ function resetMocks() {
   mockUpdateActivity.mockResolvedValue(undefined);
   mockDeleteActivity.mockClear();
   mockDeleteActivity.mockResolvedValue(undefined);
+  mockMutate.mockClear();
+  mockMutate.mockResolvedValue(undefined);
   mockQueryResult = undefined;
   currentAuthState = {
     sessionId: 'test-session',
@@ -309,7 +303,7 @@ describe('Feed edit page', () => {
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
-        expect(mockUpdateActivity).toHaveBeenCalledWith({
+        expect(mockMutate).toHaveBeenCalledWith({
           activityId: 'act-test-1',
           activity: {
             timestamp: expect.any(String),
@@ -367,7 +361,7 @@ describe('Feed edit page', () => {
       await user.click(screen.getByText('Delete'));
 
       await waitFor(() => {
-        expect(mockDeleteActivity).toHaveBeenCalledWith({
+        expect(mockMutate).toHaveBeenCalledWith({
           activityId: 'act-test-1',
         });
         expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
