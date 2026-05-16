@@ -108,7 +108,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
       .paginate(paginationOpts);
 
     return {
-      page: result.page.map((doc) => doc.activity),
+      page: result.page.map((doc) => ({ ...doc.activity, _id: doc._id })),
       isDone: result.isDone,
       continueCursor: result.continueCursor,
     };
