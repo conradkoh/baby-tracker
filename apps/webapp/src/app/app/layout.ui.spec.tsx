@@ -243,8 +243,8 @@ describe('App layout', () => {
       );
 
       await waitFor(() => {
-        // RequireLogin should show UnauthorizedPage
-        expect(screen.getByText(/unauthorized/i)).toBeInTheDocument();
+        // RequireLogin should show UnauthorizedPage ("Authentication Required")
+        expect(screen.getByText(/authentication required/i)).toBeInTheDocument();
       });
       expect(screen.queryByTestId('test-child')).not.toBeInTheDocument();
     });
