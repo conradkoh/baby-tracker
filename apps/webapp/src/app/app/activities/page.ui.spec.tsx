@@ -79,6 +79,13 @@ function resetMocks() {
   mockIsLoading = false;
   mockRouterPush.mockClear();
   mockLoadMore.mockClear();
+  currentAuthState = {
+    sessionId: 'test-session',
+    state: 'authenticated',
+    user: { _id: 'user-1', _creationTime: Date.now(), type: 'anonymous', name: 'Test User' },
+    accessLevel: 'user',
+    isSystemAdmin: false,
+  };
 }
 
 /** Create a mock feed (latch) activity. */

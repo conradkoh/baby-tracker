@@ -306,9 +306,9 @@ describe('App home page', () => {
       await waitFor(() => {
         expect(screen.getByText('3h Feed Avg')).toBeInTheDocument();
       });
-      // Should have an ml value next to or near this label
-      const avgEl = screen.getByText(/ml/);
-      expect(avgEl).toBeInTheDocument();
+      // Should have ml values displayed (use getAllByText since multiple ml values exist)
+      const mlEls = screen.getAllByText(/ml/);
+      expect(mlEls.length).toBeGreaterThan(0);
     });
 
     it('shows "24h Feed Total" with ml value', async () => {
