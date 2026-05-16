@@ -22,19 +22,25 @@ let mockQueryResult: Record<string, unknown> | undefined = undefined;
 let mockMutate = vi.fn().mockResolvedValue(undefined);
 
 const EXISTING_TEMPERATURE: Record<string, unknown> = {
-  _id: 'act-med-1',
-  _creationTime: Date.now(),
-  timestamp: '2025-01-15T10:00:00.000Z',
-  type: 'medical',
-  medical: { type: 'temperature', temperature: { value: 37.5 } },
+  status: 'found',
+  data: {
+    _id: 'act-med-1',
+    _creationTime: Date.now(),
+    timestamp: '2025-01-15T10:00:00.000Z',
+    type: 'medical',
+    medical: { type: 'temperature', temperature: { value: 37.5 } },
+  },
 };
 
 const EXISTING_MEDICINE: Record<string, unknown> = {
-  _id: 'act-med-2',
-  _creationTime: Date.now(),
-  timestamp: '2025-01-15T10:00:00.000Z',
-  type: 'medical',
-  medical: { type: 'medicine', medicine: { name: 'Paracetamol', value: 5, unit: 'ml' } },
+  status: 'found',
+  data: {
+    _id: 'act-med-2',
+    _creationTime: Date.now(),
+    timestamp: '2025-01-15T10:00:00.000Z',
+    type: 'medical',
+    medical: { type: 'medicine', medicine: { name: 'Paracetamol', value: 5, unit: 'ml' } },
+  },
 };
 
 vi.mock('next/navigation', () => ({

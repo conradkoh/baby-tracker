@@ -105,15 +105,18 @@ function getById(id: string): HTMLInputElement {
 /** Create a mock latch activity for the query result. */
 function makeLatchQueryResult() {
   return {
-    _id: 'act-test-1',
-    _creationTime: Date.now(),
-    timestamp: '2025-01-15T14:30:00.000Z',
-    type: 'feed',
-    feed: {
-      type: 'latch',
-      duration: {
-        left: { seconds: 630 },
-        right: { seconds: 300 },
+    status: 'found',
+    data: {
+      _id: 'act-test-1',
+      _creationTime: Date.now(),
+      timestamp: '2025-01-15T14:30:00.000Z',
+      type: 'feed',
+      feed: {
+        type: 'latch',
+        duration: {
+          left: { seconds: 630 },
+          right: { seconds: 300 },
+        },
       },
     },
   };
@@ -122,13 +125,16 @@ function makeLatchQueryResult() {
 /** Create a mock expressed bottle activity for the query result. */
 function makeBottleQueryResult() {
   return {
-    _id: 'act-test-1',
-    _creationTime: Date.now(),
-    timestamp: '2025-01-15T14:30:00.000Z',
-    type: 'feed',
-    feed: {
-      type: 'expressed',
-      volume: { ml: 150 },
+    status: 'found',
+    data: {
+      _id: 'act-test-1',
+      _creationTime: Date.now(),
+      timestamp: '2025-01-15T14:30:00.000Z',
+      type: 'feed',
+      feed: {
+        type: 'expressed',
+        volume: { ml: 150 },
+      },
     },
   };
 }
@@ -136,13 +142,16 @@ function makeBottleQueryResult() {
 /** Create a mock solids activity for the query result. */
 function makeSolidsQueryResult() {
   return {
-    _id: 'act-test-1',
-    _creationTime: Date.now(),
-    timestamp: '2025-01-15T14:30:00.000Z',
-    type: 'feed',
-    feed: {
-      type: 'solids',
-      description: 'Apple puree',
+    status: 'found',
+    data: {
+      _id: 'act-test-1',
+      _creationTime: Date.now(),
+      timestamp: '2025-01-15T14:30:00.000Z',
+      type: 'feed',
+      feed: {
+        type: 'solids',
+        description: 'Apple puree',
+      },
     },
   };
 }

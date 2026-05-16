@@ -34,10 +34,15 @@ export default function DiaperEditPage() {
 
   const activityId = params?.activityId as Id<'activities'> | undefined;
 
-  const activity = useSessionQuery(
+  const result = useSessionQuery(
     api.web.babyTracker.activities.getById,
     activityId ? { activityId } : 'skip'
-  ) as Record<string, unknown> | undefined;
+  );
+
+  const activity = result?.status === 'found'
+    ? (result.data as Record<string, unknown>)
+    : undefined;
+  const isNotFound = result?.status === 'not_found';
 
   const updateActivity = useSessionMutation(api.web.babyTracker.activities.update);
   const deleteActivity = useSessionMutation(api.web.babyTracker.activities.deleteActivity);
@@ -64,6 +69,18 @@ export default function DiaperEditPage() {
   // Unauthenticated guard — after all hooks
   if (!isAuthenticated) {
     return null;
+  }
+
+  // 404 — activity not found
+  if (isNotFound) {
+    return (
+      <div className="container mx-auto px-4 pt-8 max-w-xl flex flex-col items-center gap-4 text-center">
+        <p className="text-muted-foreground">Activity not found.</p>
+        <Button variant="outline" onClick={() => router.push('/app')}>
+          Go to Home
+        </Button>
+      </div>
+    );
   }
 
   // Loading state

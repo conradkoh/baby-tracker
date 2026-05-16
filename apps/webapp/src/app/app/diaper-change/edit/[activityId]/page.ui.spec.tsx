@@ -22,11 +22,14 @@ let mockQueryResult: Record<string, unknown> | undefined = undefined;
 let mockMutate = vi.fn().mockResolvedValue(undefined);
 
 const EXISTING_DIRTY: Record<string, unknown> = {
-  _id: 'act-diaper-1',
-  _creationTime: Date.now(),
-  timestamp: '2025-01-15T10:00:00.000Z',
-  type: 'diaper_change',
-  diaperChange: { type: 'dirty' },
+  status: 'found',
+  data: {
+    _id: 'act-diaper-1',
+    _creationTime: Date.now(),
+    timestamp: '2025-01-15T10:00:00.000Z',
+    type: 'diaper_change',
+    diaperChange: { type: 'dirty' },
+  },
 };
 
 vi.mock('next/navigation', () => ({
