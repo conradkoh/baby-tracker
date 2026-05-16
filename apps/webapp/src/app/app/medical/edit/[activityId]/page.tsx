@@ -33,11 +33,12 @@ export default function MedicalEditPage() {
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 
-  const activityId = params?.activityId as Id<'activities'>;
+  const activityId = params?.activityId as Id<'activities'> | undefined;
 
-  const activity = useSessionQuery(api.web.babyTracker.activities.getById, {
-    activityId,
-  }) as Record<string, unknown> | undefined;
+  const activity = useSessionQuery(
+    api.web.babyTracker.activities.getById,
+    activityId ? { activityId } : 'skip'
+  ) as Record<string, unknown> | undefined;
 
   const updateActivity = useSessionMutation(api.web.babyTracker.activities.update);
   const deleteActivity = useSessionMutation(api.web.babyTracker.activities.deleteActivity);
