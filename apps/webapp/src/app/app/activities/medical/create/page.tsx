@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { getDefaultDatetime } from '@/lib/activity-form-utils';
 
 // ── Medical types ───────────────────────────────────────────────
 
@@ -21,10 +22,6 @@ const MEDICAL_LABELS: Record<MedicalType, string> = {
   temperature: 'Temperature',
   medicine: 'Medicine',
 };
-
-function getDefaultDatetime(): string {
-  return new Date().toISOString().slice(0, 16);
-}
 
 // ── Page Component ──────────────────────────────────────────────
 

@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { getDefaultDatetime } from '@/lib/activity-form-utils';
 
 // ── Diaper types ────────────────────────────────────────────────
 
@@ -21,12 +22,6 @@ const DIAPER_TYPES = [
 ] as const;
 
 type DiaperType = (typeof DIAPER_TYPES)[number]['value'];
-
-// ── Helpers ─────────────────────────────────────────────────────
-
-function getDefaultDatetime(): string {
-  return new Date().toISOString().slice(0, 16);
-}
 
 // ── Page Component ──────────────────────────────────────────────
 

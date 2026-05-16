@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { getDefaultDatetime, toSeconds } from '@/lib/activity-form-utils';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -24,18 +25,6 @@ const FEED_TYPE_LABELS: Record<FeedType, string> = {
   water: 'Water',
   solids: 'Solids',
 };
-
-// ── Helpers ─────────────────────────────────────────────────────
-
-/** Get ISO datetime-local string for now. */
-function getDefaultDatetime(): string {
-  return new Date().toISOString().slice(0, 16);
-}
-
-/** Convert minutes + seconds to total seconds. */
-function toSeconds(min: number, sec: number): number {
-  return min * 60 + sec;
-}
 
 // ── Page Component ──────────────────────────────────────────────
 

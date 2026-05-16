@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { toSeconds, toMinutesSeconds } from '@/lib/activity-form-utils';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -25,19 +26,6 @@ const FEED_TYPE_LABELS: Record<FeedType, string> = {
   water: 'Water',
   solids: 'Solids',
 };
-
-// ── Helpers ─────────────────────────────────────────────────────
-
-function toMinutesSeconds(totalSeconds: number): { min: number; sec: number } {
-  return {
-    min: Math.floor(totalSeconds / 60),
-    sec: totalSeconds % 60,
-  };
-}
-
-function toSeconds(min: number, sec: number): number {
-  return min * 60 + sec;
-}
 
 // ── Page Component ──────────────────────────────────────────────
 

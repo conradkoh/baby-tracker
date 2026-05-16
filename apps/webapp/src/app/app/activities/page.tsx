@@ -10,40 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import {
+  formatTime,
+  formatDate,
+  toDateKey,
+  formatDuration,
+} from '@/lib/activity-form-utils';
 
 // ── Helpers ─────────────────────────────────────────────────────
-
-/** Format a timestamp string to a short time like "2:30 PM". */
-function formatTime(ts: string): string {
-  const date = new Date(ts);
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
-}
-
-/** Format a timestamp to a locale date string like "Jan 15, 2025". */
-function formatDate(ts: string): string {
-  const date = new Date(ts);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-/** Get the date portion of an ISO timestamp as YYYY-MM-DD. */
-function toDateKey(ts: string): string {
-  return ts.slice(0, 10);
-}
-
-/** Convert seconds to a "X min Y sec" string. */
-function formatDuration(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes} min ${seconds} sec`;
-}
 
 /** Get a human-readable label and sub-detail for an activity. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
