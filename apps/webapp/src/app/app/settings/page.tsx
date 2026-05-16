@@ -55,9 +55,13 @@ export default function SettingsPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const familyData = family as any;
     if (familyData?._id) {
-      await navigator.clipboard.writeText(familyData._id as string);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(familyData._id as string);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Clipboard copy failed:', err);
+      }
     }
   };
 
