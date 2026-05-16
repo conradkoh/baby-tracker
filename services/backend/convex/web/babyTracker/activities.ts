@@ -141,7 +141,11 @@ export const getById = query({
   handler: async (ctx, args) => {
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
-    return await getActivityByIdUseCase(repo, userId.toString(), args.activityId.toString());
+    const activity = await getActivityByIdUseCase(repo, userId.toString(), args.activityId.toString());
+    if (!activity) {
+      return { status: 'not_found' as const };
+    }
+    return { status: 'found' as const, data: { ...activity, _id: args.activityId } };
   },
 });
 
