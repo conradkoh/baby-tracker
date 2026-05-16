@@ -1,10 +1,13 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useSessionQuery, useSessionMutation } from 'convex-helpers/react/sessions';
+import { api } from '@workspace/backend/convex/_generated/api';
 
 import { AuthErrorBoundary } from '@/modules/auth/AuthErrorBoundary';
 import { RequireLogin } from '@/modules/auth/RequireLogin';
+import { AppNav } from './AppNav';
 
 /**
  * Loading fallback for Suspense boundary.
@@ -21,12 +24,49 @@ function LoadingFallback() {
 }
 
 /**
+ * Family auto-initializer.
+ *
+ * When an authenticated user has no family, this component silently
+ * calls initUser() in the background. While the family is loading or
+ * being initialized, a loading fallback is shown.
+ *
+ * Once a family exists (either pre-existing or newly created),
+ * children are rendered.
+ */
+function FamilyInitializer({ children }: { children: React.ReactNode }) {
+  const family = useSessionQuery(api.web.babyTracker.family.get);
+  const initUser = useSessionMutation(api.web.babyTracker.family.initUser);
+
+  useEffect(() => {
+    // family === null means the query resolved but no family exists
+    if (family === null) {
+      initUser();
+    }
+  }, [family, initUser]);
+
+  // family === undefined means still loading
+  // family === null means no family yet (initUser is in progress)
+  if (family === undefined || family === null) {
+    return <LoadingFallback />;
+  }
+
+  // family exists — render children with bottom nav
+  return (
+    <>
+      <div className="pb-16">{children}</div>
+      <AppNav />
+    </>
+  );
+}
+
+/**
  * Authenticated application layout.
  *
  * This layout provides a layered authentication system:
  * 1. RequireLogin - Primary auth gate, shows UnauthorizedPage if not logged in
  * 2. AuthErrorBoundary - Catches stale session errors and redirects to login
  * 3. Suspense - Provides loading state while content loads
+ * 4. FamilyInitializer - Auto-creates family for new users, shows loading until ready
  *
  * The AuthErrorBoundary handles edge cases where the frontend auth state
  * is stale (says authenticated) but the backend rejects the session.
@@ -40,7 +80,9 @@ export default function AppLayout({
   return (
     <RequireLogin>
       <AuthErrorBoundary>
-        <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+        <Suspense fallback={<LoadingFallback />}>
+          <FamilyInitializer>{children}</FamilyInitializer>
+        </Suspense>
       </AuthErrorBoundary>
     </RequireLogin>
   );

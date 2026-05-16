@@ -73,23 +73,22 @@ function ProfilePageContent() {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto p-4 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Profile</h1>
-        <p className="text-sm text-muted-foreground mb-6">
-          Manage your account information and preferences.
-        </p>
-
-        <div className="border-t pt-6">
-          <h2 className="text-xl font-semibold mb-2">Account Information</h2>
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold">Profile</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your account information and preferences.
+          </p>
+        </div>
+        <div className="border-t pt-6 space-y-4">
+          <h2 className="text-base font-semibold">Account Information</h2>
           <div className="space-y-4">
             <NameEditForm />
             <LoginCodeGenerator />
           </div>
         </div>
-
         <ThemeSettings />
-
         <RecoveryCodeSection />
       </div>
     </div>

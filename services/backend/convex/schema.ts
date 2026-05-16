@@ -116,10 +116,12 @@ export default defineSchema({
     deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
     familyId: v.id('family'),
     status: v.string(), //pending or rejected
+    userId: v.optional(v.id('users')),
   })
     .index('by_familyId', ['familyId'])
     .index('by_deviceId', ['deviceId'])
-    .index('by_familyId_and_deviceId', ['familyId', 'deviceId']),
+    .index('by_familyId_and_deviceId', ['familyId', 'deviceId'])
+    .index('by_userId', ['userId']),
 
   //TABLE: Activity Stream
   activityStream: defineTable(
@@ -140,6 +142,14 @@ export default defineSchema({
   )
     .index('by_familyId', ['family.id'])
     .index('by_deviceId', ['device.deviceId']),
+
+  // TABLE: User-Family mapping (web/session-based family membership)
+  userFamily: defineTable({
+    userId: v.id('users'),
+    familyId: v.id('family'),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_familyId', ['familyId']),
 
   // =====================
   // UPSTREAM INFRA TABLES
