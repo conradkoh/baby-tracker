@@ -1,0 +1,3 @@
+{
+  "installCommand": "npm install -g pnpm@10.15.1 && pnpm install"
+}
