@@ -245,8 +245,10 @@ describe('Settings page', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Google User')).toBeInTheDocument();
-        expect(screen.getByText(/google/i)).toBeInTheDocument();
       });
+      // Auth method should show "Google"
+      const authMethodEls = screen.getAllByText('Google');
+      expect(authMethodEls.length).toBeGreaterThan(0);
     });
 
     it('has a link to profile page', async () => {
@@ -366,7 +368,7 @@ describe('Settings page', () => {
       render(<SettingsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/pending/i)).toBeInTheDocument();
+        expect(screen.getByText(/pending join/i)).toBeInTheDocument();
       });
       expect(screen.getByText(/user-pending/)).toBeInTheDocument();
     });
