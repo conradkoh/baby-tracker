@@ -97,6 +97,11 @@ function resetMocks() {
   };
 }
 
+/** Get an input by its id. */
+function getById(id: string): HTMLInputElement {
+  return document.getElementById(id) as HTMLInputElement;
+}
+
 /** Create a mock latch activity for the query result. */
 function makeLatchQueryResult() {
   return {
@@ -189,8 +194,8 @@ describe('Feed edit page', () => {
       render(<FeedEditPage />);
 
       await waitFor(() => {
-        const leftMin = screen.getByLabelText(/left.*min/i) as HTMLInputElement;
-        const leftSec = screen.getByLabelText(/left.*sec/i) as HTMLInputElement;
+        const leftMin = getById('left-min');
+        const leftSec = getById('left-sec');
         expect(leftMin.value).toBe('10');
         expect(leftSec.value).toBe('30');
       });
@@ -200,8 +205,8 @@ describe('Feed edit page', () => {
       render(<FeedEditPage />);
 
       await waitFor(() => {
-        const rightMin = screen.getByLabelText(/right.*min/i) as HTMLInputElement;
-        const rightSec = screen.getByLabelText(/right.*sec/i) as HTMLInputElement;
+        const rightMin = getById('right-min');
+        const rightSec = getById('right-sec');
         expect(rightMin.value).toBe('5');
         expect(rightSec.value).toBe('0');
       });
@@ -292,11 +297,11 @@ describe('Feed edit page', () => {
       render(<FeedEditPage />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/left.*min/i)).toBeInTheDocument();
+        expect(getById('left-min')).toBeInTheDocument();
       });
 
       // Modify left min
-      const leftMin = screen.getByLabelText(/left.*min/i);
+      const leftMin = getById('left-min');
       await user.clear(leftMin);
       await user.type(leftMin, '15');
 

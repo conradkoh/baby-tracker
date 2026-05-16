@@ -123,12 +123,12 @@ describe('Diaper change create page', () => {
       });
     });
 
-    it('selects Wet by default', async () => {
+    it('selects Wet by default (active pill style)', async () => {
       render(<DiaperCreatePage />);
 
       await waitFor(() => {
-        const wetOption = screen.getByRole('radio', { name: /wet/i });
-        expect(wetOption).toBeChecked();
+        const wetButton = screen.getByRole('button', { name: 'Wet' });
+        expect(wetButton.className).toContain('bg-green-600');
       });
     });
   });
@@ -172,7 +172,7 @@ describe('Diaper change create page', () => {
       const user = userEvent.setup();
       render(<DiaperCreatePage />);
 
-      await user.click(screen.getByRole('radio', { name: /dirty/i }));
+      await user.click(screen.getByRole('button', { name: 'Dirty' }));
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
@@ -190,7 +190,7 @@ describe('Diaper change create page', () => {
       const user = userEvent.setup();
       render(<DiaperCreatePage />);
 
-      await user.click(screen.getByRole('radio', { name: /mixed/i }));
+      await user.click(screen.getByRole('button', { name: 'Mixed' }));
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {

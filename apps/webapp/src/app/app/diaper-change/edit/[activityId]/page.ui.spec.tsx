@@ -135,12 +135,23 @@ describe('Diaper change edit page', () => {
       mockQueryResult = EXISTING_DIRTY;
     });
 
-    it('selects existing diaper type (dirty) in radio group', async () => {
+    it('selects existing diaper type (dirty) via active pill style', async () => {
       render(<DiaperEditPage />);
 
       await waitFor(() => {
-        const dirtyRadio = screen.getByRole('radio', { name: /dirty/i });
-        expect(dirtyRadio).toBeChecked();
+        const dirtyButton = screen.getByRole('button', { name: 'Dirty' });
+        expect(dirtyButton.className).toContain('bg-green-600');
+      });
+    });
+
+    it('has wet and mixed as inactive', async () => {
+      render(<DiaperEditPage />);
+
+      await waitFor(() => {
+        const wetButton = screen.getByRole('button', { name: 'Wet' });
+        expect(wetButton.className).not.toContain('bg-green-600');
+        const mixedButton = screen.getByRole('button', { name: 'Mixed' });
+        expect(mixedButton.className).not.toContain('bg-green-600');
       });
     });
 
@@ -163,10 +174,10 @@ describe('Diaper change edit page', () => {
       render(<DiaperEditPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole('radio', { name: /mixed/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Mixed' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('radio', { name: /mixed/i }));
+      await user.click(screen.getByRole('button', { name: 'Mixed' }));
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {

@@ -85,6 +85,11 @@ function resetMocks() {
   };
 }
 
+/** Get an input by its id (since multiple fields share the same label "Min"/"Sec"). */
+function getById(id: string): HTMLInputElement {
+  return document.getElementById(id) as HTMLInputElement;
+}
+
 // ── Import page (after all mocks) ────────────────────────────────
 
 import FeedCreatePage from './page';
@@ -135,10 +140,12 @@ describe('Feed create page', () => {
 
       // Latch should be the default
       await waitFor(() => {
-        expect(screen.getByLabelText(/left.*min/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/left.*sec/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/right.*min/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/right.*sec/i)).toBeInTheDocument();
+        expect(screen.getByText(/left side/i)).toBeInTheDocument();
+        expect(screen.getByText(/right side/i)).toBeInTheDocument();
+        expect(getById('left-min')).toBeInTheDocument();
+        expect(getById('left-sec')).toBeInTheDocument();
+        expect(getById('right-min')).toBeInTheDocument();
+        expect(getById('right-sec')).toBeInTheDocument();
       });
     });
   });
@@ -216,15 +223,15 @@ describe('Feed create page', () => {
       const user = userEvent.setup();
       render(<FeedCreatePage />);
 
-      // Latch is default — fill in duration fields
-      await user.clear(screen.getByLabelText(/left.*min/i));
-      await user.type(screen.getByLabelText(/left.*min/i), '10');
-      await user.clear(screen.getByLabelText(/left.*sec/i));
-      await user.type(screen.getByLabelText(/left.*sec/i), '30');
-      await user.clear(screen.getByLabelText(/right.*min/i));
-      await user.type(screen.getByLabelText(/right.*min/i), '5');
-      await user.clear(screen.getByLabelText(/right.*sec/i));
-      await user.type(screen.getByLabelText(/right.*sec/i), '0');
+      // Latch is default — fill in duration fields via id
+      await user.clear(getById('left-min'));
+      await user.type(getById('left-min'), '10');
+      await user.clear(getById('left-sec'));
+      await user.type(getById('left-sec'), '30');
+      await user.clear(getById('right-min'));
+      await user.type(getById('right-min'), '5');
+      await user.clear(getById('right-sec'));
+      await user.type(getById('right-sec'), '0');
 
       await user.click(screen.getByText('Save'));
 

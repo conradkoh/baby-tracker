@@ -108,7 +108,7 @@ export default function FeedEditPage() {
   // Loading state
   if (!initialized) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-xl">
+      <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
         <div className="flex items-center gap-2 mb-6">
           <button
             onClick={() => router.push('/app')}
@@ -194,7 +194,7 @@ export default function FeedEditPage() {
   // ── Render ──────────────────────────────────────────────────
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-xl">
+    <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
       <div className="flex items-center gap-2 mb-6">
         <button
           onClick={() => router.push('/app')}
@@ -207,147 +207,153 @@ export default function FeedEditPage() {
         <h1 className="text-xl font-bold">Edit Feed</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Feed Type</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs
-            value={feedType}
-            onValueChange={(v) => setFeedType(v as FeedType)}
-          >
-            <TabsList className="w-full">
-              {FEED_TYPES.map((type) => (
-                <TabsTrigger key={type} value={type} className="flex-1">
-                  {FEED_TYPE_LABELS[type]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3">
+        <Card>
+          <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+            <CardTitle className="text-base font-semibold">Feed Type</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-5">
+            <Tabs
+              value={feedType}
+              onValueChange={(v) => setFeedType(v as FeedType)}
+            >
+              <TabsList className="w-full">
+                {FEED_TYPES.map((type) => (
+                  <TabsTrigger key={type} value={type} className="flex-1">
+                    {FEED_TYPE_LABELS[type]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </CardContent>
+        </Card>
 
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="text-lg">Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Latch fields */}
-          {feedType === 'latch' && (
-            <div className="space-y-4">
-              <fieldset>
-                <legend className="text-sm font-medium mb-2">Left Side</legend>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <Label htmlFor="left-min">Left Min</Label>
-                    <Input
-                      id="left-min"
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      value={leftMin}
-                      onChange={(e) => setLeftMin(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label htmlFor="left-sec">Left Sec</Label>
-                    <Input
-                      id="left-sec"
-                      type="number"
-                      min="0"
-                      max="59"
-                      placeholder="0"
-                      value={leftSec}
-                      onChange={(e) => setLeftSec(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend className="text-sm font-medium mb-2">Right Side</legend>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <Label htmlFor="right-min">Right Min</Label>
-                    <Input
-                      id="right-min"
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      value={rightMin}
-                      onChange={(e) => setRightMin(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label htmlFor="right-sec">Right Sec</Label>
-                    <Input
-                      id="right-sec"
-                      type="number"
-                      min="0"
-                      max="59"
-                      placeholder="0"
-                      value={rightSec}
-                      onChange={(e) => setRightSec(e.target.value)}
-                    />
+        <Card>
+          <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+            <CardTitle className="text-base font-semibold">Details</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-5">
+            {/* Latch fields */}
+            {feedType === 'latch' && (
+              <div className="space-y-5">
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-2">Left Side (min / sec)</p>
+                  <div className="flex gap-3">
+                    <div className="space-y-1.5 flex-1">
+                      <Label htmlFor="left-min">Min</Label>
+                      <Input
+                        id="left-min"
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        className="h-11"
+                        value={leftMin}
+                        onChange={(e) => setLeftMin(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5 flex-1">
+                      <Label htmlFor="left-sec">Sec</Label>
+                      <Input
+                        id="left-sec"
+                        type="number"
+                        min="0"
+                        max="59"
+                        placeholder="0"
+                        className="h-11"
+                        value={leftSec}
+                        onChange={(e) => setLeftSec(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
-              </fieldset>
-            </div>
-          )}
 
-          {/* Bottle/Expressed/Formula/Water fields */}
-          {(feedType === 'expressed' || feedType === 'formula' || feedType === 'water') && (
-            <div>
-              <Label htmlFor="volume">Volume (ml)</Label>
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-2">Right Side (min / sec)</p>
+                  <div className="flex gap-3">
+                    <div className="space-y-1.5 flex-1">
+                      <Label htmlFor="right-min">Min</Label>
+                      <Input
+                        id="right-min"
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        className="h-11"
+                        value={rightMin}
+                        onChange={(e) => setRightMin(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5 flex-1">
+                      <Label htmlFor="right-sec">Sec</Label>
+                      <Input
+                        id="right-sec"
+                        type="number"
+                        min="0"
+                        max="59"
+                        placeholder="0"
+                        className="h-11"
+                        value={rightSec}
+                        onChange={(e) => setRightSec(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Bottle/Expressed/Formula/Water fields */}
+            {(feedType === 'expressed' || feedType === 'formula' || feedType === 'water') && (
+              <div className="space-y-1.5">
+                <Label htmlFor="volume">Volume (ml)</Label>
+                <Input
+                  id="volume"
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 120"
+                  className="h-11"
+                  value={volumeMl}
+                  onChange={(e) => setVolumeMl(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Solids fields */}
+            {feedType === 'solids' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  type="text"
+                  placeholder="e.g. Banana porridge"
+                  className="h-11"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* DateTime */}
+            <div className="space-y-1.5 pt-4 border-t border-border">
+              <Label htmlFor="datetime">Date & Time</Label>
               <Input
-                id="volume"
-                type="number"
-                min="1"
-                placeholder="e.g. 120"
-                value={volumeMl}
-                onChange={(e) => setVolumeMl(e.target.value)}
+                id="datetime"
+                type="datetime-local"
+                className="h-11"
+                value={datetime}
+                onChange={(e) => setDatetime(e.target.value)}
               />
             </div>
-          )}
-
-          {/* Solids fields */}
-          {feedType === 'solids' && (
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                type="text"
-                placeholder="e.g. Banana porridge"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-          )}
-
-          {/* DateTime */}
-          <div>
-            <Label htmlFor="datetime">Date & Time</Label>
-            <Input
-              id="datetime"
-              type="datetime-local"
-              value={datetime}
-              onChange={(e) => setDatetime(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Actions */}
-      <div className="flex gap-3 mt-6">
-        <Button variant="outline" onClick={() => router.push('/app')}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={saving}>
+      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
+        <Button variant="ghost" onClick={() => router.push('/app')}>Cancel</Button>
+        <Button className="flex-1" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving...' : 'Save'}
         </Button>
-        <div className="flex-grow" />
-        <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-          {deleting ? 'Deleting...' : 'Delete'}
+        <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
+          Delete
         </Button>
       </div>
     </div>

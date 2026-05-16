@@ -9,7 +9,6 @@ import { api } from '@workspace/backend/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { getDefaultDatetime } from '@/lib/activity-form-utils';
@@ -62,7 +61,7 @@ export default function DiaperCreatePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-xl">
+    <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
       <div className="flex items-center gap-2 mb-6">
         <button
           onClick={() => router.push('/app')}
@@ -75,48 +74,54 @@ export default function DiaperCreatePage() {
         <h1 className="text-xl font-bold">Log Diaper</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Diaper Type</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RadioGroup
-            value={diaperType}
-            onValueChange={(v) => setDiaperType(v as DiaperType)}
-          >
-            {DIAPER_TYPES.map(({ value, label }) => (
-              <div key={value} className="flex items-center space-x-2 py-1">
-                <RadioGroupItem value={value} id={`diaper-${value}`} />
-                <Label htmlFor={`diaper-${value}`}>{label}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3">
+        <Card>
+          <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+            <CardTitle className="text-base font-semibold">Diaper Type</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-5">
+            <div className="grid grid-cols-3 gap-2">
+              {DIAPER_TYPES.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setDiaperType(value as DiaperType)}
+                  className={`py-2.5 rounded-lg border text-sm font-medium transition-colors ${
+                    diaperType === value
+                      ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700'
+                      : 'border-border text-muted-foreground hover:bg-accent'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="text-lg">Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="datetime">Date & Time</Label>
-            <Input
-              id="datetime"
-              type="datetime-local"
-              value={datetime}
-              onChange={(e) => setDatetime(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+            <CardTitle className="text-base font-semibold">Details</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-5">
+            <div className="space-y-1.5 pt-4 border-t border-border">
+              <Label htmlFor="datetime">Date & Time</Label>
+              <Input
+                id="datetime"
+                type="datetime-local"
+                className="h-11"
+                value={datetime}
+                onChange={(e) => setDatetime(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Actions */}
-      <div className="flex gap-3 mt-6">
-        <Button variant="outline" onClick={() => router.push('/app')}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={saving}>
+      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
+        <Button variant="ghost" onClick={() => router.push('/app')}>Cancel</Button>
+        <Button className="flex-1" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>

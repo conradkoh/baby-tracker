@@ -88,7 +88,7 @@ export default function MedicalEditPage() {
   // Loading state
   if (!initialized) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-xl">
+      <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
         <div className="flex items-center gap-2 mb-6">
           <button
             onClick={() => router.push('/app')}
@@ -158,7 +158,7 @@ export default function MedicalEditPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-xl">
+    <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
       <div className="flex items-center gap-2 mb-6">
         <button
           onClick={() => router.push('/app')}
@@ -171,112 +171,116 @@ export default function MedicalEditPage() {
         <h1 className="text-xl font-bold">Edit Medical</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Medical Type</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs
-            value={medicalType}
-            onValueChange={(v) => setMedicalType(v as MedicalType)}
-          >
-            <TabsList className="w-full">
-              {MEDICAL_TYPES.map((type) => (
-                <TabsTrigger key={type} value={type} className="flex-1">
-                  {MEDICAL_LABELS[type]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3">
+        <Card>
+          <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+            <CardTitle className="text-base font-semibold">Medical Type</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-5">
+            <Tabs
+              value={medicalType}
+              onValueChange={(v) => setMedicalType(v as MedicalType)}
+            >
+              <TabsList className="w-full">
+                {MEDICAL_TYPES.map((type) => (
+                  <TabsTrigger key={type} value={type} className="flex-1">
+                    {MEDICAL_LABELS[type]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </CardContent>
+        </Card>
 
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="text-lg">Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Temperature fields */}
-          {medicalType === 'temperature' && (
-            <div>
-              <Label htmlFor="temp-value">Temperature Value (°C)</Label>
-              <Input
-                id="temp-value"
-                type="number"
-                step="0.1"
-                min="30"
-                max="45"
-                placeholder="e.g. 37.5"
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-              />
-            </div>
-          )}
-
-          {/* Medicine fields */}
-          {medicalType === 'medicine' && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="med-name">Medicine Name</Label>
+        <Card>
+          <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
+            <CardTitle className="text-base font-semibold">Details</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-5">
+            {/* Temperature fields */}
+            {medicalType === 'temperature' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="temp-value">Temperature Value (°C)</Label>
                 <Input
-                  id="med-name"
-                  type="text"
-                  placeholder="e.g. Paracetamol"
-                  value={medName}
-                  onChange={(e) => setMedName(e.target.value)}
+                  id="temp-value"
+                  type="number"
+                  step="0.1"
+                  min="30"
+                  max="45"
+                  placeholder="e.g. 37.5"
+                  className="h-11"
+                  value={tempValue}
+                  onChange={(e) => setTempValue(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Label htmlFor="med-value">Value</Label>
+            )}
+
+            {/* Medicine fields */}
+            {medicalType === 'medicine' && (
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="med-name">Medicine Name</Label>
                   <Input
-                    id="med-value"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    placeholder="e.g. 5"
-                    value={medValue}
-                    onChange={(e) => setMedValue(e.target.value)}
+                    id="med-name"
+                    type="text"
+                    placeholder="e.g. Paracetamol"
+                    className="h-11"
+                    value={medName}
+                    onChange={(e) => setMedName(e.target.value)}
                   />
                 </div>
-                <div className="flex-1">
-                  <Label htmlFor="med-unit">Unit</Label>
-                  <Input
-                    id="med-unit"
-                    type="text"
-                    placeholder="e.g. ml"
-                    value={medUnit}
-                    onChange={(e) => setMedUnit(e.target.value)}
-                  />
+                <div className="flex gap-3">
+                  <div className="space-y-1.5 flex-1">
+                    <Label htmlFor="med-value">Value</Label>
+                    <Input
+                      id="med-value"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      placeholder="e.g. 5"
+                      className="h-11"
+                      value={medValue}
+                      onChange={(e) => setMedValue(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 flex-1">
+                    <Label htmlFor="med-unit">Unit</Label>
+                    <Input
+                      id="med-unit"
+                      type="text"
+                      placeholder="e.g. ml"
+                      className="h-11"
+                      value={medUnit}
+                      onChange={(e) => setMedUnit(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* DateTime */}
-          <div>
-            <Label htmlFor="datetime">Date & Time</Label>
-            <Input
-              id="datetime"
-              type="datetime-local"
-              value={datetime}
-              onChange={(e) => setDatetime(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+            {/* DateTime */}
+            <div className="space-y-1.5 pt-4 border-t border-border">
+              <Label htmlFor="datetime">Date & Time</Label>
+              <Input
+                id="datetime"
+                type="datetime-local"
+                className="h-11"
+                value={datetime}
+                onChange={(e) => setDatetime(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Actions */}
-      <div className="flex gap-3 mt-6">
-        <Button variant="outline" onClick={() => router.push('/app')}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={saving}>
+      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
+        <Button variant="ghost" onClick={() => router.push('/app')}>Cancel</Button>
+        <Button className="flex-1" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving...' : 'Save'}
         </Button>
-        <div className="flex-grow" />
-        <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-          {deleting ? 'Deleting...' : 'Delete'}
+        <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
+          Delete
         </Button>
       </div>
     </div>
