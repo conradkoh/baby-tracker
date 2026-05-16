@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Baby, ChevronLeft } from 'lucide-react';
 import { useSessionMutation } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 
@@ -62,7 +63,17 @@ export default function DiaperCreatePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-xl">
-      <h1 className="text-2xl font-bold mb-6">Log Diaper Change</h1>
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() => router.push('/app')}
+          className="p-2 -ml-2 rounded-full hover:bg-accent transition-colors"
+          aria-label="Back"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <Baby className="h-6 w-6 text-green-600" />
+        <h1 className="text-xl font-bold">Log Diaper</h1>
+      </div>
 
       <Card>
         <CardHeader>

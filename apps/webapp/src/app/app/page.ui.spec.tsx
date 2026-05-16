@@ -259,9 +259,9 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Log Feed')).toBeInTheDocument();
-        expect(screen.getByText('Log Diaper')).toBeInTheDocument();
-        expect(screen.getByText('Log Medical')).toBeInTheDocument();
+        expect(screen.getByText('Feed')).toBeInTheDocument();
+        expect(screen.getByText('Diaper')).toBeInTheDocument();
+        expect(screen.getByText('Medical')).toBeInTheDocument();
       });
     });
   });
@@ -277,7 +277,7 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Activity Summary')).toBeInTheDocument();
+        expect(screen.getByText('Feeding Summary')).toBeInTheDocument();
       });
     });
 
@@ -296,7 +296,7 @@ describe('App home page', () => {
       expect(lastFeedLabel).toBeInTheDocument();
     });
 
-    it('shows "3h Feed Avg" with ml value', async () => {
+    it('shows "3h Avg" with ml value', async () => {
       mockResults = makeBottleFeedsForSummary();
       mockIsLoading = false;
       mockStatus = 'Exhausted';
@@ -304,14 +304,14 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('3h Feed Avg')).toBeInTheDocument();
+        expect(screen.getByText('3h Avg')).toBeInTheDocument();
       });
       // Should have ml values displayed (use getAllByText since multiple ml values exist)
       const mlEls = screen.getAllByText(/ml/);
       expect(mlEls.length).toBeGreaterThan(0);
     });
 
-    it('shows "24h Feed Total" with ml value', async () => {
+    it('shows "24h Total" with ml value', async () => {
       mockResults = makeBottleFeedsForSummary();
       mockIsLoading = false;
       mockStatus = 'Exhausted';
@@ -319,7 +319,7 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('24h Feed Total')).toBeInTheDocument();
+        expect(screen.getByText('24h Total')).toBeInTheDocument();
       });
     });
 
@@ -334,7 +334,7 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.queryByText('Activity Summary')).not.toBeInTheDocument();
+        expect(screen.queryByText('Feeding Summary')).not.toBeInTheDocument();
       });
     });
   });
@@ -444,9 +444,9 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Log Feed')).toBeInTheDocument();
-        expect(screen.getByText('Log Diaper')).toBeInTheDocument();
-        expect(screen.getByText('Log Medical')).toBeInTheDocument();
+        expect(screen.getByText('Feed')).toBeInTheDocument();
+        expect(screen.getByText('Diaper')).toBeInTheDocument();
+        expect(screen.getByText('Medical')).toBeInTheDocument();
       });
     });
 
@@ -458,10 +458,10 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Log Feed')).toBeInTheDocument();
+        expect(screen.getByText('Feed')).toBeInTheDocument();
       });
 
-      screen.getByText('Log Feed').click();
+      screen.getByText('Feed').click();
 
       expect(mockRouterPush).toHaveBeenCalledWith('/app/feed/create');
     });
@@ -474,10 +474,10 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Log Diaper')).toBeInTheDocument();
+        expect(screen.getByText('Diaper')).toBeInTheDocument();
       });
 
-      screen.getByText('Log Diaper').click();
+      screen.getByText('Diaper').click();
 
       expect(mockRouterPush).toHaveBeenCalledWith('/app/diaper-change/create');
     });
@@ -490,10 +490,10 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Log Medical')).toBeInTheDocument();
+        expect(screen.getByText('Medical')).toBeInTheDocument();
       });
 
-      screen.getByText('Log Medical').click();
+      screen.getByText('Medical').click();
 
       expect(mockRouterPush).toHaveBeenCalledWith('/app/medical/create');
     });
@@ -604,9 +604,9 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      expect(screen.queryByText('Log Feed')).not.toBeInTheDocument();
-      expect(screen.queryByText('Log Diaper')).not.toBeInTheDocument();
-      expect(screen.queryByText('Log Medical')).not.toBeInTheDocument();
+      expect(screen.queryByText('Feed')).not.toBeInTheDocument();
+      expect(screen.queryByText('Diaper')).not.toBeInTheDocument();
+      expect(screen.queryByText('Medical')).not.toBeInTheDocument();
     });
   });
 });

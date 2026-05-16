@@ -70,7 +70,7 @@ describe('App home page', () => {
     it('returns null (renders nothing) when unauthenticated', () => {
       currentAuthState = { sessionId: 'test-session', state: 'unauthenticated', reason: 'test' };
       render(<AppHomePage />);
-      expect(screen.queryByText('Log Feed')).not.toBeInTheDocument();
+      expect(screen.queryByText('Feed')).not.toBeInTheDocument();
     });
   });
 
@@ -87,7 +87,7 @@ describe('App home page', () => {
       await waitFor(() => {
         expect(screen.getByText('No activities yet')).toBeInTheDocument();
       });
-      expect(screen.getByText('Log Feed')).toBeInTheDocument();
+      expect(screen.getByText('Feed')).toBeInTheDocument();
     });
   });
 });

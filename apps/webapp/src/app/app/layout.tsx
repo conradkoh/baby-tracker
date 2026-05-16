@@ -7,6 +7,7 @@ import { api } from '@workspace/backend/convex/_generated/api';
 
 import { AuthErrorBoundary } from '@/modules/auth/AuthErrorBoundary';
 import { RequireLogin } from '@/modules/auth/RequireLogin';
+import { AppNav } from './AppNav';
 
 /**
  * Loading fallback for Suspense boundary.
@@ -49,8 +50,13 @@ function FamilyInitializer({ children }: { children: React.ReactNode }) {
     return <LoadingFallback />;
   }
 
-  // family exists — render children
-  return <>{children}</>;
+  // family exists — render children with bottom nav
+  return (
+    <>
+      <div className="pb-16">{children}</div>
+      <AppNav />
+    </>
+  );
 }
 
 /**

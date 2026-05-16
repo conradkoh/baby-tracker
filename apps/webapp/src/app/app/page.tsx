@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-import { Clock, FlaskConical, Calendar, Loader2 } from 'lucide-react';
+import { Clock, FlaskConical, Calendar, Loader2, Milk, Baby, Stethoscope } from 'lucide-react';
 import { useSessionPaginatedQuery } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 
@@ -82,12 +82,12 @@ function getEditPath(activity: any): string {
   }
 }
 
-// ── Icons per activity type ─────────────────────────────────────
+// ── Icons per activity type (Lucide components) ──────────────────
 
-const activityIcons: Record<string, string> = {
-  feed: '🍼',
-  diaper_change: '🧷',
-  medical: '💊',
+const ACTIVITY_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  feed: Milk,
+  diaper_change: Baby,
+  medical: Stethoscope,
 };
 
 // ── Summary Stats ───────────────────────────────────────────────
@@ -117,11 +117,9 @@ function computeSummaryStats(activities: any[]): SummaryStats {
   const now = Date.now();
   const twentyFourHoursAgo = now - 24 * 60 * 60 * 1000;
 
-  // Find last feed timestamp among recent feeds
   let lastFeedTimestamp: string | null = null;
   let lastFeedDateMs = 0;
 
-  // Collect bottle feeds (expressed/formula/water, not latch/solids) in last 24hrs
   const bottleFeedsIn24h: { dateMs: number; volumeMl: number }[] = [];
 
   for (const activity of activities) {
@@ -129,13 +127,11 @@ function computeSummaryStats(activities: any[]): SummaryStats {
     const dateMs = new Date(ts).getTime();
 
     if (activity.type === 'feed') {
-      // Track most recent feed for "last feed" label
       if (dateMs <= now && dateMs > lastFeedDateMs) {
         lastFeedDateMs = dateMs;
         lastFeedTimestamp = ts;
       }
 
-      // Track bottle feeds in last 24hrs
       const feedType = activity.feed?.type;
       if (
         (feedType === 'expressed' || feedType === 'formula' || feedType === 'water') &&
@@ -150,7 +146,6 @@ function computeSummaryStats(activities: any[]): SummaryStats {
     }
   }
 
-  // Sort bottle feeds by date (newest first)
   bottleFeedsIn24h.sort((a, b) => b.dateMs - a.dateMs);
 
   const result: SummaryStats = {
@@ -168,11 +163,7 @@ function computeSummaryStats(activities: any[]): SummaryStats {
 
   const latest = bottleFeedsIn24h[0];
   const earliest = bottleFeedsIn24h[bottleFeedsIn24h.length - 1];
-
-  // Total volume
   const totalVol = bottleFeedsIn24h.reduce((sum, f) => sum + f.volumeMl, 0);
-
-  // Duration between earliest and latest
   const totalDurationMins = (latest.dateMs - earliest.dateMs) / (60 * 1000);
   if (totalDurationMins <= 0) return result;
 
@@ -181,6 +172,36 @@ function computeSummaryStats(activities: any[]): SummaryStats {
   result.twentyFourHourVolume = totalVol;
   result.isValid = true;
   return result;
+}
+
+// ── Quick Action Grid (shared across states) ────────────────────
+
+function QuickActionGrid({ router }: { router: ReturnType<typeof useRouter> }) {
+  return (
+    <div className="grid grid-cols-3 gap-3 mb-6">
+      <button
+        onClick={() => router.push('/app/feed/create')}
+        className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 transition-colors"
+      >
+        <Milk className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+        <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">Feed</span>
+      </button>
+      <button
+        onClick={() => router.push('/app/diaper-change/create')}
+        className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-green-50 hover:bg-green-100 dark:bg-green-950/30 dark:hover:bg-green-950/50 border border-green-200 dark:border-green-800 transition-colors"
+      >
+        <Baby className="h-7 w-7 text-green-600 dark:text-green-400" />
+        <span className="text-sm font-semibold text-green-800 dark:text-green-300">Diaper</span>
+      </button>
+      <button
+        onClick={() => router.push('/app/medical/create')}
+        className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 border border-rose-200 dark:border-rose-800 transition-colors"
+      >
+        <Stethoscope className="h-7 w-7 text-rose-600 dark:text-rose-400" />
+        <span className="text-sm font-semibold text-rose-800 dark:text-rose-300">Medical</span>
+      </button>
+    </div>
+  );
 }
 
 // ── Page Component ──────────────────────────────────────────────
@@ -201,11 +222,9 @@ export default function AppHomePage() {
   const isLoading = paginated?.isLoading ?? true;
   const loadMore = paginated?.loadMore;
 
-  // Compute summary stats — must be above any conditional returns
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const summaryStats = useMemo(() => computeSummaryStats(results as any[]), [results]);
 
-  // Group activities by date (newest first) — must be above any conditional returns
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
     const groups: { date: string; activities: any[] }[] = [];
@@ -222,7 +241,6 @@ export default function AppHomePage() {
     return groups;
   }, [results]);
 
-  // Redirect unauthenticated users — after all hooks
   if (!isAuthenticated) {
     return null;
   }
@@ -232,7 +250,13 @@ export default function AppHomePage() {
   if (isLoading && results.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Skeleton summary card */}
+        {/* Quick action grid — skeleton */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+        </div>
+
         <div className="mb-6">
           <Card>
             <CardContent className="p-4">
@@ -258,7 +282,6 @@ export default function AppHomePage() {
           </Card>
         </div>
 
-        {/* Skeleton activity rows */}
         <div className="space-y-4">
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
@@ -274,27 +297,7 @@ export default function AppHomePage() {
   if (!isLoading && results.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Action buttons */}
-        <div className="flex gap-2 mb-6">
-          <Button
-            variant="outline"
-            onClick={() => router.push('/app/feed/create')}
-          >
-            Log Feed
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => router.push('/app/diaper-change/create')}
-          >
-            Log Diaper
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => router.push('/app/medical/create')}
-          >
-            Log Medical
-          </Button>
-        </div>
+        <QuickActionGrid router={router} />
 
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -312,63 +315,34 @@ export default function AppHomePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      {/* Action buttons */}
-      <div className="flex gap-2 mb-6">
-        <Button
-          variant="outline"
-          onClick={() => router.push('/app/feed/create')}
-          aria-label="Log Feed"
-        >
-          Log Feed
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => router.push('/app/diaper-change/create')}
-          aria-label="Log Diaper"
-        >
-          Log Diaper
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => router.push('/app/medical/create')}
-          aria-label="Log Medical"
-        >
-          Log Medical
-        </Button>
-      </div>
+      <QuickActionGrid router={router} />
 
       {/* Summary card — only when feed data exists */}
       {summaryStats.lastFeedTimeAgo && (
-        <Card className="mb-6 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
+        <Card className="mb-6 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800">
           <CardContent className="p-4">
-            <h2 className="text-lg font-bold text-purple-800 dark:text-purple-300 mb-3">
-              Activity Summary
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400 mb-4">
+              Feeding Summary
             </h2>
             <div className="flex justify-between">
-              <div className="flex flex-col items-center flex-1">
-                <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                  Last Feed
-                </span>
-                <span className="text-sm font-semibold text-purple-800 dark:text-purple-300">
+              <div className="flex flex-col items-center flex-1 gap-0.5">
+                <Clock className="h-5 w-5 text-rose-500 dark:text-rose-400" />
+                <span className="text-xs text-rose-600 dark:text-rose-400 mt-1">Last Feed</span>
+                <span className="text-base font-bold text-rose-900 dark:text-rose-200">
                   {summaryStats.lastFeedTimeAgo}
                 </span>
               </div>
-              <div className="flex flex-col items-center flex-1">
-                <FlaskConical className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                  3h Feed Avg
-                </span>
-                <span className="text-sm font-semibold text-purple-800 dark:text-purple-300">
+              <div className="flex flex-col items-center flex-1 gap-0.5">
+                <FlaskConical className="h-5 w-5 text-rose-500 dark:text-rose-400" />
+                <span className="text-xs text-rose-600 dark:text-rose-400 mt-1">3h Avg</span>
+                <span className="text-base font-bold text-rose-900 dark:text-rose-200">
                   {summaryStats.threeHourlyVolume} ml
                 </span>
               </div>
-              <div className="flex flex-col items-center flex-1">
-                <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                  24h Feed Total
-                </span>
-                <span className="text-sm font-semibold text-purple-800 dark:text-purple-300">
+              <div className="flex flex-col items-center flex-1 gap-0.5">
+                <Calendar className="h-5 w-5 text-rose-500 dark:text-rose-400" />
+                <span className="text-xs text-rose-600 dark:text-rose-400 mt-1">24h Total</span>
+                <span className="text-base font-bold text-rose-900 dark:text-rose-200">
                   {summaryStats.twentyFourHourVolume} ml
                 </span>
               </div>
@@ -380,7 +354,7 @@ export default function AppHomePage() {
       {/* Grouped activity list */}
       {groupedByDate.map((group) => (
         <div key={group.date} className="mb-6">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
             {formatDate(group.activities[0].timestamp as string)}
           </h3>
 
@@ -388,7 +362,7 @@ export default function AppHomePage() {
             <CardContent className="p-0">
               {group.activities.map((activity: any, idx: number) => {
                 const { label, sub } = getActivityDisplay(activity);
-                const icon = activityIcons[activity.type as string] ?? '📋';
+                const IconComponent = ACTIVITY_ICON_MAP[activity.type as string];
                 const isLast = idx === group.activities.length - 1;
 
                 return (
@@ -399,8 +373,12 @@ export default function AppHomePage() {
                       !isLast ? 'border-b border-border' : ''
                     }`}
                   >
-                    <span className="text-2xl flex-shrink-0 w-8 text-center" aria-hidden="true">
-                      {icon}
+                    <span className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-muted">
+                      {IconComponent ? (
+                        <IconComponent className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <span className="text-lg">📋</span>
+                      )}
                     </span>
                     <div className="flex-grow min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{label}</p>

@@ -2,6 +2,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Milk, ChevronLeft } from 'lucide-react';
 import { useSessionQuery, useSessionMutation } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 import { Id } from '@workspace/backend/convex/_generated/dataModel';
@@ -108,7 +109,17 @@ export default function FeedEditPage() {
   if (!initialized) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-xl">
-        <h1 className="text-2xl font-bold mb-6">Edit Feed</h1>
+        <div className="flex items-center gap-2 mb-6">
+          <button
+            onClick={() => router.push('/app')}
+            className="p-2 -ml-2 rounded-full hover:bg-accent transition-colors"
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <Milk className="h-6 w-6 text-blue-600" />
+          <h1 className="text-xl font-bold">Edit Feed</h1>
+        </div>
         <div className="space-y-4">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-40 w-full" />
@@ -184,7 +195,17 @@ export default function FeedEditPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-xl">
-      <h1 className="text-2xl font-bold mb-6">Edit Feed</h1>
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() => router.push('/app')}
+          className="p-2 -ml-2 rounded-full hover:bg-accent transition-colors"
+          aria-label="Back"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <Milk className="h-6 w-6 text-blue-600" />
+        <h1 className="text-xl font-bold">Edit Feed</h1>
+      </div>
 
       <Card>
         <CardHeader>
