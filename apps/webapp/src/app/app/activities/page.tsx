@@ -135,12 +135,7 @@ export default function ActivityListPage() {
   const isLoading = paginated?.isLoading ?? true;
   const loadMore = paginated?.loadMore;
 
-  // Redirect unauthenticated users
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Group activities by date (newest first)
+  // Group activities by date (newest first) — must be above any conditional returns
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
     const groups: { date: string; activities: any[] }[] = [];
@@ -156,6 +151,11 @@ export default function ActivityListPage() {
     }
     return groups;
   }, [results]);
+
+  // Redirect unauthenticated users — after all hooks
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // ── Loading state ───────────────────────────────────────────
 
