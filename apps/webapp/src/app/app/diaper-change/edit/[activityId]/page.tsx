@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useSessionQuery, useSessionMutation } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
+import { Id } from '@workspace/backend/convex/_generated/dataModel';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,16 +32,13 @@ export default function DiaperEditPage() {
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 
-  const activityId = params?.activityId as string;
+  const activityId = params?.activityId as Id<'activities'>;
 
-  // @ts-expect-error — api.web.babyTracker may not be in generated types yet
   const activity = useSessionQuery(api.web.babyTracker.activities.getById, {
     activityId,
   }) as Record<string, unknown> | undefined;
 
-  // @ts-expect-error
   const updateActivity = useSessionMutation(api.web.babyTracker.activities.update);
-  // @ts-expect-error
   const deleteActivity = useSessionMutation(api.web.babyTracker.activities.deleteActivity);
 
   const [diaperType, setDiaperType] = useState<DiaperType>('wet');
@@ -96,7 +94,7 @@ export default function DiaperEditPage() {
         },
       } as any);
 
-      router.push('/app/activities');
+      router.push('/app');
     } finally {
       setSaving(false);
     }
@@ -106,7 +104,7 @@ export default function DiaperEditPage() {
     setDeleting(true);
     try {
       await deleteActivity({ activityId } as any);
-      router.push('/app/activities');
+      router.push('/app');
     } finally {
       setDeleting(false);
     }
@@ -154,7 +152,7 @@ export default function DiaperEditPage() {
 
       {/* Actions */}
       <div className="flex gap-3 mt-6">
-        <Button variant="outline" onClick={() => router.push('/app/activities')}>
+        <Button variant="outline" onClick={() => router.push('/app')}>
           Cancel
         </Button>
         <Button onClick={handleSave} disabled={saving}>

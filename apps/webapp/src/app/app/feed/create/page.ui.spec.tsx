@@ -31,7 +31,7 @@ vi.mock('next/navigation', () => ({
     prefetch: vi.fn(),
   }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/app/activities/feed/create',
+  usePathname: () => '/app/feed/create',
   useParams: () => ({}),
   notFound: vi.fn(),
   redirect: vi.fn(),
@@ -300,7 +300,7 @@ describe('Feed create page', () => {
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
@@ -314,7 +314,7 @@ describe('Feed create page', () => {
 
       await user.click(screen.getByText('Cancel'));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+      expect(mockRouterPush).toHaveBeenCalledWith('/app');
     });
   });
 });

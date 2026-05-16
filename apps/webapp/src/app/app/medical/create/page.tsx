@@ -30,7 +30,6 @@ export default function MedicalCreatePage() {
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 
-  // @ts-expect-error — api.web.babyTracker may not be in generated types yet
   const createActivity = useSessionMutation(api.web.babyTracker.activities.create);
 
   const [medicalType, setMedicalType] = useState<MedicalType>('temperature');
@@ -80,7 +79,7 @@ export default function MedicalCreatePage() {
         },
       } as any);
 
-      router.push('/app/activities');
+      router.push('/app');
     } finally {
       setSaving(false);
     }
@@ -187,7 +186,7 @@ export default function MedicalCreatePage() {
 
       {/* Actions */}
       <div className="flex gap-3 mt-6">
-        <Button variant="outline" onClick={() => router.push('/app/activities')}>
+        <Button variant="outline" onClick={() => router.push('/app')}>
           Cancel
         </Button>
         <Button onClick={handleSave} disabled={saving}>

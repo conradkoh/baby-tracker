@@ -39,7 +39,7 @@ vi.mock('next/navigation', () => ({
     prefetch: vi.fn(),
   }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/app/activities/diaper-change/edit/act-diaper-1',
+  usePathname: () => '/app/diaper-change/edit/act-diaper-1',
   useParams: () => ({ activityId: 'act-diaper-1' }),
   notFound: vi.fn(),
   redirect: vi.fn(),
@@ -193,7 +193,7 @@ describe('Diaper change edit page', () => {
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
@@ -225,7 +225,7 @@ describe('Diaper change edit page', () => {
         expect(mockMutate).toHaveBeenCalledWith({
           activityId: 'act-diaper-1',
         });
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
@@ -244,7 +244,7 @@ describe('Diaper change edit page', () => {
 
       await user.click(screen.getByText('Cancel'));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+      expect(mockRouterPush).toHaveBeenCalledWith('/app');
     });
   });
 });

@@ -47,7 +47,7 @@ vi.mock('next/navigation', () => ({
     prefetch: vi.fn(),
   }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/app/activities/medical/edit/act-med-1',
+  usePathname: () => '/app/medical/edit/act-med-1',
   useParams: () => ({ activityId: 'act-med-1' }),
   notFound: vi.fn(),
   redirect: vi.fn(),
@@ -279,7 +279,7 @@ describe('Medical edit page', () => {
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
@@ -309,7 +309,7 @@ describe('Medical edit page', () => {
 
       await waitFor(() => {
         expect(mockMutate).toHaveBeenCalledWith({ activityId: 'act-med-1' });
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
@@ -328,7 +328,7 @@ describe('Medical edit page', () => {
 
       await user.click(screen.getByText('Cancel'));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+      expect(mockRouterPush).toHaveBeenCalledWith('/app');
     });
   });
 });

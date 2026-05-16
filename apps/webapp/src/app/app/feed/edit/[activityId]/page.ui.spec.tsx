@@ -38,7 +38,7 @@ vi.mock('next/navigation', () => ({
     prefetch: vi.fn(),
   }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/app/activities/feed/edit/act-test-1',
+  usePathname: () => '/app/feed/edit/act-test-1',
   useParams: () => ({ activityId: 'act-test-1' }),
   notFound: vi.fn(),
   redirect: vi.fn(),
@@ -332,7 +332,7 @@ describe('Feed edit page', () => {
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
@@ -364,7 +364,7 @@ describe('Feed edit page', () => {
         expect(mockMutate).toHaveBeenCalledWith({
           activityId: 'act-test-1',
         });
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
@@ -383,7 +383,7 @@ describe('Feed edit page', () => {
 
       await user.click(screen.getByText('Cancel'));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+      expect(mockRouterPush).toHaveBeenCalledWith('/app');
     });
   });
 });

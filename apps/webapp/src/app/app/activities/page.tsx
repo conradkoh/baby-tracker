@@ -98,7 +98,6 @@ export default function ActivityListPage() {
   const isAuthenticated = authState?.state === 'authenticated';
 
   const paginated = useSessionPaginatedQuery(
-    // @ts-expect-error — api.web.babyTracker may not be in generated types yet
     api.web.babyTracker.activities.getByTimestampDescPaginated,
     {},
     { initialNumItems: 20 }

@@ -33,7 +33,6 @@ export default function FeedCreatePage() {
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 
-  // @ts-expect-error — api.web.babyTracker may not be in generated types yet
   const createActivity = useSessionMutation(api.web.babyTracker.activities.create);
 
   // Form state
@@ -103,7 +102,7 @@ export default function FeedCreatePage() {
         },
       } as any);
 
-      router.push('/app/activities');
+      router.push('/app');
     } finally {
       setSaving(false);
     }
@@ -247,7 +246,7 @@ export default function FeedCreatePage() {
 
       {/* Actions */}
       <div className="flex gap-3 mt-6">
-        <Button variant="outline" onClick={() => router.push('/app/activities')}>
+        <Button variant="outline" onClick={() => router.push('/app')}>
           Cancel
         </Button>
         <Button onClick={handleSave} disabled={saving}>

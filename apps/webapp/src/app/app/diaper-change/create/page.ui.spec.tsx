@@ -1,8 +1,9 @@
 /**
- * Medical create page UI spec — TDD tests written before implementation.
+ * Diaper change create page UI spec — TDD tests written before implementation.
  *
- * Tests: medical type selection (Temperature/Medicine), conditional fields,
- * datetime input, submit mutation, cancel navigation, unauthenticated guard.
+ * Tests: diaper type options (Wet/Dirty/Mixed), default selection,
+ * datetime input, submit mutation, cancel navigation,
+ * and unauthenticated guard.
  */
 import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
@@ -30,7 +31,7 @@ vi.mock('next/navigation', () => ({
     prefetch: vi.fn(),
   }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/app/activities/medical/create',
+  usePathname: () => '/app/diaper-change/create',
   useParams: () => ({}),
   notFound: vi.fn(),
   redirect: vi.fn(),
@@ -39,6 +40,8 @@ vi.mock('next/navigation', () => ({
 vi.mock('next/link', () => createNextLinkMock());
 vi.mock('convex/react', () => createConvexReactMock());
 vi.mock('@workspace/backend/convex/_generated/api', () => createApiMock());
+
+// ── Mutable session mutation mock ───────────────────────────────
 
 vi.mock('convex-helpers/react/sessions', () => ({
   SessionProvider: ({ children }: { children: ReactNode }) => children,
@@ -83,11 +86,11 @@ function resetMocks() {
 
 // ── Import page (after all mocks) ────────────────────────────────
 
-import MedicalCreatePage from './page';
+import DiaperCreatePage from './page';
 
 // ── Tests ───────────────────────────────────────────────────────
 
-describe('Medical create page', () => {
+describe('Diaper change create page', () => {
   beforeEach(() => {
     resetMocks();
   });
@@ -101,59 +104,40 @@ describe('Medical create page', () => {
         state: 'unauthenticated',
         reason: 'test',
       };
-      const { container } = render(<MedicalCreatePage />);
+
+      const { container } = render(<DiaperCreatePage />);
       expect(container.innerHTML).toBe('');
     });
   });
 
-  // ── 2. Medical type options ───────────────────────────────────
+  // ── 2. Diaper type options ────────────────────────────────────
 
-  describe('medical type options', () => {
-    it('renders Temperature and Medicine options', async () => {
-      render(<MedicalCreatePage />);
+  describe('diaper type options', () => {
+    it('renders Wet, Dirty, and Mixed options', async () => {
+      render(<DiaperCreatePage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Temperature')).toBeInTheDocument();
-        expect(screen.getByText('Medicine')).toBeInTheDocument();
+        expect(screen.getByText('Wet')).toBeInTheDocument();
+        expect(screen.getByText('Dirty')).toBeInTheDocument();
+        expect(screen.getByText('Mixed')).toBeInTheDocument();
+      });
+    });
+
+    it('selects Wet by default', async () => {
+      render(<DiaperCreatePage />);
+
+      await waitFor(() => {
+        const wetOption = screen.getByRole('radio', { name: /wet/i });
+        expect(wetOption).toBeChecked();
       });
     });
   });
 
-  // ── 3. Temperature fields ─────────────────────────────────────
-
-  describe('temperature fields', () => {
-    it('shows temperature value input when Temperature is selected', async () => {
-      render(<MedicalCreatePage />);
-
-      // Temperature should be default
-      await waitFor(() => {
-        expect(screen.getByLabelText(/temperature.*value/i)).toBeInTheDocument();
-      });
-    });
-  });
-
-  // ── 4. Medicine fields ────────────────────────────────────────
-
-  describe('medicine fields', () => {
-    it('shows medicine name, value, and unit inputs when Medicine is selected', async () => {
-      const user = userEvent.setup();
-      render(<MedicalCreatePage />);
-
-      await user.click(screen.getByText('Medicine'));
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/medicine.*name/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/value/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/unit/i)).toBeInTheDocument();
-      });
-    });
-  });
-
-  // ── 5. DateTime field ─────────────────────────────────────────
+  // ── 3. DateTime field ─────────────────────────────────────────
 
   describe('date time field', () => {
     it('renders a datetime-local input', async () => {
-      render(<MedicalCreatePage />);
+      render(<DiaperCreatePage />);
 
       await waitFor(() => {
         const dtInput = screen.getByLabelText(/date/i);
@@ -163,101 +147,85 @@ describe('Medical create page', () => {
     });
   });
 
-  // ── 6. Submit temperature ─────────────────────────────────────
+  // ── 4. Submit creates activity ────────────────────────────────
 
-  describe('submit temperature', () => {
-    it('calls create mutation with temperature shape', async () => {
+  describe('submit', () => {
+    it('calls create mutation with wet diaper shape', async () => {
       const user = userEvent.setup();
-      render(<MedicalCreatePage />);
+      render(<DiaperCreatePage />);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/temperature.*value/i)).toBeInTheDocument();
-      });
-
-      // Clear and type temperature
-      const tempInput = screen.getByLabelText(/temperature.*value/i);
-      await user.clear(tempInput);
-      await user.type(tempInput, '37.5');
-
+      // Wet is default — just click Save
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
             timestamp: expect.any(String),
-            type: 'medical',
-            medical: {
-              type: 'temperature',
-              temperature: { value: 37.5 },
-            },
+            type: 'diaper_change',
+            diaperChange: { type: 'wet' },
           },
         });
       });
     });
-  });
 
-  // ── 7. Submit medicine ────────────────────────────────────────
-
-  describe('submit medicine', () => {
-    it('calls create mutation with medicine shape', async () => {
+    it('calls create mutation with dirty diaper shape', async () => {
       const user = userEvent.setup();
-      render(<MedicalCreatePage />);
+      render(<DiaperCreatePage />);
 
-      await user.click(screen.getByText('Medicine'));
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/medicine.*name/i)).toBeInTheDocument();
-      });
-
-      await user.clear(screen.getByLabelText(/medicine.*name/i));
-      await user.type(screen.getByLabelText(/medicine.*name/i), 'Paracetamol');
-      await user.clear(screen.getByLabelText(/value/i));
-      await user.type(screen.getByLabelText(/value/i), '5');
-      await user.clear(screen.getByLabelText(/unit/i));
-      await user.type(screen.getByLabelText(/unit/i), 'ml');
-
+      await user.click(screen.getByRole('radio', { name: /dirty/i }));
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
             timestamp: expect.any(String),
-            type: 'medical',
-            medical: {
-              type: 'medicine',
-              medicine: { name: 'Paracetamol', value: 5, unit: 'ml' },
-            },
+            type: 'diaper_change',
+            diaperChange: { type: 'dirty' },
           },
         });
       });
     });
-  });
 
-  // ── 8. Post-save navigation ───────────────────────────────────
+    it('calls create mutation with mixed diaper shape', async () => {
+      const user = userEvent.setup();
+      render(<DiaperCreatePage />);
 
-  describe('post-save navigation', () => {
+      await user.click(screen.getByRole('radio', { name: /mixed/i }));
+      await user.click(screen.getByText('Save'));
+
+      await waitFor(() => {
+        expect(mockCreateActivity).toHaveBeenCalledWith({
+          activity: {
+            timestamp: expect.any(String),
+            type: 'diaper_change',
+            diaperChange: { type: 'mixed' },
+          },
+        });
+      });
+    });
+
     it('navigates to activities list after successful save', async () => {
       const user = userEvent.setup();
-      render(<MedicalCreatePage />);
+      render(<DiaperCreatePage />);
 
       await user.click(screen.getByText('Save'));
 
       await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+        expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
   });
 
-  // ── 9. Cancel ─────────────────────────────────────────────────
+  // ── 5. Cancel navigation ──────────────────────────────────────
 
   describe('cancel', () => {
     it('navigates to activities list when Cancel is clicked', async () => {
       const user = userEvent.setup();
-      render(<MedicalCreatePage />);
+      render(<DiaperCreatePage />);
 
       await user.click(screen.getByText('Cancel'));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/app/activities');
+      expect(mockRouterPush).toHaveBeenCalledWith('/app');
     });
   });
 });
