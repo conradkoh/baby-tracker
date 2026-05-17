@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Loader2, Copy, Check, User, Users, LogOut, ShieldAlert } from 'lucide-react';
@@ -18,7 +17,6 @@ import { useAuthState } from '@/modules/auth/AuthProvider';
 // ── Page Component ──────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const router = useRouter();
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 

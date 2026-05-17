@@ -7,12 +7,10 @@
  * each method and keeps the repository focused on data access.
  */
 import type { GenericMutationCtx, GenericQueryCtx, GenericDatabaseWriter } from 'convex/server';
-import type { DataModel, Doc, Id } from '../../convex/_generated/dataModel';
+import type { DataModel, Id } from '../../convex/_generated/dataModel';
 import type { IActivityRepository, PaginationOpts, PaginationResult } from '../domain/repositories/IActivityRepository';
 import type { Activity } from '../domain/activity/Activity';
 import { ConvexError } from 'convex/values';
-
-type ActivityField = Doc<'activities'>['activity'];
 
 type Ctx = GenericMutationCtx<DataModel> | GenericQueryCtx<DataModel>;
 
@@ -36,7 +34,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
    * Create a new activity in the family's activity stream.
    * The deviceId parameter is ignored — the activity stream is already resolved.
    */
-  async create(deviceId: string, activity: Activity): Promise<string> {
+  async create(_deviceId: string, activity: Activity): Promise<string> {
     const id = await this.dbWriter.insert('activities', {
       activityStreamId: this.activityStreamId,
       activity: activity,
@@ -48,7 +46,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
    * Update an existing activity. Verifies the activity belongs to this
    * repository's activity stream before allowing the update.
    */
-  async update(deviceId: string, activityId: string, activity: Activity): Promise<void> {
+  async update(_deviceId: string, activityId: string, activity: Activity): Promise<void> {
     const doc = await this.ctx.db.get(this.actId(activityId));
     if (!doc) {
       throw new ConvexError({ code: 'NOT_FOUND', message: 'Activity not found' });
@@ -84,7 +82,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
    * Get a single activity by ID, scoped to this repository's activity stream.
    * Returns null if the activity doesn't exist or belongs to a different stream.
    */
-  async getById(deviceId: string, activityId: string): Promise<Activity | null> {
+  async getById(_deviceId: string, activityId: string): Promise<Activity | null> {
     const doc = await this.ctx.db.get(this.actId(activityId));
     if (!doc) return null;
     if (doc.activityStreamId !== this.activityStreamId) return null;
@@ -96,7 +94,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
    * timestamp descending.
    */
   async listByDeviceTimestampDesc(
-    deviceId: string,
+    _deviceId: string,
     paginationOpts: PaginationOpts
   ): Promise<PaginationResult<Activity>> {
     const result = await this.ctx.db

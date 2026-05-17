@@ -1,8 +1,8 @@
 /**
  * Convex implementation of IFamilyRepository.
  */
-import type { GenericMutationCtx, GenericDatabaseWriter } from 'convex/server';
-import type { DataModel, Id, Doc } from '../../convex/_generated/dataModel';
+import type { GenericMutationCtx } from 'convex/server';
+import type { DataModel, Id } from '../../convex/_generated/dataModel';
 import { transferActivitiesFromDeviceToFamily, transferActivitiesFromFamilyToDevice } from '../../domain/entities/usecase/transferActivities';
 import type { IFamilyRepository } from '../domain/repositories/IFamilyRepository';
 import type { Family, FamilyJoinRequest } from '../domain/family/Family';

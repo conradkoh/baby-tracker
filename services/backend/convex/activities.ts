@@ -195,7 +195,7 @@ export const deleteActivity = mutation({
 
 export const get = query({
   args: {},
-  handler: async (ctx, args) => {
+  handler: async (ctx, _args) => {
     // Unscoped "get all" — no device context; kept as direct DB query
     const activities = await ctx.db.query('activities').collect();
     return activities;

@@ -53,7 +53,7 @@ let mockCreateMutation = mockInitUser;
 
 vi.mock('convex-helpers/react/sessions', () => ({
   SessionProvider: ({ children }: { children: ReactNode }) => children,
-  useSessionMutation: (mutationRef: unknown) => {
+  useSessionMutation: (_mutationRef: unknown) => {
     // Return appropriate mock based on what the component requests
     return mockCreateMutation;
   },
@@ -88,8 +88,8 @@ vi.doMock('convex-helpers/react/sessions', () => origSessionModule);
 
 // ── Re-mock with loading state support ─────────────────────────
 vi.mock('convex-helpers/react/sessions', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports
+  require('react');
   return {
     SessionProvider: ({ children }: { children: ReactNode }) => children,
     useSessionMutation: () => mockCreateMutation,
