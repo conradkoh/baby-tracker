@@ -95,7 +95,7 @@ export default function DiaperEditPage() {
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <Baby className="h-6 w-6 text-green-600" />
+          <Baby className="h-6 w-6 text-green-600 dark:text-green-400" />
           <h1 className="text-xl font-bold">Edit Diaper Change</h1>
         </div>
         <div className="space-y-4">
@@ -148,7 +148,7 @@ export default function DiaperEditPage() {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <Baby className="h-6 w-6 text-green-600" />
+        <Baby className="h-6 w-6 text-green-600 dark:text-green-400" />
         <h1 className="text-xl font-bold">Edit Diaper Change</h1>
       </div>
 

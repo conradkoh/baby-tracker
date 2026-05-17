@@ -135,7 +135,7 @@ export default function FeedEditPage() {
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <Milk className="h-6 w-6 text-blue-600" />
+          <Milk className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           <h1 className="text-xl font-bold">Edit Feed</h1>
         </div>
         <div className="space-y-4">
@@ -221,7 +221,7 @@ export default function FeedEditPage() {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <Milk className="h-6 w-6 text-blue-600" />
+        <Milk className="h-6 w-6 text-blue-600 dark:text-blue-400" />
         <h1 className="text-xl font-bold">Edit Feed</h1>
       </div>
 

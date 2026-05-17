@@ -70,7 +70,7 @@ export default function DiaperCreatePage() {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <Baby className="h-6 w-6 text-green-600" />
+        <Baby className="h-6 w-6 text-green-600 dark:text-green-400" />
         <h1 className="text-xl font-bold">Log Diaper</h1>
       </div>
 
