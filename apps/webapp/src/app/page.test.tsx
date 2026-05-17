@@ -50,11 +50,11 @@ describe('Landing page', () => {
     });
   });
 
-  it('renders download buttons', async () => {
+  it('displays download buttons', async () => {
     render(<LandingPage />);
     await waitFor(() => {
-      expect(screen.getByText('App Store')).toBeInTheDocument();
-      expect(screen.getByText('Google Play')).toBeInTheDocument();
+      expect(screen.getByText('App Store (Coming Soon)')).toBeInTheDocument();
+      expect(screen.getByText('Google Play (Coming Soon)')).toBeInTheDocument();
     });
   });
 });
