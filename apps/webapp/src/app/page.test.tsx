@@ -1,5 +1,5 @@
 /**
- * Home page smoke test — verifies the page mounts and renders core content.
+ * Landing page smoke test — verifies the page mounts and renders core content.
  */
 import { render, screen, waitFor } from '@/__tests__/test-utils';
 import { describe, expect, it, vi } from 'vitest';
@@ -20,24 +20,41 @@ vi.mock('@/modules/app/useAppInfo', () => ({
 
 // ── Tests ───────────────────────────────────────────────────────
 
-import Home from './page';
+import LandingPage from './page';
 
-describe('Home page', () => {
+describe('Landing page', () => {
   it('renders the page without crashing', () => {
-    expect(() => render(<Home />)).not.toThrow();
+    expect(() => render(<LandingPage />)).not.toThrow();
   });
 
-  it('displays the app title', async () => {
-    render(<Home />);
+  it('displays the app title as a heading', async () => {
+    render(<LandingPage />);
     await waitFor(() => {
-      expect(screen.getByText('Baby Tracker')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Baby Tracker' })).toBeInTheDocument();
     });
   });
 
-  it('displays the app version', async () => {
-    render(<Home />);
+  it('displays a Get Started call-to-action', async () => {
+    render(<LandingPage />);
     await waitFor(() => {
-      expect(screen.getByText(/1\.0\.0-test/)).toBeInTheDocument();
+      expect(screen.getByText('Get Started Free')).toBeInTheDocument();
+    });
+  });
+
+  it('renders the features section', async () => {
+    render(<LandingPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Feed Tracking')).toBeInTheDocument();
+      expect(screen.getByText('Diaper Changes')).toBeInTheDocument();
+      expect(screen.getByText('Medical Logs')).toBeInTheDocument();
+    });
+  });
+
+  it('renders download buttons', async () => {
+    render(<LandingPage />);
+    await waitFor(() => {
+      expect(screen.getByText('App Store')).toBeInTheDocument();
+      expect(screen.getByText('Google Play')).toBeInTheDocument();
     });
   });
 });
