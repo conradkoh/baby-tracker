@@ -8,8 +8,6 @@ import {
   Smartphone,
   ClipboardList,
   Users,
-  Apple,
-  Play,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -130,39 +128,6 @@ export default function LandingPage() {
               </Card>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── Download Section ─────────────────────────────────── */}
-      <section className="px-4 py-16 sm:py-24">
-        <div className="max-w-3xl mx-auto text-center space-y-8">
-          <div className="space-y-3">
-            <h2 className="text-2xl font-bold sm:text-3xl text-foreground">
-              Try it now
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              Available as a Progressive Web App — works on any device, no download required.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button variant="outline" size="lg" className="gap-2 min-w-[200px]" disabled>
-              <Apple className="h-5 w-5" />
-              App Store (Coming Soon)
-            </Button>
-            <Button variant="outline" size="lg" className="gap-2 min-w-[200px]" disabled>
-              <Play className="h-5 w-5" />
-              Google Play (Coming Soon)
-            </Button>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            Also available as a{' '}
-            <Link href="/app" className="underline underline-offset-2 hover:text-foreground transition-colors">
-              Progressive Web App
-            </Link>
-            {' '}— no download required.
-          </p>
         </div>
       </section>
 

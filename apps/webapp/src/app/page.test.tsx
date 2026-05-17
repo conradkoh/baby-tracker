@@ -50,11 +50,4 @@ describe('Landing page', () => {
     });
   });
 
-  it('displays download buttons', async () => {
-    render(<LandingPage />);
-    await waitFor(() => {
-      expect(screen.getByText('App Store (Coming Soon)')).toBeInTheDocument();
-      expect(screen.getByText('Google Play (Coming Soon)')).toBeInTheDocument();
-    });
-  });
 });
