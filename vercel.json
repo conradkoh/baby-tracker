@@ -1,4 +1,3 @@
 {
-  "nodeVersion": "22.x",
   "installCommand": "npm install -g pnpm@11.1.2 && pnpm install"
 }
