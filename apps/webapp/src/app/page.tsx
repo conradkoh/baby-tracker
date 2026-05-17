@@ -138,25 +138,21 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <div className="space-y-3">
             <h2 className="text-2xl font-bold sm:text-3xl text-foreground">
-              Get the app
+              Try it now
             </h2>
             <p className="text-muted-foreground max-w-lg mx-auto">
-              Available on iOS and Android. Download now and start tracking in seconds.
+              Available as a Progressive Web App — works on any device, no download required.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button variant="outline" size="lg" className="gap-2 min-w-[200px]" asChild>
-              <a href="https://apps.apple.com/app/baby-tracker/id0000000000" target="_blank" rel="noopener noreferrer">
-                <Apple className="h-5 w-5" />
-                App Store
-              </a>
+            <Button variant="outline" size="lg" className="gap-2 min-w-[200px]" disabled>
+              <Apple className="h-5 w-5" />
+              App Store (Coming Soon)
             </Button>
-            <Button variant="outline" size="lg" className="gap-2 min-w-[200px]" asChild>
-              <a href="https://play.google.com/store/apps/details?id=com.babytracker" target="_blank" rel="noopener noreferrer">
-                <Play className="h-5 w-5" />
-                Google Play
-              </a>
+            <Button variant="outline" size="lg" className="gap-2 min-w-[200px]" disabled>
+              <Play className="h-5 w-5" />
+              Google Play (Coming Soon)
             </Button>
           </div>
 
