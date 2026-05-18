@@ -228,7 +228,13 @@ export default function AppHomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
     const groups: { date: string; activities: any[] }[] = [];
-    for (const activity of results as any[]) {
+    // Sort results newest-first before grouping (backend returns desc, but sort here as a safety net)
+    const sorted = [...(results as any[])].sort((a, b) => {
+      const tsA = new Date(a.timestamp as string).getTime();
+      const tsB = new Date(b.timestamp as string).getTime();
+      return tsB - tsA; // descending: newest first
+    });
+    for (const activity of sorted) {
       const ts: string = activity.timestamp;
       const dateKey = toDateKey(ts);
       const last = groups[groups.length - 1];

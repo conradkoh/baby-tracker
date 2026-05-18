@@ -70,7 +70,10 @@ export function formatDate(ts: string): string {
   });
 }
 
-/** Extracts YYYY-MM-DD from an ISO timestamp. */
+/** Extracts YYYY-MM-DD from an ISO timestamp.
+ * For timestamps with timezone offset (e.g. +08:00), this gives the local date.
+ * All production records use the +08:00 format after migration.
+ */
 export function toDateKey(ts: string): string {
   return ts.slice(0, 10);
 }
