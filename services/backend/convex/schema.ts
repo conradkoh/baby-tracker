@@ -97,6 +97,7 @@ export default defineSchema({
 
   //TABLE: FAMILY
   family: defineTable({
+    creatorId: v.optional(v.id('users')), // set on first family creation
     children: v.array(
       v.object({
         iid: v.string(),
@@ -156,8 +157,9 @@ export default defineSchema({
     familyId: v.id('family'),
     createdBy: v.id('users'),
     token: v.string(),
-    expiresAt: v.optional(v.number()), // unix ms, null = never expires
+    expiresAt: v.optional(v.number()), // unix ms
     usedBy: v.optional(v.id('users')),
+    revokedAt: v.optional(v.number()), // unix ms when revoked (soft-delete)
     createdAt: v.number(),
   })
     .index('by_token', ['token'])
