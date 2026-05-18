@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp } from '@/lib/activity-form-utils';
 import { BreastTimer } from '@/components/BreastTimer';
+import { BREAST_TIMER_STORAGE_KEY } from '@/hooks/useBreastTimer';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -103,6 +104,11 @@ export default function FeedCreatePage() {
           feed,
         },
       } as any);
+
+      // Clear the breast timer session on successful save
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(BREAST_TIMER_STORAGE_KEY);
+      }
 
       router.push('/app');
     } finally {

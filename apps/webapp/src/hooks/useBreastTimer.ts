@@ -34,6 +34,8 @@ export interface BreastTimerState {
 // ── Helpers ───────────────────────────────────────────────
 
 const STORAGE_KEY = 'baby-tracker:breast-timer';
+/** Export the storage key for use in parent components that need to clear the timer on save. */
+export const BREAST_TIMER_STORAGE_KEY = STORAGE_KEY;
 const STALE_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 /** Compute elapsed time and active state for one side from the action log. */
