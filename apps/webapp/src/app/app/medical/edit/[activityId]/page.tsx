@@ -115,7 +115,7 @@ export default function MedicalEditPage() {
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <Stethoscope className="h-6 w-6 text-rose-600" />
+          <Stethoscope className="h-6 w-6 text-rose-600 dark:text-rose-400" />
           <h1 className="text-xl font-bold">Edit Medical</h1>
         </div>
         <div className="space-y-4">
@@ -185,7 +185,7 @@ export default function MedicalEditPage() {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <Stethoscope className="h-6 w-6 text-rose-600" />
+        <Stethoscope className="h-6 w-6 text-rose-600 dark:text-rose-400" />
         <h1 className="text-xl font-bold">Edit Medical</h1>
       </div>
 
