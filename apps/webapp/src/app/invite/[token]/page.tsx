@@ -19,15 +19,20 @@ export default function InvitePage() {
   const router = useRouter();
   const authState = useAuthState();
 
+  const isAuthLoading = authState === undefined;
   const isAuthenticated = authState?.state === 'authenticated';
 
   // getInvite is public — use useQuery (not useSessionQuery) to avoid injecting sessionId
   const invite = useQuery(api.web.babyTracker.family.getInvite, { token });
-  const currentFamily = useSessionQuery(api.web.babyTracker.family.get);
+  // Skip family query until authenticated — family.get requires auth and throws UNAUTHENTICATED otherwise
+  const currentFamily = useSessionQuery(
+    api.web.babyTracker.family.get,
+    !isAuthenticated ? 'skip' : {}
+  );
   const acceptInvite = useSessionMutation(api.web.babyTracker.family.acceptInvite);
 
-  // Loading state
-  if (invite === undefined || currentFamily === undefined) {
+  // Loading state — wait for invite data and auth resolution
+  if (invite === undefined || isAuthLoading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-md">
         <div className="flex items-center gap-2 mb-6">
@@ -75,7 +80,7 @@ export default function InvitePage() {
     );
   }
 
-  // Not authenticated
+  // Not authenticated — show login prompt (currentFamily was skipped, no need to wait)
   if (!isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-md">
@@ -98,6 +103,17 @@ export default function InvitePage() {
             </Link>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  // Wait for family query (only fires for authenticated users)
+  if (currentFamily === undefined) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-md">
+        <div className="flex justify-center mt-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
       </div>
     );
   }
