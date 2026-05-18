@@ -74,12 +74,10 @@ export const fixWebappTimestampsToUtcPlus8 = migrations.define({
       .setZone('+08:00')
       .toISO()!;
 
-    return {
-      activity: {
-        ...doc.activity,
-        timestamp: correctedTs,
-      },
-    };
+    // Use `as any` to safely spread the union-typed activity field at runtime
+    // while preserving all fields (feed, diaperChange, medical, etc.).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { activity: { ...(doc.activity as any), timestamp: correctedTs } };
   },
 });
 
