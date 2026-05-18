@@ -142,6 +142,7 @@ function resetMocks() {
     sessionId: 'test-session',
     state: 'authenticated',
     user: { _id: 'user-1', _creationTime: Date.now(), type: 'anonymous', name: 'Test User' },
+    authMethod: 'anonymous' as const,
     accessLevel: 'user',
     isSystemAdmin: false,
   };
@@ -172,6 +173,7 @@ function makeGoogleAuthState() {
       name: 'Google User',
       email: 'google@example.com',
     },
+    authMethod: 'google' as const,
     accessLevel: 'user',
     isSystemAdmin: false,
   } as Record<string, unknown>;
@@ -223,6 +225,7 @@ describe('Settings page', () => {
         sessionId: 'test-session',
         state: 'authenticated',
         user: { _id: 'user-1', _creationTime: Date.now(), type: 'anonymous', name: '' },
+        authMethod: 'anonymous' as const,
         accessLevel: 'user',
         isSystemAdmin: false,
       };
