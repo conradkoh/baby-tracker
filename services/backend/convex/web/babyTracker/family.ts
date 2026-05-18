@@ -170,6 +170,10 @@ export const getInvite = query({
       return { valid: false, reason: 'not_found' as const };
     }
 
+    if (invite.revokedAt != null) {
+      return { valid: false, reason: 'revoked' as const };
+    }
+
     if (invite.expiresAt != null && invite.expiresAt < Date.now()) {
       return { valid: false, reason: 'expired' as const };
     }
@@ -262,6 +266,13 @@ export const acceptInvite = mutation({
       throw new ConvexError({
         code: 'USED',
         message: 'This invite has already been used',
+      });
+    }
+
+    if (invite.revokedAt != null) {
+      throw new ConvexError({
+        code: 'REVOKED',
+        message: 'This invite has been revoked',
       });
     }
 
