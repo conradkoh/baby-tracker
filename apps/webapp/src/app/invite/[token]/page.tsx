@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Baby, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { useSessionQuery, useSessionMutation } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
@@ -12,13 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 
-interface InvitePageProps {
-  params: Promise<{ token: string }>;
-}
-
-export default function InvitePage({ params }: InvitePageProps) {
-  const resolvedParams = (params as unknown as { token: string });
-  const token = resolvedParams?.token ?? '';
+export default function InvitePage() {
+  const params = useParams();
+  const token = (params.token as string) ?? '';
   const router = useRouter();
   const authState = useAuthState();
 
