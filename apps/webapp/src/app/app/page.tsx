@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-import { Clock, FlaskConical, Calendar, Loader2, Milk, Baby, Stethoscope } from 'lucide-react';
+import { Clock, FlaskConical, Calendar, Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
 import { useSessionPaginatedQuery } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 
@@ -89,6 +89,46 @@ const ACTIVITY_ICON_MAP: Record<string, React.ComponentType<{ className?: string
   diaper_change: Baby,
   medical: Stethoscope,
 };
+
+// ── Time-of-day grouping ───────────────────────────────────────
+
+export type TimeOfDay = 'midnight' | 'morning' | 'afternoon' | 'night';
+
+/** Classify a timestamp into a time-of-day bucket based on local hour. */
+function getTimeOfDay(ts: string): TimeOfDay {
+  const hour = new Date(ts).getHours();
+  if (hour >= 6 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 18) return 'afternoon';
+  if (hour >= 18) return 'night';
+  return 'midnight';
+}
+
+/** Time-of-day order from newest to oldest (feed is newest-first). */
+const TIME_OF_DAY_ORDER: TimeOfDay[] = ['night', 'afternoon', 'morning', 'midnight'];
+
+const TIME_OF_DAY_META: Record<TimeOfDay, { label: string; Icon: React.ComponentType<{ className?: string }>; colorClass: string }> = {
+  morning: {
+    label: 'Morning',
+    Icon: Sunrise,
+    colorClass: 'text-amber-500 dark:text-amber-400',
+  },
+  afternoon: {
+    label: 'Afternoon',
+    Icon: Sun,
+    colorClass: 'text-orange-500 dark:text-orange-400',
+  },
+  night: {
+    label: 'Night',
+    Icon: Moon,
+    colorClass: 'text-indigo-500 dark:text-indigo-400',
+  },
+  midnight: {
+    label: 'Midnight',
+    Icon: Stars,
+    colorClass: 'text-purple-500 dark:text-purple-400',
+  },
+};
+
 
 // ── Summary Stats ───────────────────────────────────────────────
 
@@ -227,24 +267,44 @@ export default function AppHomePage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
-    const groups: { date: string; activities: any[] }[] = [];
-    // Sort results newest-first before grouping (backend returns desc, but sort here as a safety net)
     const sorted = [...(results as any[])].sort((a, b) => {
       const tsA = new Date(a.timestamp as string).getTime();
       const tsB = new Date(b.timestamp as string).getTime();
-      return tsB - tsA; // descending: newest first
+      return tsB - tsA;
     });
+
+    const dateGroups: {
+      date: string;
+      timeGroups: { period: TimeOfDay; activities: any[] }[];
+    }[] = [];
+
     for (const activity of sorted) {
       const ts: string = activity.timestamp;
       const dateKey = toDateKey(ts);
-      const last = groups[groups.length - 1];
-      if (last && last.date === dateKey) {
-        last.activities.push(activity);
-      } else {
-        groups.push({ date: dateKey, activities: [activity] });
+      const period = getTimeOfDay(ts);
+
+      let dateGroup = dateGroups.find((g) => g.date === dateKey);
+      if (!dateGroup) {
+        dateGroup = { date: dateKey, timeGroups: [] };
+        dateGroups.push(dateGroup);
       }
+
+      let timeGroup = dateGroup.timeGroups.find((tg) => tg.period === period);
+      if (!timeGroup) {
+        timeGroup = { period, activities: [] };
+        dateGroup.timeGroups.push(timeGroup);
+      }
+      timeGroup.activities.push(activity);
     }
-    return groups;
+
+    // Sort time groups within each date: newest-first = night → afternoon → morning → midnight
+    for (const dg of dateGroups) {
+      dg.timeGroups.sort(
+        (a, b) => TIME_OF_DAY_ORDER.indexOf(a.period) - TIME_OF_DAY_ORDER.indexOf(b.period)
+      );
+    }
+
+    return dateGroups;
   }, [results]);
 
   if (!isAuthenticated) {
@@ -358,42 +418,59 @@ export default function AppHomePage() {
       )}
 
       {/* Grouped activity list */}
-      {groupedByDate.map((group) => (
-        <div key={group.date} className="mb-6">
+      {groupedByDate.map((dateGroup) => (
+        <div key={dateGroup.date} className="mb-6">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
-            {formatDate(group.activities[0].timestamp as string)}
+            {formatDate(dateGroup.timeGroups[0].activities[0].timestamp as string)}
           </h3>
 
           <Card>
             <CardContent className="p-0">
-              {group.activities.map((activity: any, idx: number) => {
-                const { label, sub } = getActivityDisplay(activity);
-                const IconComponent = ACTIVITY_ICON_MAP[activity.type as string];
-                const isLast = idx === group.activities.length - 1;
+              {dateGroup.timeGroups.map((timeGroup, tIdx) => {
+                const { label, Icon, colorClass } = TIME_OF_DAY_META[timeGroup.period];
+                const isLastTimeGroup = tIdx === dateGroup.timeGroups.length - 1;
 
                 return (
-                  <button
-                    key={activity._id as string}
-                    onClick={() => router.push(getEditPath(activity))}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors ${
-                      !isLast ? 'border-b border-border' : ''
-                    }`}
-                  >
-                    <span className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-muted">
-                      {IconComponent ? (
-                        <IconComponent className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <span className="text-lg">📋</span>
-                      )}
-                    </span>
-                    <div className="flex-grow min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{label}</p>
-                      <p className="text-xs text-muted-foreground truncate">{sub}</p>
+                  <div key={timeGroup.period}>
+                    {/* Time-of-day header */}
+                    <div className={`flex items-center gap-1.5 px-4 py-2 bg-muted/30 ${tIdx > 0 ? 'border-t border-border' : ''}`}>
+                      <Icon className={`h-3.5 w-3.5 ${colorClass}`} />
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${colorClass}`}>
+                        {label}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
-                      {formatTime(activity.timestamp as string)}
-                    </span>
-                  </button>
+
+                    {/* Activities in this time period */}
+                    {timeGroup.activities.map((activity: any, idx: number) => {
+                      const { label: actLabel, sub } = getActivityDisplay(activity);
+                      const IconComponent = ACTIVITY_ICON_MAP[activity.type as string];
+                      const isLastInGroup = idx === timeGroup.activities.length - 1;
+                      const isLastOverall = isLastTimeGroup && isLastInGroup;
+
+                      return (
+                        <button
+                          key={activity._id as string}
+                          onClick={() => router.push(getEditPath(activity))}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors ${!isLastOverall ? 'border-b border-border' : ''}`}
+                        >
+                          <span className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-muted">
+                            {IconComponent ? (
+                              <IconComponent className="h-5 w-5 text-muted-foreground" />
+                            ) : (
+                              <span className="text-lg">📋</span>
+                            )}
+                          </span>
+                          <div className="flex-grow min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{actLabel}</p>
+                            <p className="text-xs text-muted-foreground truncate">{sub}</p>
+                          </div>
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {formatTime(activity.timestamp as string)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </CardContent>
