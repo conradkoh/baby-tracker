@@ -417,11 +417,17 @@ describe('App home page', () => {
     it('groups activities by date with separators', async () => {
       mockIsLoading = false;
       mockStatus = 'Exhausted';
+      // Timestamps chosen to span two local dates in UTC+8 (Asia/Singapore).
+      // Midnight SGT = 16:00 Z.
+      // Jan 14 23:59 Z → SGT Jan 14 (night) — local date = Jan 14.
+      // Jan 15 00:00 Z → SGT Jan 15 (midnight) — local date = Jan 15.
+      // Jan 15 08:00 Z → SGT Jan 15 16:00 (afternoon) — local date = Jan 15.
+      // Jan 15 12:00 Z → SGT Jan 15 20:00 (night) — local date = Jan 15.
       mockResults = [
-        makeLatchActivity({ timestamp: '2025-01-15T14:30:00.000Z' }),
-        makeBottleActivity({ timestamp: '2025-01-15T12:00:00.000Z' }),
-        makeSolidsActivity({ timestamp: '2025-01-14T18:00:00.000Z' }),
-        makeDiaperActivity({ timestamp: '2025-01-14T16:30:00.000Z' }),
+        makeLatchActivity({ timestamp: '2025-01-14T15:59:59.000Z' }),
+        makeSolidsActivity({ timestamp: '2025-01-14T16:00:00.000Z' }),
+        makeBottleActivity({ timestamp: '2025-01-15T08:00:00.000Z' }),
+        makeDiaperActivity({ timestamp: '2025-01-15T12:00:00.000Z' }),
       ];
 
       render(<AppHomePage />);

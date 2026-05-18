@@ -70,10 +70,13 @@ export function formatDate(ts: string): string {
   });
 }
 
-/** Extracts YYYY-MM-DD from an ISO timestamp.
- * For timestamps with timezone offset (e.g. +08:00), this gives the local date.
- * All production records use the +08:00 format after migration.
+/**
+ * Extracts the local calendar date (YYYY-MM-DD) from an ISO timestamp.
+ * Uses Luxon to convert to the browser's local timezone.
+ * e.g. "2025-05-18T20:30:00.000Z" → "2025-05-19" in UTC+1 (Asia/Singapore),
+ * not "2025-05-18".
+ * Works with both Z-suffixed (UTC) and offset-suffixed (e.g. +08:00) inputs.
  */
 export function toDateKey(ts: string): string {
-  return ts.slice(0, 10);
+  return DateTime.fromISO(ts).toLocal().toFormat('yyyy-MM-dd');
 }
