@@ -19,3 +19,15 @@ export const generateRecoveryCode = action({
     return code;
   },
 });
+
+/**
+ * Generate a cryptographically random base64url-encoded invite token.
+ * 24 bytes → 32 characters in base64url.
+ */
+export function generateInviteToken(): string {
+  const bytes = new Uint8Array(24);
+  globalThis.crypto.getRandomValues(bytes);
+  // btoa produces standard base64; replace +/= with base64url-safe chars.
+  const base64 = btoa(String.fromCharCode(...bytes));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}

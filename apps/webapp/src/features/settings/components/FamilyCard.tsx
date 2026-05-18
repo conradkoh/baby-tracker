@@ -5,6 +5,8 @@ import { Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import type { FamilyData } from '@/features/settings/models/useSettingsViewModel';
+import type { InviteInfo } from '@/features/settings/models/useInvitesViewModel';
+import type { FamilyMember } from '@/features/settings/models/useFamilyMembersViewModel';
 import { FamilyInFamily } from './FamilyInFamily';
 import { FamilyNotInFamily } from './FamilyNotInFamily';
 
@@ -21,6 +23,21 @@ interface SharedProps {
   setJoinFamilyId: (value: string) => void;
   onCreateFamily: () => void;
   onRequestJoin: () => void;
+  inviteCopied: boolean;
+  creatingInvite: boolean;
+  onCreateInvite: () => void;
+  isCreator: boolean;
+  // Invites
+  invites: InviteInfo[];
+  invitesLoading: boolean;
+  revokingId: string | null;
+  onRevokeInvite: (inviteId: string) => void;
+  // Members
+  members: FamilyMember[];
+  membersLoading: boolean;
+  removingId: string | null;
+  currentUserId: string | null;
+  onRemoveMember: (memberUserId: string) => void;
 }
 
 export interface FamilyCardProps extends SharedProps {
@@ -34,11 +51,7 @@ export interface FamilyCardProps extends SharedProps {
  * Family management card for the Settings page.
  * Shows in-family content or not-in-family content based on `family`.
  */
-export function FamilyCard({
-  family,
-  pendingRequests,
-  ...rest
-}: FamilyCardProps) {
+export function FamilyCard({ family, pendingRequests, ...rest }: FamilyCardProps) {
   const inFamily = !!family;
   const familyId: string = family?._id ?? '';
 
@@ -63,6 +76,19 @@ export function FamilyCard({
             onConfirmLeave={rest.onConfirmLeave}
             onCancelLeave={rest.onCancelLeave}
             submitting={rest.submitting}
+            inviteCopied={rest.inviteCopied}
+            creatingInvite={rest.creatingInvite}
+            onCreateInvite={rest.onCreateInvite}
+            invites={rest.invites}
+            invitesLoading={rest.invitesLoading}
+            revokingId={rest.revokingId}
+            onRevokeInvite={rest.onRevokeInvite}
+            members={rest.members}
+            membersLoading={rest.membersLoading}
+            removingId={rest.removingId}
+            currentUserId={rest.currentUserId}
+            onRemoveMember={rest.onRemoveMember}
+            isCreator={rest.isCreator}
           />
         ) : (
           <FamilyNotInFamily

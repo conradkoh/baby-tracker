@@ -350,7 +350,10 @@ describe('Settings page', () => {
       render(<SettingsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/copy/i)).toBeInTheDocument();
+        // Use getAllByRole to distinguish from the new "Copy Invite Link" button
+        const buttons = screen.getAllByRole('button');
+        const copyButtons = buttons.filter((b) => /copy/i.test(b.textContent ?? ''));
+        expect(copyButtons.length).toBeGreaterThanOrEqual(2);
       });
     });
 
@@ -359,10 +362,18 @@ describe('Settings page', () => {
       render(<SettingsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/copy/i)).toBeInTheDocument();
+        const buttons = screen.getAllByRole('button');
+        const copyButtons = buttons.filter((b) => /copy/i.test(b.textContent ?? ''));
+        expect(copyButtons.length).toBeGreaterThanOrEqual(2);
       });
 
-      await userEvent.click(screen.getByText(/copy/i));
+      // Click the first copy button (Family ID copy — before the invite link copy)
+      const buttons = screen.getAllByRole('button');
+      const familyIdCopyButton = buttons.find((b) =>
+        /copy/i.test(b.textContent ?? '') && !b.textContent?.includes('Invite')
+      );
+      expect(familyIdCopyButton).toBeDefined();
+      await userEvent.click(familyIdCopyButton!);
 
       expect(writeTextSpy).toHaveBeenCalledWith('fam-1');
     });

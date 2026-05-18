@@ -9,6 +9,7 @@
 import { ConvexError, v } from 'convex/values';
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { mutation, query } from '../../_generated/server';
+import type { Id } from '../../_generated/dataModel';
 import { ConvexWebFamilyRepository } from '../../../src/infra/ConvexWebFamilyRepository';
 import {
   createFamily,
@@ -17,6 +18,7 @@ import {
   leaveFamily as leaveFamilyUseCase,
 } from '../../../src/domain/usecases/family';
 import { requireAuth } from './helpers';
+import { generateInviteToken } from '../../crypto';
 
 // ── Mutations ──────────────────────────────────────────────────
 
@@ -146,5 +148,345 @@ export const get = query({
       ...family,
       joinRequests,
     };
+  },
+});
+
+// ── Invite mutations (auth required) ───────────────────────────
+
+/**
+ * Look up a family invite by token.
+ * Public — does not require auth.
+ * Returns validity status and family info, or an error reason.
+ */
+export const getInvite = query({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const invite = await ctx.db
+      .query('familyInvites')
+      .withIndex('by_token', (q) => q.eq('token', args.token))
+      .first();
+
+    if (!invite) {
+      return { valid: false, reason: 'not_found' as const };
+    }
+
+    if (invite.revokedAt != null) {
+      return { valid: false, reason: 'revoked' as const };
+    }
+
+    if (invite.expiresAt != null && invite.expiresAt < Date.now()) {
+      return { valid: false, reason: 'expired' as const };
+    }
+
+    if (invite.usedBy != null) {
+      return { valid: false, reason: 'used' as const };
+    }
+
+    return {
+      valid: true,
+      familyId: invite.familyId,
+      expiresAt: invite.expiresAt ?? null,
+    };
+  },
+});
+
+/**
+ * Create a shareable invite link for the authenticated user's family.
+ * Requires the user to be a member of a family.
+ * Invite token is valid for 7 days by default.
+ */
+export const createInvite = mutation({
+  args: {
+    ...SessionIdArg,
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    // Verify user is a member of a family
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) {
+      throw new ConvexError({
+        code: 'FORBIDDEN',
+        message: 'You are not a member of a family',
+      });
+    }
+
+    const token = generateInviteToken();
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+
+    await ctx.db.insert('familyInvites', {
+      familyId: membership.familyId,
+      createdBy: userId,
+      token,
+      expiresAt,
+      createdAt: Date.now(),
+    });
+
+    return { token };
+  },
+});
+
+/**
+ * Accept a family invite by token.
+ * Joins the authenticated user to the family and marks the invite as used.
+ * Fails if the invite is expired, already used, or the user is already in a family.
+ */
+export const acceptInvite = mutation({
+  args: {
+    ...SessionIdArg,
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    // Look up the invite
+    const invite = await ctx.db
+      .query('familyInvites')
+      .withIndex('by_token', (q) => q.eq('token', args.token))
+      .first();
+
+    if (!invite) {
+      throw new ConvexError({
+        code: 'NOT_FOUND',
+        message: 'Invite not found',
+      });
+    }
+
+    if (invite.expiresAt != null && invite.expiresAt < Date.now()) {
+      throw new ConvexError({
+        code: 'EXPIRED',
+        message: 'This invite has expired',
+      });
+    }
+
+    if (invite.usedBy != null) {
+      throw new ConvexError({
+        code: 'USED',
+        message: 'This invite has already been used',
+      });
+    }
+
+    if (invite.revokedAt != null) {
+      throw new ConvexError({
+        code: 'REVOKED',
+        message: 'This invite has been revoked',
+      });
+    }
+
+    // Verify user is not already in a family
+    const existingMembership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (existingMembership) {
+      throw new ConvexError({
+        code: 'ALREADY_MEMBER',
+        message: 'You are already a member of a family',
+      });
+    }
+
+    // Add user to family
+    await ctx.db.insert('userFamily', {
+      userId,
+      familyId: invite.familyId,
+    });
+
+    // Mark invite as used
+    await ctx.db.patch(invite._id, { usedBy: userId });
+
+    return { success: true };
+  },
+});
+
+// ── Invite management (auth required) ──────────────────────────
+
+type InviteStatus = 'pending' | 'used' | 'expired' | 'revoked';
+
+function computeInviteStatus(invite: {
+  revokedAt?: number | null;
+  usedBy?: Id<'users'> | null;
+  expiresAt?: number | null;
+}): InviteStatus {
+  if (invite.revokedAt != null) return 'revoked';
+  if (invite.usedBy != null) return 'used';
+  if (invite.expiresAt != null && invite.expiresAt < Date.now()) return 'expired';
+  return 'pending';
+}
+
+/**
+ * List all invites for the authenticated user's family.
+ * Returns invites with computed status, sorted newest-first.
+ */
+export const listInvites = query({
+  args: { ...SessionIdArg },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) return [];
+
+    const invites = await ctx.db
+      .query('familyInvites')
+      .withIndex('by_familyId', (q) => q.eq('familyId', membership.familyId))
+      .collect();
+
+    return invites
+      .map((invite) => ({
+        _id: invite._id,
+        token: invite.token,
+        tokenShort: invite.token.slice(0, 8) + '…',
+        createdAt: invite.createdAt,
+        status: computeInviteStatus(invite),
+        usedBy: invite.usedBy ?? null,
+        expiresAt: invite.expiresAt ?? null,
+      }))
+      .sort((a, b) => b.createdAt - a.createdAt);
+  },
+});
+
+/**
+ * Revoke a pending invite. Only the family creator can revoke invites.
+ * Revocation is idempotent — revoking an already-revoked invite is a no-op.
+ */
+export const revokeInvite = mutation({
+  args: {
+    ...SessionIdArg,
+    inviteId: v.id('familyInvites'),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    // Get user's family
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Not a family member' });
+    }
+
+    // Verify creator
+    const family = await ctx.db.get(membership.familyId);
+    if (!family || family.creatorId !== userId) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Only the family creator can revoke invites' });
+    }
+
+    const invite = await ctx.db.get(args.inviteId);
+    if (!invite || invite.familyId !== membership.familyId) {
+      throw new ConvexError({ code: 'NOT_FOUND', message: 'Invite not found' });
+    }
+
+    const status = computeInviteStatus(invite);
+    if (status === 'used') {
+      throw new ConvexError({ code: 'INVALID_STATE', message: 'Cannot revoke an invite that has already been used' });
+    }
+
+    if (status === 'revoked') {
+      // Idempotent — already revoked, return success
+      return { success: true };
+    }
+
+    await ctx.db.patch(invite._id, { revokedAt: Date.now() });
+    return { success: true };
+  },
+});
+
+/**
+ * List all members of the authenticated user's family.
+ * Returns members with their names and creator status.
+ */
+export const listMembers = query({
+  args: { ...SessionIdArg },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) return [];
+
+    const family = await ctx.db.get(membership.familyId);
+    const creatorId = family?.creatorId;
+
+    const memberships = await ctx.db
+      .query('userFamily')
+      .withIndex('by_familyId', (q) => q.eq('familyId', membership.familyId))
+      .collect();
+
+    const members = await Promise.all(
+      memberships.map(async (m) => {
+        const userDoc = await ctx.db.get(m.userId);
+        if (!userDoc) return null;
+        const userType = userDoc.type;
+        const userName =
+          userType === 'full' ? userDoc.name : userDoc.name || 'Anonymous user';
+        return {
+          userId: m.userId,
+          name: userName,
+          userType: userType as 'full' | 'anonymous',
+          email: userType === 'full' ? (userDoc as { email?: string }).email : undefined,
+          isCreator: creatorId === m.userId,
+        };
+      })
+    );
+
+    // Sort: creator first, then rest
+    const validMembers = members.filter((m): m is NonNullable<typeof m> => m !== null);
+    return validMembers.sort((a, b) => {
+      if (a.isCreator && !b.isCreator) return -1;
+      if (!a.isCreator && b.isCreator) return 1;
+      return 0;
+    });
+  },
+});
+
+/**
+ * Remove a member from the family. Only the family creator can remove members.
+ * The creator cannot remove themselves.
+ */
+export const removeMember = mutation({
+  args: {
+    ...SessionIdArg,
+    memberUserId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    // Get user's family and verify creator
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Not a family member' });
+    }
+
+    const family = await ctx.db.get(membership.familyId);
+    if (!family || family.creatorId !== userId) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Only the family creator can remove members' });
+    }
+
+    if (args.memberUserId === userId) {
+      throw new ConvexError({ code: 'CANNOT_REMOVE_SELF', message: 'You cannot remove yourself from the family' });
+    }
+
+    // Verify target is in the same family
+    const targetMembership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', args.memberUserId))
+      .first();
+    if (!targetMembership || targetMembership.familyId !== membership.familyId) {
+      throw new ConvexError({ code: 'NOT_FOUND', message: 'Target user is not a member of this family' });
+    }
+
+    await ctx.db.delete(targetMembership._id);
+    return { success: true };
   },
 });

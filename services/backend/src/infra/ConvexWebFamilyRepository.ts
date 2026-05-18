@@ -43,6 +43,7 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
 
     // Create family (no devices — web members are tracked via userFamily)
     const familyId = await this.ctx.db.insert('family', {
+      creatorId: uid,
       children: [],
       devices: [],
     });

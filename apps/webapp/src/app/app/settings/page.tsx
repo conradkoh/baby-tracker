@@ -72,6 +72,19 @@ export default function SettingsPage() {
         onCreateFamily={vm.handleCreateFamily}
         onRequestJoin={vm.handleRequestJoin}
         submitting={vm.submitting}
+        inviteCopied={vm.inviteCopied}
+        creatingInvite={vm.creatingInvite}
+        onCreateInvite={vm.handleCreateInvite}
+        isCreator={vm.isCreator}
+        invites={vm.invites}
+        invitesLoading={vm.invitesLoading}
+        revokingId={vm.revokingId}
+        onRevokeInvite={vm.handleRevokeInvite}
+        members={vm.members}
+        membersLoading={vm.membersLoading}
+        removingId={vm.removingId}
+        currentUserId={vm.currentUserId}
+        onRemoveMember={vm.handleRemoveMember}
       />
     </div>
   );
