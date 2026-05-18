@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
 
 // ── Medical types ───────────────────────────────────────────────
 
@@ -71,7 +72,7 @@ export default function MedicalEditPage() {
     const ts = activity.timestamp as string;
 
     setMedicalType((existingType as MedicalType) || 'temperature');
-    setDatetime(ts ? ts.slice(0, 16) : '');
+    setDatetime(ts ? toLocalDatetimeString(ts) : '');
 
     if (existingType === 'temperature') {
       const temp = med?.temperature as { value: number } | undefined;
@@ -131,7 +132,7 @@ export default function MedicalEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const timestamp = new Date(datetime).toISOString();
+      const timestamp = toTimestamp(datetime);
 
       let medical: Record<string, unknown>;
       if (medicalType === 'temperature') {

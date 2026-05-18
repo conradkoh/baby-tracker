@@ -5,9 +5,29 @@
  * during the activity UI migration.
  */
 
-/** Returns current datetime as ISO string truncated to minutes (YYYY-MM-DDTHH:MM). */
+import { DateTime } from 'luxon';
+
+/** Returns current local datetime as "YYYY-MM-DDTHH:MM" for datetime-local inputs. */
 export function getDefaultDatetime(): string {
-  return new Date().toISOString().slice(0, 16);
+  return toLocalDatetimeString(new Date().toISOString());
+}
+
+/**
+ * Converts an ISO timestamp (UTC or offset) to a local "YYYY-MM-DDTHH:MM" string
+ * for use as the value of a datetime-local input.
+ * Mirrors how the mobile pre-populates edit forms.
+ */
+export function toLocalDatetimeString(isoTs: string): string {
+  return DateTime.fromISO(isoTs).toLocal().toFormat("yyyy-MM-dd'T'HH:mm");
+}
+
+/**
+ * Converts a "datetime-local" input string (no timezone) to a timezone-aware ISO string.
+ * Luxon treats a no-timezone ISO as local time, then .toISO() adds the offset.
+ * Mirrors how mobile uses DateTime.fromJSDate(date).toISO() on submit.
+ */
+export function toTimestamp(datetimeLocalValue: string): string {
+  return DateTime.fromISO(datetimeLocalValue).toISO()!;
 }
 
 /** Converts minutes + seconds to total seconds. */

@@ -206,7 +206,7 @@ describe('Medical edit page', () => {
 
       await waitFor(() => {
         const dtInput = screen.getByLabelText(/date/i) as HTMLInputElement;
-        expect(dtInput.value).toBe('2025-01-15T10:00');
+        expect(dtInput.value).toBe('2025-01-15T18:00');
       });
     });
   });

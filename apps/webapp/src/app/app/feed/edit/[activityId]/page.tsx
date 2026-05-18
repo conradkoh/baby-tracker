@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { toSeconds, toMinutesSeconds } from '@/lib/activity-form-utils';
+import { toSeconds, toMinutesSeconds, toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -82,7 +82,7 @@ export default function FeedEditPage() {
     const ts = activity.timestamp as string;
 
     setFeedType((feedSubType as FeedType) || 'latch');
-    setDatetime(ts ? ts.slice(0, 16) : '');
+    setDatetime(ts ? toLocalDatetimeString(ts) : '');
 
     if (feedSubType === 'latch') {
       const duration = feed?.duration as Record<string, { seconds: number }> | undefined;
@@ -153,7 +153,7 @@ export default function FeedEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const timestamp = new Date(datetime).toISOString();
+      const timestamp = toTimestamp(datetime);
 
       let feed: Record<string, unknown>;
       switch (feedType) {
