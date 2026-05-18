@@ -12,7 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { getDefaultDatetime, toSeconds, toTimestamp } from '@/lib/activity-form-utils';
+import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp } from '@/lib/activity-form-utils';
+import { BreastTimer } from '@/components/BreastTimer';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -214,6 +215,20 @@ export default function FeedCreatePage() {
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Breast timer */}
+                <div className="pt-2 border-t border-border">
+                  <BreastTimer
+                    onUpdate={({ left, right }) => {
+                      const { min: lMin, sec: lSec } = toMinutesSeconds(left);
+                      const { min: rMin, sec: rSec } = toMinutesSeconds(right);
+                      setLeftMin(String(lMin));
+                      setLeftSec(String(lSec));
+                      setRightMin(String(rMin));
+                      setRightSec(String(rSec));
+                    }}
+                  />
                 </div>
               </div>
             )}
