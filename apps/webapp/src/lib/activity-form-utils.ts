@@ -5,13 +5,6 @@
  * during the activity UI migration.
  */
 
-/**
- * Shared utility functions for activity pages (create, edit, list).
- *
- * Extracted from duplicated definitions across 7 page files
- * during the activity UI migration.
- */
-
 import { DateTime } from 'luxon';
 
 /** Returns current local datetime as "YYYY-MM-DDTHH:MM" for datetime-local inputs. */
