@@ -193,7 +193,7 @@ export default function MedicalCreatePage() {
               <Input
                 id="datetime"
                 type="datetime-local"
-                className="h-11"
+                className="h-11 w-auto max-w-full"
                 value={datetime}
                 onChange={(e) => setDatetime(e.target.value)}
               />
