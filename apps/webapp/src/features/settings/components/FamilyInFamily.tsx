@@ -80,15 +80,8 @@ export function FamilyInFamily({
       <div className="space-y-1.5">
         <Label className="text-sm text-muted-foreground">Family ID</Label>
         <div className="flex items-center gap-2">
-          <code className="bg-muted px-2 py-1 rounded text-sm font-mono flex-grow">
-            {familyId}
-          </code>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onCopy}
-            disabled={submitting}
-          >
+          <code className="bg-muted px-2 py-1 rounded text-sm font-mono flex-grow">{familyId}</code>
+          <Button variant="outline" size="sm" onClick={onCopy} disabled={submitting}>
             {copied ? (
               <>
                 <Check className="h-4 w-4 mr-1" />
@@ -107,9 +100,7 @@ export function FamilyInFamily({
       {/* Pending join requests */}
       {pendingRequests.length > 0 && (
         <div>
-          <Label className="text-sm text-muted-foreground mb-2 block">
-            Pending Join Requests
-          </Label>
+          <Label className="text-sm text-muted-foreground mb-2 block">Pending Join Requests</Label>
           <div className="space-y-2">
             {pendingRequests.map((req) => (
               <div
@@ -117,11 +108,7 @@ export function FamilyInFamily({
                 className="flex items-center justify-between bg-muted/50 p-2 rounded"
               >
                 <span className="text-sm font-mono">{req.userId}</span>
-                <Button
-                  size="sm"
-                  onClick={() => onApprove(req.userId)}
-                  disabled={submitting}
-                >
+                <Button size="sm" onClick={() => onApprove(req.userId)} disabled={submitting}>
                   Approve
                 </Button>
               </div>
@@ -133,11 +120,7 @@ export function FamilyInFamily({
       {/* Leave family */}
       <div className="border-t pt-4">
         {!confirmLeave ? (
-          <Button
-            variant="destructive"
-            onClick={onConfirmLeave}
-            disabled={submitting}
-          >
+          <Button variant="destructive" onClick={onConfirmLeave} disabled={submitting}>
             <LogOut className="h-4 w-4 mr-1" />
             Leave Family
           </Button>
@@ -150,23 +133,11 @@ export function FamilyInFamily({
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={onLeave}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                ) : null}
+              <Button variant="destructive" size="sm" onClick={onLeave} disabled={submitting}>
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                 Confirm Leave
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onCancelLeave}
-                disabled={submitting}
-              >
+              <Button variant="outline" size="sm" onClick={onCancelLeave} disabled={submitting}>
                 Cancel
               </Button>
             </div>
@@ -185,9 +156,7 @@ export function FamilyInFamily({
           onClick={onCreateInvite}
           disabled={submitting || creatingInvite}
         >
-          {creatingInvite ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-          ) : null}
+          {creatingInvite ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
           {inviteCopied ? (
             <>
               <Check className="h-4 w-4 mr-1" />

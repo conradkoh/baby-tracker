@@ -143,14 +143,12 @@ function InviteRow({ invite, isRevoking, onRevoke }: InviteRowProps) {
             <AlertDialogHeader>
               <AlertDialogTitle>Revoke this invite?</AlertDialogTitle>
               <AlertDialogDescription>
-                This invite link will no longer work. Anyone who already used it will
-                remain in the family.
+                This invite link will no longer work. Anyone who already used it will remain in the
+                family.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDialogOpen(false)}>
-                Cancel
-              </AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setDialogOpen(false)}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   setDialogOpen(false);

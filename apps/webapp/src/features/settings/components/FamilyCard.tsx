@@ -51,11 +51,7 @@ export interface FamilyCardProps extends SharedProps {
  * Family management card for the Settings page.
  * Shows in-family content or not-in-family content based on `family`.
  */
-export function FamilyCard({
-  family,
-  pendingRequests,
-  ...rest
-}: FamilyCardProps) {
+export function FamilyCard({ family, pendingRequests, ...rest }: FamilyCardProps) {
   const inFamily = !!family;
   const familyId: string = family?._id ?? '';
 

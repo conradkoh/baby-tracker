@@ -32,13 +32,8 @@ export function FamilyNotInFamily({
         <Label className="text-sm text-muted-foreground mb-2 block">
           You are not in a family yet.
         </Label>
-        <Button
-          onClick={onCreateFamily}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-          ) : null}
+        <Button onClick={onCreateFamily} disabled={submitting}>
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
           Create Family
         </Button>
       </div>

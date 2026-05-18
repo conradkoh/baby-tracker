@@ -138,7 +138,7 @@ export function useSettingsViewModel(): SettingsViewModel {
 
   // ── Auth ────────────────────────────────────────────────
   const isAuthenticated = authState?.state === 'authenticated';
-  const userId = authState?.state === 'authenticated' ? authState.user?._id ?? null : null;
+  const userId = authState?.state === 'authenticated' ? (authState.user?._id ?? null) : null;
 
   const user = authState?.state === 'authenticated' ? authState.user : undefined;
   const userName = user?.name || 'Anonymous user';

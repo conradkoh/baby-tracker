@@ -37,8 +37,7 @@ export interface FamilyMembersViewModel {
  */
 export function useFamilyMembersViewModel(): FamilyMembersViewModel {
   const authState = useAuthState();
-  const currentUserId =
-    authState?.state === 'authenticated' ? authState.user?._id ?? null : null;
+  const currentUserId = authState?.state === 'authenticated' ? (authState.user?._id ?? null) : null;
 
   const members = useSessionQuery(api.web.babyTracker.family.listMembers);
   const removeMember = useSessionMutation(api.web.babyTracker.family.removeMember);

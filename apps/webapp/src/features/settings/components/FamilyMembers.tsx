@@ -107,12 +107,8 @@ function MemberRow({ member, isRemoving, isSelf, onRemove }: MemberRowProps) {
 
       {/* Name + email */}
       <div className="flex-grow min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">
-          {member.name}
-        </p>
-        {member.email && (
-          <p className="text-xs text-muted-foreground truncate">{member.email}</p>
-        )}
+        <p className="text-sm font-medium text-foreground truncate">{member.name}</p>
+        {member.email && <p className="text-xs text-muted-foreground truncate">{member.email}</p>}
       </div>
 
       {/* Role badge */}
@@ -139,14 +135,12 @@ function MemberRow({ member, isRemoving, isSelf, onRemove }: MemberRowProps) {
             <AlertDialogHeader>
               <AlertDialogTitle>Remove {member.name}?</AlertDialogTitle>
               <AlertDialogDescription>
-                They will no longer have access to this family&apos;s activity feed.
-                They can rejoin via a new invite link.
+                They will no longer have access to this family&apos;s activity feed. They can rejoin
+                via a new invite link.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDialogOpen(false)}>
-                Cancel
-              </AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setDialogOpen(false)}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   setDialogOpen(false);
