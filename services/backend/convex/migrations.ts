@@ -1,4 +1,5 @@
 import { Migrations } from '@convex-dev/migrations';
+import { DateTime } from 'luxon';
 
 import { components, internal } from './_generated/api.js';
 import type { DataModel } from './_generated/dataModel.js';
@@ -46,9 +47,42 @@ export const setUserAccessLevelDefault = migrations.define({
   },
 });
 
-// ========================================
-// Batch Runners
-// ========================================
+/**
+ * Migration: Fix webapp activity timestamps that were stored in UTC due to timezone bug.
+ *
+ * Old webapp used `new Date().toISOString().slice(0, 16)` for the datetime-local input default,
+ * which returned UTC time. When saved, the browser re-interpreted this UTC string as local time,
+ * resulting in timestamps shifted by the user's UTC offset (e.g., 8 hours early for UTC+8 users).
+ *
+ * Fix: For all activities with a UTC ("Z") timestamp, add 8 hours to recover the correct
+ * local time, then store with the "+08:00" offset to match the mobile app format.
+ *
+ * Assumes all UTC timestamps came from the webapp and that the user's timezone was UTC+8.
+ * Mobile-created records already have a timezone offset and are skipped.
+ */
+export const fixWebappTimestampsToUtcPlus8 = migrations.define({
+  table: 'activities',
+  migrateOne: async (_ctx, doc) => {
+    const ts = doc.activity.timestamp;
+    // Skip records that already have a timezone offset (mobile-created or already migrated)
+    if (!ts.endsWith('Z')) return;
+
+    // The stored UTC time is 8 hours behind the actual local time.
+    // Add 8 hours to recover the correct UTC moment, then express in UTC+8.
+    const correctedTs = DateTime.fromISO(ts, { zone: 'utc' })
+      .plus({ hours: 8 })
+      .setZone('+08:00')
+      .toISO()!;
+
+    return {
+      activity: {
+        ...doc.activity,
+        timestamp: correctedTs,
+      },
+    };
+  },
+});
+
 
 /**
  * Run all migrations in order.
@@ -57,4 +91,5 @@ export const setUserAccessLevelDefault = migrations.define({
 export const runAll = migrations.runner([
   internal.migrations.unsetSessionExpiration,
   internal.migrations.setUserAccessLevelDefault,
+  internal.migrations.fixWebappTimestampsToUtcPlus8,
 ]);
