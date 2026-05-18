@@ -151,6 +151,18 @@ export default defineSchema({
     .index('by_userId', ['userId'])
     .index('by_familyId', ['familyId']),
 
+  // TABLE: Family invite tokens for shareable invite links
+  familyInvites: defineTable({
+    familyId: v.id('family'),
+    createdBy: v.id('users'),
+    token: v.string(),
+    expiresAt: v.optional(v.number()), // unix ms, null = never expires
+    usedBy: v.optional(v.id('users')),
+    createdAt: v.number(),
+  })
+    .index('by_token', ['token'])
+    .index('by_familyId', ['familyId']),
+
   // =====================
   // UPSTREAM INFRA TABLES
   // =====================
