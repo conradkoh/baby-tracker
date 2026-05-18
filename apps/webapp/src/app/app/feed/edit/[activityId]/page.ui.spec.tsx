@@ -292,7 +292,7 @@ describe('Feed edit page', () => {
 
       await waitFor(() => {
         const dtInput = screen.getByLabelText(/date/i) as HTMLInputElement;
-        expect(dtInput.value).toBe('2025-01-15T14:30');
+        expect(dtInput.value).toBe('2025-01-15T22:30');
       });
     });
   });

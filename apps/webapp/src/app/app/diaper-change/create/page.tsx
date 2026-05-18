@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { getDefaultDatetime } from '@/lib/activity-form-utils';
+import { getDefaultDatetime, toTimestamp } from '@/lib/activity-form-utils';
 
 // ── Diaper types ────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ export default function DiaperCreatePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const timestamp = new Date(datetime).toISOString();
+      const timestamp = toTimestamp(datetime);
 
       await createActivity({
         activity: {

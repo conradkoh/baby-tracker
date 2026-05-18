@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
 
 // ── Diaper types ────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ export default function DiaperEditPage() {
     const ts = activity.timestamp as string;
 
     setDiaperType((existingType as DiaperType) || 'wet');
-    setDatetime(ts ? ts.slice(0, 16) : '');
+    setDatetime(ts ? toLocalDatetimeString(ts) : '');
     setInitialized(true);
   }, [activity, initialized]);
 
@@ -111,7 +112,7 @@ export default function DiaperEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const timestamp = new Date(datetime).toISOString();
+      const timestamp = toTimestamp(datetime);
 
       await updateActivity({
         activityId,
