@@ -7,6 +7,9 @@ import { Id } from '@workspace/backend/convex/_generated/dataModel';
 
 import { useAuthState } from '@/modules/auth/AuthProvider';
 
+import type { InviteInfo } from './useInvitesViewModel';
+import type { FamilyMember } from './useFamilyMembersViewModel';
+
 // ── Types ───────────────────────────────────────────────────────
 
 export interface JoinRequest {
@@ -21,26 +24,6 @@ export interface FamilyData {
   creatorId?: string;
   joinRequests?: JoinRequest[];
   [key: string]: unknown;
-}
-
-export type InviteStatus = 'pending' | 'used' | 'expired' | 'revoked';
-
-export interface InviteInfo {
-  _id: string;
-  token: string;
-  tokenShort: string;
-  createdAt: number;
-  status: InviteStatus;
-  usedBy: string | null;
-  expiresAt: number | null;
-}
-
-export interface FamilyMember {
-  userId: string;
-  name: string;
-  userType: 'full' | 'anonymous';
-  email?: string;
-  isCreator: boolean;
 }
 
 export interface SettingsViewModel {
