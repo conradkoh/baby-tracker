@@ -9,14 +9,13 @@ import { Label } from '@/components/ui/label';
 
 export interface AccountCardProps {
   userName: string;
-  authMethod: string;
 }
 
 /**
  * Displays the authenticated user's account information.
  * Shown at the top of the Settings page.
  */
-export function AccountCard({ userName, authMethod }: AccountCardProps) {
+export function AccountCard({ userName }: AccountCardProps) {
   return (
     <Card className="mb-6">
       <CardHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
@@ -29,10 +28,6 @@ export function AccountCard({ userName, authMethod }: AccountCardProps) {
         <div className="space-y-0.5">
           <Label className="text-sm text-muted-foreground">Name</Label>
           <p className="text-foreground font-medium">{userName}</p>
-        </div>
-        <div className="space-y-0.5">
-          <Label className="text-sm text-muted-foreground">Auth method</Label>
-          <p className="text-foreground">{authMethod}</p>
         </div>
         <Link href="/app/profile">
           <Button variant="outline" size="sm">

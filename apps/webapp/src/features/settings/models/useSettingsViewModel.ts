@@ -32,8 +32,6 @@ export interface SettingsViewModel {
   isAuthenticated: boolean;
   /** The authenticated user's name, or 'Anonymous user' fallback. */
   userName: string;
-  /** Human-readable authentication method (Google / Anonymous / Unknown). */
-  authMethod: string;
 
   // ── Family data ─────────────────────────────────────────
   /** True while the family query is loading. */
@@ -125,15 +123,6 @@ export function useSettingsViewModel(): SettingsViewModel {
 
   const user = authState?.state === 'authenticated' ? authState.user : undefined;
   const userName = user?.name || 'Anonymous user';
-  // Auth method from the session auth state (not the user document type).
-  const authMethod =
-    authState?.state === 'authenticated' && authState.authMethod
-      ? authState.authMethod === 'google'
-        ? 'Google'
-        : authState.authMethod === 'anonymous'
-          ? 'Anonymous'
-          : authState.authMethod
-      : 'Unknown';
 
   // ── Family query ────────────────────────────────────────
   const family = useSessionQuery(api.web.babyTracker.family.get);
@@ -271,7 +260,6 @@ export function useSettingsViewModel(): SettingsViewModel {
     // Auth
     isAuthenticated,
     userName,
-    authMethod,
 
     // Family data
     familyLoading,
@@ -284,12 +272,12 @@ export function useSettingsViewModel(): SettingsViewModel {
     familyId,
 
     // Invites
-    invites: (invitesResult as InviteInfo[] | undefined) ?? [],
+    invites: Array.isArray(invitesResult) ? (invitesResult as InviteInfo[]) : [],
     invitesLoading: invitesResult === undefined,
     revokingId,
 
     // Members
-    members: (membersResult as FamilyMember[] | undefined) ?? [],
+    members: Array.isArray(membersResult) ? (membersResult as FamilyMember[]) : [],
     membersLoading: membersResult === undefined,
     removingId,
     currentUserId: userId,

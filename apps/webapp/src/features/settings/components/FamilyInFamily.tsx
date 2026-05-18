@@ -178,17 +178,17 @@ export function FamilyInFamily({
             revokingId={revokingId}
             onRevoke={onRevokeInvite}
           />
-
-          {/* Family Members */}
-          <FamilyMembers
-            members={members}
-            isLoading={membersLoading}
-            removingId={removingId}
-            currentUserId={currentUserId}
-            onRemove={onRemoveMember}
-          />
         </>
       )}
+
+      {/* Family Members — visible to all members; remove action is shown only to creator */}
+      <FamilyMembers
+        members={members}
+        isLoading={membersLoading}
+        removingId={removingId}
+        currentUserId={currentUserId}
+        onRemove={onRemoveMember}
+      />
     </div>
   );
 }

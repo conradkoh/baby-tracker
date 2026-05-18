@@ -55,7 +55,7 @@ export default function SettingsPage() {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
-      <AccountCard userName={vm.userName} authMethod={vm.authMethod} />
+      <AccountCard userName={vm.userName} />
 
       <FamilyCard
         family={vm.family}
