@@ -187,6 +187,7 @@ export function FamilyInFamily({
         isLoading={membersLoading}
         removingId={removingId}
         currentUserId={currentUserId}
+        viewerIsCreator={isCreator}
         onRemove={onRemoveMember}
       />
     </div>

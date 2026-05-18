@@ -48,6 +48,8 @@ export interface FamilyMembersProps {
   removingId: string | null;
   /** The current user's userId. */
   currentUserId: string | null;
+  /** Whether the current viewer is the family creator (controls remove button visibility). */
+  viewerIsCreator: boolean;
   /** Called when user confirms removal. */
   onRemove: (memberUserId: string) => void;
 }
@@ -61,6 +63,7 @@ export function FamilyMembers({
   isLoading,
   removingId,
   currentUserId,
+  viewerIsCreator,
   onRemove,
 }: FamilyMembersProps) {
   return (
@@ -77,6 +80,7 @@ export function FamilyMembers({
             member={member}
             isRemoving={removingId === member.userId}
             isSelf={member.userId === currentUserId}
+            viewerIsCreator={viewerIsCreator}
             onRemove={onRemove}
           />
         ))}
@@ -91,12 +95,13 @@ interface MemberRowProps {
   member: FamilyMember;
   isRemoving: boolean;
   isSelf: boolean;
+  viewerIsCreator: boolean;
   onRemove: (memberUserId: string) => void;
 }
 
-function MemberRow({ member, isRemoving, isSelf, onRemove }: MemberRowProps) {
+function MemberRow({ member, isRemoving, isSelf, viewerIsCreator, onRemove }: MemberRowProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const canRemove = !member.isCreator && !isSelf; // only creator can remove non-self non-creator members
+  const canRemove = viewerIsCreator && !member.isCreator && !isSelf;
 
   return (
     <div className="flex items-center gap-3 bg-muted/40 p-2.5 rounded-lg">
