@@ -73,7 +73,7 @@ export function formatDate(ts: string): string {
 /**
  * Extracts the local calendar date (YYYY-MM-DD) from an ISO timestamp.
  * Uses Luxon to convert to the browser's local timezone.
- * e.g. "2025-05-18T20:30:00.000Z" → "2025-05-19" in UTC+1 (Asia/Singapore),
+ * e.g. "2025-05-18T20:30:00.000Z" → "2025-05-19" in UTC+8 (Asia/Singapore),
  * not "2025-05-18".
  * Works with both Z-suffixed (UTC) and offset-suffixed (e.g. +08:00) inputs.
  */
