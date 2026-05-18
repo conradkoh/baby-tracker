@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { Clock, FlaskConical, Calendar, Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
+import { DateTime } from 'luxon';
 import { useSessionPaginatedQuery } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 
@@ -96,7 +97,7 @@ export type TimeOfDay = 'midnight' | 'morning' | 'afternoon' | 'night';
 
 /** Classify a timestamp into a time-of-day bucket based on local hour. */
 function getTimeOfDay(ts: string): TimeOfDay {
-  const hour = new Date(ts).getHours();
+  const hour = DateTime.fromISO(ts).toLocal().hour;
   if (hour >= 6 && hour < 12) return 'morning';
   if (hour >= 12 && hour < 18) return 'afternoon';
   if (hour >= 18) return 'night';
@@ -164,7 +165,7 @@ function computeSummaryStats(activities: any[]): SummaryStats {
 
   for (const activity of activities) {
     const ts = activity.timestamp as string;
-    const dateMs = new Date(ts).getTime();
+    const dateMs = DateTime.fromISO(ts).toMillis();
 
     if (activity.type === 'feed') {
       if (dateMs <= now && dateMs > lastFeedDateMs) {
@@ -268,8 +269,8 @@ export default function AppHomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
     const sorted = [...(results as any[])].sort((a, b) => {
-      const tsA = new Date(a.timestamp as string).getTime();
-      const tsB = new Date(b.timestamp as string).getTime();
+      const tsA = DateTime.fromISO(a.timestamp as string).toMillis();
+      const tsB = DateTime.fromISO(b.timestamp as string).toMillis();
       return tsB - tsA;
     });
 

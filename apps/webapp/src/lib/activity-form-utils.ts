@@ -50,24 +50,14 @@ export function formatDuration(totalSeconds: number): string {
   return `${minutes} min ${seconds} sec`;
 }
 
-/** Formats an ISO timestamp to a short time like "2:30 PM". */
+/** Formats an ISO timestamp to a short time like "2:30 PM" using Luxon in local time. */
 export function formatTime(ts: string): string {
-  const date = new Date(ts);
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
+  return DateTime.fromISO(ts).toLocal().toFormat('h:mm a');
 }
 
-/** Formats a timestamp to a locale date string like "Jan 15, 2025". */
+/** Formats a timestamp to a locale date string like "Jan 15, 2025" using Luxon in local time. */
 export function formatDate(ts: string): string {
-  const date = new Date(ts);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  return DateTime.fromISO(ts).toLocal().toFormat('MMM d, yyyy');
 }
 
 /**
