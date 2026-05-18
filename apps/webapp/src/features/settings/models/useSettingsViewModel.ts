@@ -18,8 +18,29 @@ export interface JoinRequest {
 /** The full shape of the family data returned from the backend query. */
 export interface FamilyData {
   _id: string;
+  creatorId?: string;
   joinRequests?: JoinRequest[];
   [key: string]: unknown;
+}
+
+export type InviteStatus = 'pending' | 'used' | 'expired' | 'revoked';
+
+export interface InviteInfo {
+  _id: string;
+  token: string;
+  tokenShort: string;
+  createdAt: number;
+  status: InviteStatus;
+  usedBy: string | null;
+  expiresAt: number | null;
+}
+
+export interface FamilyMember {
+  userId: string;
+  name: string;
+  userType: 'full' | 'anonymous';
+  email?: string;
+  isCreator: boolean;
 }
 
 export interface SettingsViewModel {
@@ -38,12 +59,32 @@ export interface SettingsViewModel {
   family: FamilyData | null;
   /** Whether the current user is in a family. */
   inFamily: boolean;
+  /** True if the current user is the family creator. */
+  isCreator: boolean;
 
   // ── Family join requests ────────────────────────────────
   /** Pending join requests for this family. */
   pendingRequests: JoinRequest[];
   /** The family ID, if in a family. */
   familyId: string;
+
+  // ── Invites ──────────────────────────────────────────────
+  /** All invites for this family. */
+  invites: InviteInfo[];
+  /** True while the invites query is loading. */
+  invitesLoading: boolean;
+  /** The inviteId currently being revoked, or null. */
+  revokingId: string | null;
+
+  // ── Members ─────────────────────────────────────────────
+  /** All members of this family. */
+  members: FamilyMember[];
+  /** True while the members query is loading. */
+  membersLoading: boolean;
+  /** The userId of the member currently being removed, or null. */
+  removingId: string | null;
+  /** The current user's userId, or null if not authenticated. */
+  currentUserId: string | null;
 
   // ── Local UI state ──────────────────────────────────────
   /** The text input value for joining a family by ID. */
@@ -70,7 +111,7 @@ export interface SettingsViewModel {
   handleRequestJoin: () => Promise<void>;
   /** Approve a pending join request (identified by userId). */
   handleApprove: (requesterUserId: string) => Promise<void>;
-  /** Enter the "are you sure?" confirmation step for leaving the family. */
+  /** Enter the "are you sure?" confirmation step for leaving. */
   handleConfirmLeave: () => void;
   /** Actually leave the family. Resets confirmLeave on completion. */
   handleLeave: () => Promise<void>;
@@ -78,6 +119,10 @@ export interface SettingsViewModel {
   handleCancelLeave: () => void;
   /** Create an invite link and copy it to clipboard. Resets inviteCopied after 3 s. */
   handleCreateInvite: () => Promise<void>;
+  /** Revoke a pending invite. */
+  handleRevokeInvite: (inviteId: string) => Promise<void>;
+  /** Remove a member from the family. */
+  handleRemoveMember: (memberUserId: string) => Promise<void>;
 }
 
 // ── Hook ────────────────────────────────────────────────────────
@@ -93,6 +138,7 @@ export function useSettingsViewModel(): SettingsViewModel {
 
   // ── Auth ────────────────────────────────────────────────
   const isAuthenticated = authState?.state === 'authenticated';
+  const userId = authState?.state === 'authenticated' ? authState.user?._id ?? null : null;
 
   const user = authState?.state === 'authenticated' ? authState.user : undefined;
   const userName = user?.name || 'Anonymous user';
@@ -110,12 +156,18 @@ export function useSettingsViewModel(): SettingsViewModel {
   const family = useSessionQuery(api.web.babyTracker.family.get);
   const familyLoading = family === undefined;
 
+  // ── Invites & members queries ───────────────────────────
+  const invitesResult = useSessionQuery(api.web.babyTracker.family.listInvites);
+  const membersResult = useSessionQuery(api.web.babyTracker.family.listMembers);
+
   // ── Mutations ────────────────────────────────────────────
   const initUser = useSessionMutation(api.web.babyTracker.family.initUser);
   const requestJoin = useSessionMutation(api.web.babyTracker.family.requestJoin);
   const approveJoin = useSessionMutation(api.web.babyTracker.family.approveJoin);
   const leaveFamily = useSessionMutation(api.web.babyTracker.family.leave);
   const createInvite = useSessionMutation(api.web.babyTracker.family.createInvite);
+  const revokeInvite = useSessionMutation(api.web.babyTracker.family.revokeInvite);
+  const removeMember = useSessionMutation(api.web.babyTracker.family.removeMember);
 
   // ── Local UI state ───────────────────────────────────────
   const [joinFamilyId, setJoinFamilyId] = useState('');
@@ -124,11 +176,14 @@ export function useSettingsViewModel(): SettingsViewModel {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [creatingInvite, setCreatingInvite] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   // ── Derived ─────────────────────────────────────────────
   const inFamily = !!family;
   const familyData = family as FamilyData | null;
   const familyId: string = familyData?._id ?? '';
+  const isCreator = !!familyData?.creatorId && familyData.creatorId === userId;
   const joinRequests: JoinRequest[] = familyData?.joinRequests ?? [];
   const pendingRequests = joinRequests.filter((r) => r.status === 'pending');
 
@@ -207,6 +262,28 @@ export function useSettingsViewModel(): SettingsViewModel {
     }
   };
 
+  const handleRevokeInvite = async (inviteId: string) => {
+    setRevokingId(inviteId);
+    try {
+      await revokeInvite({ inviteId: inviteId as Id<'familyInvites'> });
+    } catch (err) {
+      console.error('Failed to revoke invite:', err);
+    } finally {
+      setRevokingId(null);
+    }
+  };
+
+  const handleRemoveMember = async (memberUserId: string) => {
+    setRemovingId(memberUserId);
+    try {
+      await removeMember({ memberUserId: memberUserId as Id<'users'> });
+    } catch (err) {
+      console.error('Failed to remove member:', err);
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
   return {
     // Auth
     isAuthenticated,
@@ -217,10 +294,22 @@ export function useSettingsViewModel(): SettingsViewModel {
     familyLoading,
     family: familyData,
     inFamily,
+    isCreator,
 
     // Join requests
     pendingRequests,
     familyId,
+
+    // Invites
+    invites: (invitesResult as InviteInfo[] | undefined) ?? [],
+    invitesLoading: invitesResult === undefined,
+    revokingId,
+
+    // Members
+    members: (membersResult as FamilyMember[] | undefined) ?? [],
+    membersLoading: membersResult === undefined,
+    removingId,
+    currentUserId: userId,
 
     // Local UI state
     joinFamilyId,
@@ -240,5 +329,7 @@ export function useSettingsViewModel(): SettingsViewModel {
     handleLeave,
     handleCancelLeave,
     handleCreateInvite,
+    handleRevokeInvite,
+    handleRemoveMember,
   };
 }

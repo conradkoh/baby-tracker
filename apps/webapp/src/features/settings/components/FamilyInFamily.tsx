@@ -5,6 +5,12 @@ import { Copy, Check, LogOut, ShieldAlert, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
+import { InvitesList } from './InvitesList';
+import { FamilyMembers } from './FamilyMembers';
+
+import type { InviteInfo } from '@/features/settings/models/useInvitesViewModel';
+import type { FamilyMember } from '@/features/settings/models/useFamilyMembersViewModel';
+
 export interface FamilyInFamilyProps {
   familyId: string;
   pendingRequests: Array<{ _id: string; userId: string; status: string }>;
@@ -15,19 +21,33 @@ export interface FamilyInFamilyProps {
   onLeave: () => void;
   onConfirmLeave: () => void;
   onCancelLeave: () => void;
-  /** True briefly (≈3 s) after the invite link has been copied. */
-  inviteCopied: boolean;
-  /** True while the create-invite mutation is in-flight. */
-  creatingInvite: boolean;
-  /** Trigger creation and clipboard-copy of an invite link. */
-  onCreateInvite: () => void;
   submitting: boolean;
+
+  // Invite link
+  inviteCopied: boolean;
+  creatingInvite: boolean;
+  onCreateInvite: () => void;
+
+  // Invite management
+  invites: InviteInfo[];
+  invitesLoading: boolean;
+  revokingId: string | null;
+  onRevokeInvite: (inviteId: string) => void;
+
+  // Member management
+  members: FamilyMember[];
+  membersLoading: boolean;
+  removingId: string | null;
+  currentUserId: string | null;
+  onRemoveMember: (memberUserId: string) => void;
+  isCreator: boolean;
 }
 
 /**
  * Family section content shown when the user is already in a family.
  * Displays the family ID with a copy button, pending join requests,
- * and an inline confirmation flow for leaving the family.
+ * an inline confirmation flow for leaving, invite link creation,
+ * invite list with revoke, and family member list with remove.
  */
 export function FamilyInFamily({
   familyId,
@@ -43,6 +63,16 @@ export function FamilyInFamily({
   inviteCopied,
   creatingInvite,
   onCreateInvite,
+  invites,
+  invitesLoading,
+  revokingId,
+  onRevokeInvite,
+  members,
+  membersLoading,
+  removingId,
+  currentUserId,
+  onRemoveMember,
+  isCreator,
 }: FamilyInFamilyProps) {
   return (
     <div className="space-y-4">
@@ -168,6 +198,28 @@ export function FamilyInFamily({
           )}
         </Button>
       </div>
+
+      {/* Creator-only sections */}
+      {isCreator && (
+        <>
+          {/* Sent Invites */}
+          <InvitesList
+            invites={invites}
+            isLoading={invitesLoading}
+            revokingId={revokingId}
+            onRevoke={onRevokeInvite}
+          />
+
+          {/* Family Members */}
+          <FamilyMembers
+            members={members}
+            isLoading={membersLoading}
+            removingId={removingId}
+            currentUserId={currentUserId}
+            onRemove={onRemoveMember}
+          />
+        </>
+      )}
     </div>
   );
 }
