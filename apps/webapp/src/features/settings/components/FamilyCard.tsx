@@ -21,6 +21,9 @@ interface SharedProps {
   setJoinFamilyId: (value: string) => void;
   onCreateFamily: () => void;
   onRequestJoin: () => void;
+  inviteCopied: boolean;
+  creatingInvite: boolean;
+  onCreateInvite: () => void;
 }
 
 export interface FamilyCardProps extends SharedProps {
@@ -63,6 +66,9 @@ export function FamilyCard({
             onConfirmLeave={rest.onConfirmLeave}
             onCancelLeave={rest.onCancelLeave}
             submitting={rest.submitting}
+            inviteCopied={rest.inviteCopied}
+            creatingInvite={rest.creatingInvite}
+            onCreateInvite={rest.onCreateInvite}
           />
         ) : (
           <FamilyNotInFamily

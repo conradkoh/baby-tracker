@@ -52,6 +52,10 @@ export interface SettingsViewModel {
   setJoinFamilyId: (value: string) => void;
   /** True briefly (≈2 s) after the user copies the family ID. */
   copied: boolean;
+  /** True briefly (≈3 s) after the invite link has been copied. */
+  inviteCopied: boolean;
+  /** True while the create-invite mutation is in-flight. */
+  creatingInvite: boolean;
   /** True while the user is in the "are you sure?" step of leaving. */
   confirmLeave: boolean;
   /** True while any mutation is in-flight. */
@@ -72,6 +76,8 @@ export interface SettingsViewModel {
   handleLeave: () => Promise<void>;
   /** Cancel the "are you sure?" step without leaving. */
   handleCancelLeave: () => void;
+  /** Create an invite link and copy it to clipboard. Resets inviteCopied after 3 s. */
+  handleCreateInvite: () => Promise<void>;
 }
 
 // ── Hook ────────────────────────────────────────────────────────
@@ -109,12 +115,15 @@ export function useSettingsViewModel(): SettingsViewModel {
   const requestJoin = useSessionMutation(api.web.babyTracker.family.requestJoin);
   const approveJoin = useSessionMutation(api.web.babyTracker.family.approveJoin);
   const leaveFamily = useSessionMutation(api.web.babyTracker.family.leave);
+  const createInvite = useSessionMutation(api.web.babyTracker.family.createInvite);
 
   // ── Local UI state ───────────────────────────────────────
   const [joinFamilyId, setJoinFamilyId] = useState('');
   const [copied, setCopied] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [creatingInvite, setCreatingInvite] = useState(false);
 
   // ── Derived ─────────────────────────────────────────────
   const inFamily = !!family;
@@ -183,6 +192,21 @@ export function useSettingsViewModel(): SettingsViewModel {
     setConfirmLeave(false);
   };
 
+  const handleCreateInvite = async () => {
+    setCreatingInvite(true);
+    try {
+      const result = await createInvite({});
+      const inviteUrl = `${window.location.origin}/invite/${result.token}`;
+      await navigator.clipboard.writeText(inviteUrl);
+      setInviteCopied(true);
+      setTimeout(() => setInviteCopied(false), 3000);
+    } catch (err) {
+      console.error('Failed to create invite:', err);
+    } finally {
+      setCreatingInvite(false);
+    }
+  };
+
   return {
     // Auth
     isAuthenticated,
@@ -204,6 +228,8 @@ export function useSettingsViewModel(): SettingsViewModel {
     copied,
     confirmLeave,
     submitting,
+    inviteCopied,
+    creatingInvite,
 
     // Actions
     handleCopyFamilyId,
@@ -213,5 +239,6 @@ export function useSettingsViewModel(): SettingsViewModel {
     handleConfirmLeave,
     handleLeave,
     handleCancelLeave,
+    handleCreateInvite,
   };
 }

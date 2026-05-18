@@ -15,6 +15,12 @@ export interface FamilyInFamilyProps {
   onLeave: () => void;
   onConfirmLeave: () => void;
   onCancelLeave: () => void;
+  /** True briefly (≈3 s) after the invite link has been copied. */
+  inviteCopied: boolean;
+  /** True while the create-invite mutation is in-flight. */
+  creatingInvite: boolean;
+  /** Trigger creation and clipboard-copy of an invite link. */
+  onCreateInvite: () => void;
   submitting: boolean;
 }
 
@@ -34,6 +40,9 @@ export function FamilyInFamily({
   onConfirmLeave,
   onCancelLeave,
   submitting,
+  inviteCopied,
+  creatingInvite,
+  onCreateInvite,
 }: FamilyInFamilyProps) {
   return (
     <div className="space-y-4">
@@ -133,6 +142,31 @@ export function FamilyInFamily({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Invite link */}
+      <div className="border-t pt-4">
+        <Label className="text-sm text-muted-foreground mb-2 block">
+          Invite someone to your family
+        </Label>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onCreateInvite}
+          disabled={submitting || creatingInvite}
+        >
+          {creatingInvite ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+          ) : null}
+          {inviteCopied ? (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Copied!
+            </>
+          ) : (
+            'Copy Invite Link'
+          )}
+        </Button>
       </div>
     </div>
   );

@@ -72,6 +72,9 @@ export default function SettingsPage() {
         onCreateFamily={vm.handleCreateFamily}
         onRequestJoin={vm.handleRequestJoin}
         submitting={vm.submitting}
+        inviteCopied={vm.inviteCopied}
+        creatingInvite={vm.creatingInvite}
+        onCreateInvite={vm.handleCreateInvite}
       />
     </div>
   );
