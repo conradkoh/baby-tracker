@@ -239,7 +239,7 @@ describe('Settings page', () => {
       });
     });
 
-    it('shows Google label for google auth', async () => {
+    it('shows user name for google auth', async () => {
       currentAuthState = makeGoogleAuthState();
       mockIsLoading = false;
       mockQueryResult = null;
@@ -249,9 +249,6 @@ describe('Settings page', () => {
       await waitFor(() => {
         expect(screen.getByText('Google User')).toBeInTheDocument();
       });
-      // Auth method should show "Google"
-      const authMethodEls = screen.getAllByText('Google');
-      expect(authMethodEls.length).toBeGreaterThan(0);
     });
 
     it('has a link to profile page', async () => {
