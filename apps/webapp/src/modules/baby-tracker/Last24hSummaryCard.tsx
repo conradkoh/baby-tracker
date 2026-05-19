@@ -5,6 +5,8 @@ import { timeAgoFromMs } from '@/lib/activity-form-utils';
 import type { FunctionReturnType } from 'convex/server';
 import { api } from '@workspace/backend/convex/_generated/api';
 
+const DASH = '\u2014';
+
 type Last24hSummary = FunctionReturnType<typeof api.web.babyTracker.activities.getLast24hSummary>;
 
 interface Last24hSummaryCardProps {
@@ -32,26 +34,20 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Feed</p>
             <div className="text-xs text-muted-foreground">
-              {feed.lastFeedAtMs !== null ? (
-                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
-                  <span>Last:</span>
-                  <span className="text-foreground">{timeAgoFromMs(nowMs - feed.lastFeedAtMs)}</span>
-                  {feed.last3hMl > 0 && (
-                    <>
-                      <span>3h:</span>
-                      <span className="font-medium text-foreground">{feed.last3hMl} ml</span>
-                    </>
-                  )}
-                  {feed.bottleCount >= 1 && (
-                    <>
-                      <span>24h:</span>
-                      <span className="font-medium text-foreground">{feed.total24hMl} ml</span>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <p className="italic">No feeds</p>
-              )}
+              <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+                <span>Last:</span>
+                <span className="text-foreground">
+                  {feed.lastFeedAtMs !== null ? timeAgoFromMs(nowMs - feed.lastFeedAtMs) : DASH}
+                </span>
+                <span>3h:</span>
+                <span className="font-medium text-foreground">
+                  {feed.last3hMl > 0 ? `${feed.last3hMl} ml` : DASH}
+                </span>
+                <span>24h:</span>
+                <span className="font-medium text-foreground">
+                  {feed.bottleCount >= 1 ? `${feed.total24hMl} ml` : DASH}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -61,30 +57,14 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Diapers</p>
             <div className="text-xs text-muted-foreground">
-              {diapers.total > 0 ? (
-                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
-                  {diapers.wet > 0 && (
-                    <>
-                      <span>Wet:</span>
-                      <span className="font-medium text-foreground">{diapers.wet}</span>
-                    </>
-                  )}
-                  {diapers.mixed > 0 && (
-                    <>
-                      <span>Mixed:</span>
-                      <span className="font-medium text-foreground">{diapers.mixed}</span>
-                    </>
-                  )}
-                  {diapers.dirty > 0 && (
-                    <>
-                      <span>Dirty:</span>
-                      <span className="font-medium text-foreground">{diapers.dirty}</span>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <p className="italic">No changes</p>
-              )}
+              <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+                <span>Wet:</span>
+                <span className="font-medium text-foreground">{diapers.wet > 0 ? diapers.wet : DASH}</span>
+                <span>Mixed:</span>
+                <span className="font-medium text-foreground">{diapers.mixed > 0 ? diapers.mixed : DASH}</span>
+                <span>Dirty:</span>
+                <span className="font-medium text-foreground">{diapers.dirty > 0 ? diapers.dirty : DASH}</span>
+              </div>
             </div>
           </div>
         </div>
