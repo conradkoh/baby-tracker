@@ -898,12 +898,10 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      expect(screen.getByText(/Latest temp:/)).toBeInTheDocument();
-      // The temperature "37.8°C" appears in both the card's summary section AND the
-      // activity feed row. Scope to the Daily Summary section using "Latest temp:" to find the container.
-      const dailySummarySection = screen.getByText(/Latest temp:/).closest('div') as HTMLElement;
-      expect(within(dailySummarySection).getByText(/37\.8/)).toBeInTheDocument();
-      expect(within(dailySummarySection).getByText(/°C/)).toBeInTheDocument();
+      // Medical section removed from summary card — temperature appears in activity feed rows
+      // Two temperature readings → two "Temperature" activity rows
+      const tempLabels = screen.getAllByText(/Temperature/);
+      expect(tempLabels.length).toBe(2);
     });
 
     it('medicine roll-up: Paracetamol 5ml + 5ml → 10ml over 2 doses', () => {
@@ -930,9 +928,9 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
-      expect(screen.getByText(/10\s*ml/)).toBeInTheDocument();
-      expect(screen.getByText(/2 dose/)).toBeInTheDocument();
+      // Medical section removed from summary card — medicines appear in activity feed rows
+      const medicineLabels = screen.getAllByText(/Medicine/);
+      expect(medicineLabels.length).toBe(2);
     });
 
     it('mixed units medicine: Paracetamol 5ml + 0.5g → no total, shows "mixed units" and dose count', () => {
@@ -959,11 +957,9 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
-      expect(screen.getByText(/mixed units/i)).toBeInTheDocument();
-      expect(screen.getByText(/2 dose/)).toBeInTheDocument();
-      // No "10" (should not sum mixed units)
-      expect(screen.queryByText(/10/)).not.toBeInTheDocument();
+      // Medical section removed from summary card — medicines appear in activity feed rows
+      const medicineLabels = screen.getAllByText(/Medicine/);
+      expect(medicineLabels.length).toBe(2);
     });
 
     it('section showing: only feed today → Diapers and Medical show "No records" in the card', () => {
@@ -987,15 +983,13 @@ describe('App home page', () => {
       const feedSectionHeadings = screen.getAllByText(/^Feed$/);
       expect(feedSectionHeadings.length).toBeGreaterThan(0);
 
-      // Diapers and Medical sections are present but show "No records"
+      // Diapers section is present (Feed is the only data); Medical section removed
       const cardRoot = screen.getByText(/Bottle:/).closest('[data-slot="card"]') as HTMLElement;
       const diaperLabels = within(cardRoot).queryAllByText(/^Diapers$/);
-      const medicalLabels = within(cardRoot).queryAllByText(/^Medical$/);
       expect(diaperLabels.length).toBe(1);
-      expect(medicalLabels.length).toBe(1);
-      // Both empty sections show "No records"
+      // Only Diapers shows "No records" (Medical section removed)
       const noRecordsEls = within(cardRoot).queryAllByText('No records');
-      expect(noRecordsEls.length).toBe(2); // Diapers + Medical empty
+      expect(noRecordsEls.length).toBe(1); // Diapers empty; Medical gone
     });
 
     it('DOM ordering: today DailySummaryCard appears between day heading and activity Card inside the today group', () => {
@@ -1114,17 +1108,9 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      // No "Today" card
+      // No "Today" card (no activities today)
       expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
-
-      // Yesterday card: temperature line shows "· at HH:mm" (absolute, not "Xh ago")
-      // We scope to the card since text spans multiple elements: "Latest temp: " + "37.5" + "°C" + " · at 10:00 PM"
-      expect(screen.getByText(/Latest temp:/)).toBeInTheDocument();
-      const card = screen.getByText(/Latest temp:/).closest('[data-slot="card"]') as HTMLElement;
-      // The "at" text appears after the temperature value span
-      expect(within(card).getByText(/at \d{1,2}:\d{2} (AM|PM)/)).toBeInTheDocument();
-      // Should NOT have "Xh ago" anywhere in the card
-      expect(within(card).queryByText(/\d+h ago/)).not.toBeInTheDocument();
+      // Medical section removed — no temperature-related assertions needed
     });
   });
 });

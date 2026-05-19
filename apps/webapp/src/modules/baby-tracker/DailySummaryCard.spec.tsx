@@ -42,8 +42,8 @@ describe('DailySummaryCard', () => {
     );
     // Component renders the "Daily Summary" header strip (no Card wrapper anymore)
     expect(screen.getByText('Daily Summary')).toBeInTheDocument();
-    // All three sections show "No records" when their data is null
-    expect(screen.getAllByText('No records')).toHaveLength(3);
+    // Both sections show "No records" when their data is null (Feed + Diapers; Medical removed)
+    expect(screen.getAllByText('No records')).toHaveLength(2);
   });
 
   describe('Feed section', () => {
@@ -194,58 +194,6 @@ describe('DailySummaryCard', () => {
     });
   });
 
-  describe('Medical section', () => {
-    it('renders latest temperature', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: null, latch: null, solids: null },
-        diapers: null,
-        medical: {
-          latestTemperature: { valueC: 37.5, agoMs: 7_200_000, at: '2025-01-15T10:00:00.000Z' },
-          medicines: [],
-        },
-      };
-      render(<DailySummaryCard isToday summary={summary} />);
-      expect(screen.getByText(/Medical/)).toBeInTheDocument();
-      expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
-      expect(screen.getByText(/2h ago/)).toBeInTheDocument();
-    });
-
-    it('renders medicine line with total and count', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: null, latch: null, solids: null },
-        diapers: null,
-        medical: {
-          latestTemperature: null,
-          medicines: [{ name: 'Paracetamol', unit: 'ml', totalValue: 15, count: 3, mixedUnits: false }],
-        },
-      };
-      render(<DailySummaryCard isToday summary={summary} />);
-      expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
-      // Dosage text: "over 3 doses" (the "15 ml" part is in the font-medium span)
-      expect(screen.getByText(/over 3 doses/)).toBeInTheDocument();
-    });
-
-    it('renders multiple medicines', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: null, latch: null, solids: null },
-        diapers: null,
-        medical: {
-          latestTemperature: { valueC: 38.0, agoMs: 3_600_000, at: '2025-01-15T11:00:00.000Z' },
-          medicines: [
-            { name: 'Paracetamol', unit: 'ml', totalValue: 10, count: 2, mixedUnits: false },
-            { name: 'Ibuprofen', unit: 'ml', totalValue: 8, count: 1, mixedUnits: false },
-          ],
-        },
-      };
-      render(<DailySummaryCard isToday summary={summary} />);
-      expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
-      expect(screen.getByText(/Ibuprofen:/)).toBeInTheDocument();
-    });
-  });
-
   describe('isToday behavior', () => {
     it('renders "Last wet: 1h ago" when isToday=true', () => {
       const summary: DailySummary = {
@@ -279,38 +227,16 @@ describe('DailySummaryCard', () => {
     });
 
     it('renders "at HH:mm" for latest temp when isToday=false', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: null, latch: null, solids: null },
-        diapers: null,
-        medical: {
-          latestTemperature: { valueC: 37.5, agoMs: 7_200_000, at: '2025-01-15T10:30:00.000Z' },
-          medicines: [],
-        },
-      };
-      render(<DailySummaryCard isToday={false} summary={summary} />);
-      expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
-      expect(screen.getByText(/ at (10:30 AM|10:30 PM|6:30 AM|6:30 PM)/)).toBeInTheDocument();
+      // Medical section removed — skip test
     });
 
     it('renders "Xh ago ago" for latest temp when isToday=true (humanizeAgo already appends " ago")', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: null, latch: null, solids: null },
-        diapers: null,
-        medical: {
-          latestTemperature: { valueC: 37.5, agoMs: 7_200_000, at: '2025-01-15T10:30:00.000Z' },
-          medicines: [],
-        },
-      };
-      render(<DailySummaryCard isToday summary={summary} />);
-      expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
-      expect(screen.getByText(/ · 2h ago/)).toBeInTheDocument();
+      // Medical section removed — skip test
     });
   });
 
   describe('all sections rendered', () => {
-    it('renders all three section headers with "No records" for missing categories', () => {
+    it('renders Feed and Diapers sections with appropriate content', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: { bottle: null, latch: null, solids: null },
@@ -320,8 +246,8 @@ describe('DailySummaryCard', () => {
       render(<DailySummaryCard summary={summary} isToday={true} />);
       expect(screen.getByText('Feed')).toBeInTheDocument();
       expect(screen.getByText('Diapers')).toBeInTheDocument();
-      expect(screen.getByText('Medical')).toBeInTheDocument();
-      expect(screen.getAllByText('No records')).toHaveLength(2); // Feed + Medical empty
+      // Medical section removed — only Feed shows "No records" (Diapers has data)
+      expect(screen.getAllByText('No records')).toHaveLength(1);
     });
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { Milk, Baby, Stethoscope, Sparkles } from 'lucide-react';
+import { Milk, Baby, Sparkles } from 'lucide-react';
 import { DailySummary } from '@/lib/daily-summary';
 import { formatDuration, humanizeAgo, formatTime } from '@/lib/activity-form-utils';
 
@@ -19,7 +19,7 @@ function cleanDescription(desc: string): string {
 export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
   if (!summary.hasAny) return null;
 
-  const { feed, diapers, medical } = summary;
+  const { feed, diapers } = summary;
 
   return (
     <div className="border-b border-border">
@@ -121,49 +121,7 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
           </div>
         </div>
 
-        {/* ── Medical section ──────────────────────────── */}
-        <div className="flex items-start gap-2 px-4 py-1">
-          <Stethoscope className="h-3 w-3 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-foreground mb-0.5">Medical</p>
-            <div className="text-xs text-muted-foreground">
-              {medical !== null &&
-              (medical.latestTemperature !== null || medical.medicines.length > 0) ? (
-                <>
-                  {medical.latestTemperature !== null && (
-                    <p>
-                      Latest temp: <span className="font-medium text-foreground">{medical.latestTemperature.valueC}°C</span>
-                      {isToday
-                        ? ` · ${humanizeAgo(medical.latestTemperature.agoMs)}`
-                        : medical.latestTemperature.at
-                        ? ` · at ${formatTime(medical.latestTemperature.at)}`
-                        : null}
-                    </p>
-                  )}
-                  {medical.medicines.map((med) => (
-                    <p key={med.name}>
-                      {med.name}:{' '}
-                      {med.mixedUnits ? (
-                        <span className="font-medium text-foreground">
-                          {med.count} dose{med.count !== 1 ? 's' : ''} (mixed units)
-                        </span>
-                      ) : (
-                        <>
-                          <span className="font-medium text-foreground">
-                            {med.totalValue} {med.unit}
-                          </span>
-                          {` over ${med.count} dose${med.count !== 1 ? 's' : ''}`}
-                        </>
-                      )}
-                    </p>
-                  ))}
-                </>
-              ) : (
-                <p className="italic">No records</p>
-              )}
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
