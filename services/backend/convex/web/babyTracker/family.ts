@@ -13,6 +13,7 @@ import type { Id } from '../../_generated/dataModel';
 import { ConvexWebFamilyRepository } from '../../../src/infra/ConvexWebFamilyRepository';
 import {
   createFamily,
+  deleteFamily,
   requestJoin as requestJoinUseCase,
   approveJoinRequest as approveJoinRequestUseCase,
   leaveFamily as leaveFamilyUseCase,
@@ -88,8 +89,9 @@ export const approveJoin = mutation({
 
 /**
  * Leave the authenticated user's current family.
- * If the user is the last member, the family's activity stream becomes orphaned
- * (future work: dissolve family and transfer activities).
+ * If the user is the sole remaining member, the family and ALL of its data
+ * (memberships, join requests, invites, activityStream, and activities) are
+ * fully deleted via the deleteFamily use case.
  */
 export const leave = mutation({
   args: {
@@ -107,8 +109,109 @@ export const leave = mutation({
       throw new ConvexError({ code: 'FORBIDDEN', message: 'Not a family member' });
     }
 
+    // Check if this user is the sole member — if so, fully delete the family
+    const allMembers = await ctx.db
+      .query('userFamily')
+      .withIndex('by_familyId', (q) => q.eq('familyId', membership.familyId))
+      .collect();
+
     const repo = new ConvexWebFamilyRepository(ctx);
-    await leaveFamilyUseCase(repo, userId.toString(), membership.familyId.toString());
+    if (allMembers.length === 1) {
+      // Sole member — fully delete family + activity stream + all data via the use case
+      await deleteFamily(repo, userId.toString(), membership.familyId.toString());
+    } else {
+      // Other members remain — just remove this user's membership
+      await leaveFamilyUseCase(repo, userId.toString(), membership.familyId.toString());
+    }
+  },
+});
+
+/**
+ * Switch to a different family via invite token.
+ *
+ * CRITICAL: Validate invite FIRST before destroying any family data.
+ *
+ * If the user is the sole member of their current family, the old family
+ * and all its data (memberships, join requests, invites, activityStream,
+ * and activities) will be fully deleted via the deleteFamily use case.
+ */
+export const switchFamily = mutation({
+  args: {
+    ...SessionIdArg,
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    // STEP 1: Validate the invite token FIRST (never destroy family on bad token)
+    const invite = await ctx.db
+      .query('familyInvites')
+      .withIndex('by_token', (q) => q.eq('token', args.token))
+      .first();
+
+    if (!invite) {
+      throw new ConvexError({
+        code: 'NOT_FOUND',
+        message: 'Invite not found',
+      });
+    }
+
+    if (invite.expiresAt != null && invite.expiresAt < Date.now()) {
+      throw new ConvexError({
+        code: 'EXPIRED',
+        message: 'This invite has expired',
+      });
+    }
+
+    if (invite.usedBy != null) {
+      throw new ConvexError({
+        code: 'USED',
+        message: 'This invite has already been used',
+      });
+    }
+
+    if (invite.revokedAt != null) {
+      throw new ConvexError({
+        code: 'REVOKED',
+        message: 'This invite has been revoked',
+      });
+    }
+
+    // STEP 2: Get current membership
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+
+    // STEP 3: Handle current family membership
+    if (membership) {
+      const remainingMembers = await ctx.db
+        .query('userFamily')
+        .withIndex('by_familyId', (q) => q.eq('familyId', membership.familyId))
+        .collect();
+
+      if (remainingMembers.length === 1) {
+        // User is the sole member — fully delete the old family (memberships, join requests,
+        // invites, activityStream, and all activities) via the deleteFamily use case.
+        const repo = new ConvexWebFamilyRepository(ctx);
+        await deleteFamily(repo, userId.toString(), membership.familyId.toString());
+      } else {
+        // Other members remain — remove this user's membership only. The family, its
+        // activity stream, and all other members' data stay intact.
+        await ctx.db.delete(membership._id);
+      }
+    }
+
+    // STEP 4: Add user to new family
+    await ctx.db.insert('userFamily', {
+      userId,
+      familyId: invite.familyId,
+    });
+
+    // STEP 5: Mark invite as used
+    await ctx.db.patch(invite._id, { usedBy: userId });
+
+    return { success: true };
   },
 });
 
