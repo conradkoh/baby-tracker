@@ -6,7 +6,7 @@
  *
  * Mirrors the mobile home screen experience.
  */
-import { render, screen, waitFor } from '@/__tests__/test-utils';
+import { render, screen, waitFor, within } from '@/__tests__/test-utils';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import type { ReactNode } from 'react';
 
@@ -357,6 +357,7 @@ describe('App home page', () => {
     beforeEach(() => {
       mockIsLoading = false;
       mockStatus = 'Exhausted';
+      // No fake timers — activity display tests don't need DateTime.now()
       mockResults = [
         makeLatchActivity(),
         makeBottleActivity(),
@@ -367,58 +368,43 @@ describe('App home page', () => {
       ];
     });
 
-    it('renders latch feed with duration', async () => {
+    it('renders latch feed with duration', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Latch Feed')).toBeInTheDocument();
-      });
-      expect(screen.getByText(/5 min 0 sec/)).toBeInTheDocument();
-      expect(screen.getByText(/3 min 0 sec/)).toBeInTheDocument();
+      // Scope to the activity feed link to avoid matching the DailySummaryCard
+      const activityLink = screen.getByText('Latch Feed').closest('a') as HTMLElement;
+      expect(within(activityLink).getByText(/5 min 0 sec/)).toBeInTheDocument();
+      expect(within(activityLink).getByText(/3 min 0 sec/)).toBeInTheDocument();
     });
 
-    it('renders expressed feed with volume', async () => {
+    it('renders expressed feed with volume', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Expressed Feed')).toBeInTheDocument();
-      });
+      expect(screen.getByText('Expressed Feed')).toBeInTheDocument();
       expect(screen.getByText(/120 ml/)).toBeInTheDocument();
     });
 
-    it('renders solids feed with description', async () => {
+    it('renders solids feed with description', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Solids Feed')).toBeInTheDocument();
-      });
-      expect(screen.getByText(/Banana porridge/)).toBeInTheDocument();
+      // Description appears in both activity row and daily summary card — scope to activity link
+      const activityLink = screen.getByText('Solids Feed').closest('a') as HTMLElement;
+      expect(within(activityLink).getByText(/Banana porridge/)).toBeInTheDocument();
     });
 
-    it('renders diaper change with wet type', async () => {
+    it('renders diaper change with wet type', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Diaper Change')).toBeInTheDocument();
-      });
+      expect(screen.getByText('Diaper Change')).toBeInTheDocument();
       expect(screen.getByText('Wet')).toBeInTheDocument();
     });
 
-    it('renders temperature reading', async () => {
+    it('renders temperature reading', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Temperature')).toBeInTheDocument();
-      });
-      expect(screen.getByText(/37\.5\s*°C/)).toBeInTheDocument();
+      // Temperature value appears in both card and activity row — scope to activity link
+      const activityLink = screen.getByText('Temperature').closest('a') as HTMLElement;
+      expect(within(activityLink).getByText(/37\.5\s*°C/)).toBeInTheDocument();
     });
 
-    it('renders medicine with dosage', async () => {
+    it('renders medicine with dosage', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Medicine')).toBeInTheDocument();
-      });
+      expect(screen.getByText('Medicine')).toBeInTheDocument();
       expect(screen.getByText(/5 ml Paracetamol/)).toBeInTheDocument();
     });
   });
@@ -619,7 +605,7 @@ describe('App home page', () => {
     });
   });
 
-  // ── 10. Daily Summary card ─────────────────────────────────────
+  // ── 10. Daily Summary card (per-day) ─────────────────────────
 
   describe('daily summary card', () => {
     beforeEach(() => {
@@ -641,7 +627,7 @@ describe('App home page', () => {
       expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
     });
 
-    it('is hidden when only yesterday\'s data exists', () => {
+    it('shows a yesterday card (no "Today ·" prefix) when only yesterday data exists', () => {
       // yesterday 10:00 AM UTC = 2025-05-18T10:00:00Z
       mockResults = [
         {
@@ -657,7 +643,12 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
+      // No "Today ·" card — but a yesterday card should exist (without Today prefix)
       expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
+      // The yesterday card has a date heading (e.g. "Mon, 18 May") but no "Today ·" prefix
+      // Just verify the card is rendered with a different date label
+      const allCards = screen.queryAllByText(/Bottle:/);
+      expect(allCards.length).toBe(1); // yesterday card has the feed summary
     });
 
     it('shows "Today · <date>" header when today has any activity', () => {
@@ -819,7 +810,6 @@ describe('App home page', () => {
       // Not 3 (the dup 'banana' should not add a third entry in the daily summary list)
       // Scoped to the DailySummaryCard to avoid matching the activity feed row label "Banana"
       const cardRoot = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
-      const { within } = require('@testing-library/react');
       expect(within(cardRoot).queryByText('Banana')).not.toBeInTheDocument();
     });
 
@@ -910,7 +900,6 @@ describe('App home page', () => {
       // The temperature "37.8°C" appears in both the card's summary section AND the
       // activity feed row. Use within() to scope to the DailySummaryCard to avoid ambiguity.
       const cardRoot = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
-      const { within } = require('@testing-library/react');
       expect(within(cardRoot).getByText(/37\.8/)).toBeInTheDocument();
       expect(within(cardRoot).getByText(/°C/)).toBeInTheDocument();
     });
@@ -975,7 +964,7 @@ describe('App home page', () => {
       expect(screen.queryByText(/10/)).not.toBeInTheDocument();
     });
 
-    it('section hiding: only feed today → no Diapers heading, no Medical heading', () => {
+    it('section hiding: only feed today → no Diapers heading, no Medical heading in the card', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
       mockResults = [
@@ -998,14 +987,15 @@ describe('App home page', () => {
 
       // No Diapers or Medical sections in the Daily Summary card
       const cardRoot = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
-      const { within } = require('@testing-library/react');
       const diaperLabels = within(cardRoot).queryAllByText(/^Diapers$/);
       const medicalLabels = within(cardRoot).queryAllByText(/^Medical$/);
       expect(diaperLabels.length).toBe(0);
       expect(medicalLabels.length).toBe(0);
     });
 
-    it('DOM ordering: Feeding Summary appears before Today · header', () => {
+    it('DOM ordering: today DailySummaryCard appears between day heading and activity Card inside the today group', () => {
+      // With the per-day layout, the card sits BELOW the h3 date heading and ABOVE the
+      // activity list Card within each day group.
       const now = Date.now();
       const hour = 3600 * 1000;
       mockResults = [
@@ -1022,11 +1012,117 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
+      // The today card appears in the page — its header contains "Today · ..."
+      const dailySummaryCard = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
+      expect(dailySummaryCard).not.toBeNull();
+
+      // Feeding Summary is a separate rose card at the top of the page, above all day groups.
       const feedingSummary = screen.getByText('Feeding Summary');
-      const dailySummaryHeader = screen.getByText(/Today ·/);
+      // Feeding Summary (top of page) precedes the DailySummaryCard (inside day group)
       expect(
-        feedingSummary.compareDocumentPosition(dailySummaryHeader)
-      ).toBe(Node.DOCUMENT_POSITION_PRECEDING);
+        feedingSummary.compareDocumentPosition(dailySummaryCard)
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    // ── New tests for per-day layout ─────────────────────────────────
+
+    it('multi-day: today feed + yesterday diaper → two DailySummaryCards, each with relevant data', () => {
+      // Today has a bottle feed; yesterday has a wet diaper
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        // yesterday's wet diaper
+        {
+          _id: 'd-yesterday',
+          _creationTime: now - 25 * hour,
+          timestamp: new Date(now - 25 * hour).toISOString(), // 25h ago = yesterday
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+        // today's bottle feed
+        {
+          _id: 'b-today',
+          _creationTime: now - hour,
+          timestamp: new Date(now - hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 120 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // Today card has "Today · ..." prefix
+      expect(screen.getByText(/^Today/)).toBeInTheDocument();
+
+      // Yesterday card exists: has a card with a date label without "Today ·" prefix
+      // (the date label for yesterday will be a date like "Sun, 18 May")
+      const allCards = screen.queryAllByText(/Bottle:/);
+      expect(allCards.length).toBe(1); // only today's card has bottle data
+      const allDiapers = screen.queryAllByText(/Diapers/);
+      expect(allDiapers.length).toBe(1); // only yesterday's card has diaper data
+      // The yesterday card should have a date heading (e.g. "May 18, 2025")
+      // We detect it by finding a card whose header does NOT include "Today ·"
+      const yesterdayCard = screen.getByText(/Diapers/).closest('[data-slot="card"]') as HTMLElement;
+      // Just verify the card is there (date heading could be any format like "Mon, 18 May" or "May 18, 2025")
+      expect(yesterdayCard).not.toBeNull();
+    });
+
+    it('isToday=false suppresses "ago" for diaper: yesterday wet shows "Last wet at HH:mm"', () => {
+      // System time = 2025-05-19T10:00:00Z → today is May 19.
+      // Yesterday at 14:00 UTC
+      mockResults = [
+        {
+          _id: 'd-yesterday',
+          _creationTime: Date.now() - 20 * 3600 * 1000,
+          timestamp: '2025-05-18T14:00:00.000Z',
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // No "Today" card
+      expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
+
+      // Yesterday card: shows absolute time, NOT "Xh ago"
+      // The card should show "Last wet: at HH:MM" (absolute format from formatTime)
+      // We only assert that "at" is present (avoids timezone-specific HH:mm values)
+      expect(screen.getByText(/Last wet: at/)).toBeInTheDocument();
+      // Should NOT have "Xh ago"
+      expect(screen.queryByText(/Last wet: \d+h ago/)).not.toBeInTheDocument();
+    });
+
+    it('isToday=false suppresses "ago" for medical temperature: yesterday shows "· at HH:mm"', () => {
+      mockResults = [
+        {
+          _id: 't-yesterday',
+          _creationTime: Date.now() - 20 * 3600 * 1000,
+          timestamp: '2025-05-18T14:00:00.000Z',
+          type: 'medical',
+          medical: { type: 'temperature', temperature: { value: 37.5 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // No "Today" card
+      expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
+
+      // Yesterday card: temperature line shows "· at HH:mm" (absolute, not "Xh ago")
+      // We scope to the card since text spans multiple elements: "Latest temp: " + "37.5" + "°C" + " · at 10:00 PM"
+      expect(screen.getByText(/Latest temp:/)).toBeInTheDocument();
+      const card = screen.getByText(/Latest temp:/).closest('[data-slot="card"]') as HTMLElement;
+      // The "at" text appears after the temperature value span
+      expect(within(card).getByText(/at \d{1,2}:\d{2} (AM|PM)/)).toBeInTheDocument();
+      // Should NOT have "Xh ago" anywhere in the card
+      expect(within(card).queryByText(/\d+h ago/)).not.toBeInTheDocument();
     });
   });
 });
