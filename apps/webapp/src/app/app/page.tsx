@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { computeDailySummary } from '@/lib/daily-summary';
+import { computeDailySummariesByDay, DailySummary } from '@/lib/daily-summary';
 import { DailySummaryCard } from '@/modules/baby-tracker/DailySummaryCard';
 import {
   formatTime,
@@ -261,8 +261,19 @@ export default function AppHomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const summaryStats = useMemo(() => computeSummaryStats(results as any[]), [results]);
 
+  // ── Per-day summary computation ──────────────────────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dailySummary = useMemo(() => computeDailySummary(results as any[]), [results]);
+  const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results as any[]), [results]);
+
+  // Index by dateKey for O(1) lookup inside the groupedByDate map
+  const summaryByDateKey = useMemo(() => {
+    const m = new Map<string, DailySummary>();
+    for (const entry of dailySummariesByDay) m.set(entry.dateKey, entry.summary);
+    return m;
+  }, [dailySummariesByDay]);
+
+  // Precompute today's dateKey once, outside the groupedByDate map
+  const todayKey = toDateKey(DateTime.now().toISO()!);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
@@ -376,13 +387,11 @@ export default function AppHomePage() {
     );
   }
 
-  // ── Activity feed with summary card ──────────────────────────
+  // ── Activity feed ────────────────────────────────────────────
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <QuickActionGrid router={router} />
-
-      <DailySummaryCard summary={dailySummary} />
 
       {/* Summary card — only when feed data exists */}
       {summaryStats.lastFeedTimeAgo && (
@@ -419,13 +428,24 @@ export default function AppHomePage() {
       )}
 
       {/* Grouped activity list */}
-      {groupedByDate.map((dateGroup) => (
-        <div key={dateGroup.date} className="mb-6">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
-            {formatDate(dateGroup.timeGroups[0].activities[0].timestamp as string)}
-          </h3>
+      {groupedByDate.map((dateGroup) => {
+        const dateKey = dateGroup.date;
+        const summary = summaryByDateKey.get(dateKey);
+        const isToday = dateKey === todayKey;
+        const firstTs = dateGroup.timeGroups[0].activities[0].timestamp as string;
+        const dateLabel = isToday ? `Today · ${formatDate(firstTs)}` : formatDate(firstTs);
 
-          <Card>
+        return (
+          <div key={dateKey} className="mb-6">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
+              {formatDate(firstTs)}
+            </h3>
+
+            {summary && (
+              <DailySummaryCard summary={summary} dateLabel={dateLabel} isToday={isToday} />
+            )}
+
+            <Card>
             <CardContent className="p-0">
               {dateGroup.timeGroups.map((timeGroup, tIdx) => {
                 const { label, Icon, colorClass } = TIME_OF_DAY_META[timeGroup.period];
@@ -478,7 +498,8 @@ export default function AppHomePage() {
             </CardContent>
           </Card>
         </div>
-      ))}
+      );
+      })}
 
       {/* Load more */}
       {status === 'CanLoadMore' && (
