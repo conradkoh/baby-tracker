@@ -47,10 +47,11 @@ type Activity = FeedActivity | DiaperActivity | MedicalActivity;
 // ── Date-key helper (shared with callers) ─────────────────────────────────────
 
 /**
- * Formats a DateTime as `YYYY-MM-DD` in the local zone.
+ * Formats a DateTime or ISO timestamp string as `YYYY-MM-DD` in the local zone.
  * Used to derive `dateKey` for grouping activities by day.
  */
-export function toDateKey(dt: DateTime): string {
+export function toDateKey(input: string | DateTime, zone: string = 'local'): string {
+  const dt = typeof input === 'string' ? DateTime.fromISO(input, { zone }) : input.setZone(zone);
   return dt.toLocal().toFormat('yyyy-MM-dd');
 }
 
@@ -75,6 +76,10 @@ export interface DailySummary {
     lastDirtyAt: string | null;
     lastMixedAt: string | null;
   } | null;
+  /**
+   * Medical aggregation is computed but NOT rendered by DailySummaryCard
+   * (intentional — re-enabling the UI is a render-only change).
+   */
   medical: {
     latestTemperature: { valueC: number; agoMs: number; at: string } | null;
     medicines: Array<{
@@ -274,7 +279,7 @@ export function computeDailySummary(
     latestTemp !== null || medicines.length > 0 ? { latestTemperature: latestTemp, medicines } : null;
 
   const hasAny =
-    bottleBlock !== null || latchBlock !== null || solidsBlock !== null || diaperBlock !== null || medicalBlock !== null;
+    bottleBlock !== null || latchBlock !== null || solidsBlock !== null || diaperBlock !== null;
 
   return {
     hasAny,

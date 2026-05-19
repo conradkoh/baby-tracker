@@ -67,9 +67,7 @@ export function formatDate(ts: string): string {
  * not "2025-05-18".
  * Works with both Z-suffixed (UTC) and offset-suffixed (e.g. +08:00) inputs.
  */
-export function toDateKey(ts: string): string {
-  return DateTime.fromISO(ts).toLocal().toFormat('yyyy-MM-dd');
-}
+export { toDateKey } from './daily-summary';
 
 /**
  * Converts a diffMs (now - timestampMs) into a human-readable "time ago" string.

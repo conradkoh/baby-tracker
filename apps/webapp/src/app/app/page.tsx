@@ -262,8 +262,7 @@ export default function AppHomePage() {
   const summaryStats = useMemo(() => computeSummaryStats(results as any[]), [results]);
 
   // ── Per-day summary computation ──────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results as any[]), [results]);
+  const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results), [results]);
 
   // Index by dateKey for O(1) lookup inside the groupedByDate map
   const summaryByDateKey = useMemo(() => {
@@ -272,8 +271,8 @@ export default function AppHomePage() {
     return m;
   }, [dailySummariesByDay]);
 
-  // Precompute today's dateKey once, outside the groupedByDate map
-  const todayKey = toDateKey(DateTime.now().toISO()!);
+  // Precompute today's dateKey — recomputes when results refresh (acceptable; midnight rollover is rare)
+  const todayKey = useMemo(() => toDateKey(DateTime.now()), [results]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
