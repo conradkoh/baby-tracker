@@ -44,6 +44,16 @@ interface MedicalActivity {
 
 type Activity = FeedActivity | DiaperActivity | MedicalActivity;
 
+// ── Date-key helper (shared with callers) ─────────────────────────────────────
+
+/**
+ * Formats a DateTime as `YYYY-MM-DD` in the local zone.
+ * Used to derive `dateKey` for grouping activities by day.
+ */
+export function toDateKey(dt: DateTime): string {
+  return dt.toLocal().toFormat('yyyy-MM-dd');
+}
+
 // ── Output types ──────────────────────────────────────────────────────────────
 
 export interface BottleBreakdown {
@@ -78,9 +88,12 @@ export interface DailySummary {
     lastWetAgoMs: number | null;
     lastDirtyAgoMs: number | null;
     lastMixedAgoMs: number | null;
+    lastWetAt: string | null;
+    lastDirtyAt: string | null;
+    lastMixedAt: string | null;
   } | null;
   medical: {
-    latestTemperature: { valueC: number; agoMs: number } | null;
+    latestTemperature: { valueC: number; agoMs: number; at: string } | null;
     medicines: Array<{
       name: string;
       unit: string;
@@ -104,27 +117,22 @@ function parseActivity(a: unknown): Activity | null {
 }
 
 /**
- * Compute a daily summary from a list of activities.
+ * Compute a daily summary from a list of activities filtered to the given day range.
  *
- * Filters activities to the local calendar day of `options.now ?? DateTime.now()`
- * in `options.zone ?? 'local'`, then aggregates feed, diaper, and medical data.
- *
- * Note: depends on the caller loading enough activities to cover the full day
- * (the home-page query loads 20 most-recent by default — may not cover a full
- * busy day in v1).
+ * @param activities - flat list of activities (any day)
+ * @param options.dayStart - start of the calendar day (inclusive), in the resolved zone
+ * @param options.dayEnd - end of the calendar day (inclusive), in the resolved zone
+ * @param options.zone - timezone for parsing timestamps; defaults to 'local'
+ * @param options.referenceTime - moment used for "agoMs" calculations; defaults to DateTime.now()
  */
 export function computeDailySummary(
   activities: readonly unknown[],
-  options?: { now?: DateTime; zone?: string }
+  options: { dayStart: DateTime; dayEnd: DateTime; zone?: string; referenceTime?: DateTime }
 ): DailySummary {
-  const now = options?.now ?? DateTime.now();
-  const zone = options?.zone ?? 'local';
+  const { dayStart, dayEnd, zone = 'local' } = options;
+  const referenceTime = options.referenceTime ?? DateTime.now();
 
-  // Start-of-day for the local calendar day
-  const dayStart = now.startOf('day');
-  const dayEnd = now.endOf('day'); // inclusive end
-
-  // Parse and filter to today
+  // Parse and filter to the given day range
   const todaysActivities: Activity[] = [];
   for (const a of activities) {
     const act = parseActivity(a);
@@ -133,13 +141,11 @@ export function computeDailySummary(
     if (!ts) continue;
     const dt = DateTime.fromISO(ts, { zone });
     if (!dt.isValid) continue;
-    // Inclusive of start-of-day, exclusive of next day (dt < dayEnd+1ms covers end-of-day)
     if (dt < dayStart || dt > dayEnd) continue;
     todaysActivities.push(act);
   }
 
-  // No explicit sort — aggregation uses string comparison (>) for latest entries,
-  // which handles ISO strings deterministically.
+  // Sort by timestamp ascending (needed for stable "last seen" tracking)
   todaysActivities.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
   // Aggregate feed
@@ -279,13 +285,18 @@ export function computeDailySummary(
           dirty: dirtyCount,
           mixed: mixedCount,
           total: wetCount + dirtyCount + mixedCount,
-          lastWetAgoMs: lastWetTs ? now.toMillis() - DateTime.fromISO(lastWetTs, { zone }).toMillis() : null,
+          lastWetAgoMs: lastWetTs
+            ? referenceTime.toMillis() - DateTime.fromISO(lastWetTs, { zone }).toMillis()
+            : null,
           lastDirtyAgoMs: lastDirtyTs
-            ? now.toMillis() - DateTime.fromISO(lastDirtyTs, { zone }).toMillis()
+            ? referenceTime.toMillis() - DateTime.fromISO(lastDirtyTs, { zone }).toMillis()
             : null,
           lastMixedAgoMs: lastMixedTs
-            ? now.toMillis() - DateTime.fromISO(lastMixedTs, { zone }).toMillis()
+            ? referenceTime.toMillis() - DateTime.fromISO(lastMixedTs, { zone }).toMillis()
             : null,
+          lastWetAt: lastWetTs,
+          lastDirtyAt: lastDirtyTs,
+          lastMixedAt: lastMixedTs,
         }
       : null;
 
@@ -293,7 +304,8 @@ export function computeDailySummary(
     latestTempValue !== null && latestTempTs !== null
       ? {
           valueC: latestTempValue,
-          agoMs: now.toMillis() - DateTime.fromISO(latestTempTs, { zone }).toMillis(),
+          agoMs: referenceTime.toMillis() - DateTime.fromISO(latestTempTs, { zone }).toMillis(),
+          at: latestTempTs,
         }
       : null;
 
@@ -302,7 +314,8 @@ export function computeDailySummary(
   const medicalBlock =
     latestTemp !== null || medicines.length > 0 ? { latestTemperature: latestTemp, medicines } : null;
 
-  const hasAny = bottleBlock !== null || latchBlock !== null || solidsBlock !== null || diaperBlock !== null || medicalBlock !== null;
+  const hasAny =
+    bottleBlock !== null || latchBlock !== null || solidsBlock !== null || diaperBlock !== null || medicalBlock !== null;
 
   return {
     hasAny,
@@ -314,4 +327,58 @@ export function computeDailySummary(
     diapers: diaperBlock,
     medical: medicalBlock,
   };
+}
+
+// ── Per-day orchestrator ──────────────────────────────────────────────────────
+
+/**
+ * Groups activities into daily summary entries, one per calendar day present in
+ * the input (newest day first).
+ *
+ * Each entry contains:
+ *   - dateKey: 'YYYY-MM-DD' in the resolved zone (used by page.tsx for grouping)
+ *   - dayStart: start-of-day in the resolved zone
+ *   - summary: the aggregated DailySummary for that day
+ *
+ * Days where all activities result in hasAny=false are skipped.
+ */
+export interface DailySummaryEntry {
+  dateKey: string;
+  dayStart: DateTime;
+  summary: DailySummary;
+}
+
+export function computeDailySummariesByDay(
+  activities: readonly unknown[],
+  options?: { zone?: string; referenceTime?: DateTime }
+): DailySummaryEntry[] {
+  const zone = options?.zone ?? 'local';
+  const referenceTime = options?.referenceTime ?? DateTime.now();
+
+  // Group activities by dateKey
+  const dayMap = new Map<string, unknown[]>();
+  for (const a of activities) {
+    const act = parseActivity(a);
+    if (!act || !act.timestamp) continue;
+    const dt = DateTime.fromISO(act.timestamp, { zone });
+    if (!dt.isValid) continue;
+    const key = toDateKey(dt);
+    if (!dayMap.has(key)) dayMap.set(key, []);
+    dayMap.get(key)!.push(a);
+  }
+
+  // Build entries newest-first (ISO string sort descending)
+  const entries: DailySummaryEntry[] = [];
+  const sortedKeys = Array.from(dayMap.keys()).sort().reverse();
+
+  for (const dateKey of sortedKeys) {
+    const dayActivities = dayMap.get(dateKey)!;
+    const dayStart = DateTime.fromISO(dateKey + 'T00:00:00', { zone });
+    const dayEnd = dayStart.endOf('day');
+    const summary = computeDailySummary(dayActivities, { dayStart, dayEnd, zone, referenceTime });
+    if (!summary.hasAny) continue;
+    entries.push({ dateKey, dayStart, summary });
+  }
+
+  return entries;
 }

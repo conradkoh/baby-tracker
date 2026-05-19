@@ -155,6 +155,9 @@ describe('DailySummaryCard', () => {
           lastWetAgoMs: 3_600_000,
           lastDirtyAgoMs: null,
           lastMixedAgoMs: null,
+          lastWetAt: '2025-01-15T08:00:00.000Z',
+          lastDirtyAt: null,
+          lastMixedAt: null,
         },
         medical: null,
       };
@@ -178,6 +181,9 @@ describe('DailySummaryCard', () => {
           lastWetAgoMs: 7_200_000,
           lastDirtyAgoMs: 5_400_000,
           lastMixedAgoMs: null,
+          lastWetAt: '2025-01-15T08:00:00.000Z',
+          lastDirtyAt: '2025-01-15T10:00:00.000Z',
+          lastMixedAt: null,
         },
         medical: null,
       };
@@ -199,6 +205,9 @@ describe('DailySummaryCard', () => {
           lastWetAgoMs: null,
           lastDirtyAgoMs: 10_800_000,
           lastMixedAgoMs: 5_400_000,
+          lastWetAt: null,
+          lastDirtyAt: '2025-01-15T10:00:00.000Z',
+          lastMixedAt: '2025-01-15T08:00:00.000Z',
         },
         medical: null,
       };
@@ -215,7 +224,7 @@ describe('DailySummaryCard', () => {
         feed: { bottle: null, latch: null, solids: null },
         diapers: null,
         medical: {
-          latestTemperature: { valueC: 37.5, agoMs: 7_200_000 },
+          latestTemperature: { valueC: 37.5, agoMs: 7_200_000, at: '2025-01-15T10:00:00.000Z' },
           medicines: [],
         },
       };
@@ -262,7 +271,7 @@ describe('DailySummaryCard', () => {
         feed: { bottle: null, latch: null, solids: null },
         diapers: null,
         medical: {
-          latestTemperature: { valueC: 38.0, agoMs: 3_600_000 },
+          latestTemperature: { valueC: 38.0, agoMs: 3_600_000, at: '2025-01-15T11:00:00.000Z' },
           medicines: [
             { name: 'Paracetamol', unit: 'ml', totalValue: 10, count: 2, mixedUnits: false },
             { name: 'Ibuprofen', unit: 'ml', totalValue: 8, count: 1, mixedUnits: false },
@@ -286,6 +295,7 @@ describe('DailySummaryCard', () => {
       diapers: {
         wet: 3, dirty: 1, mixed: 0, total: 4,
         lastWetAgoMs: 1_800_000, lastDirtyAgoMs: null, lastMixedAgoMs: null,
+        lastWetAt: '2025-01-15T10:00:00.000Z', lastDirtyAt: null, lastMixedAt: null,
       },
       medical: {
         latestTemperature: null,
