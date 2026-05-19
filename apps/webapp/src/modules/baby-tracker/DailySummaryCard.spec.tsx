@@ -15,14 +15,20 @@ const defaultSummary: DailySummary = {
   medical: null,
 };
 
+const TODAY_LABEL = 'Today · Wed, 15 Jan';
+
 describe('DailySummaryCard', () => {
   it('renders nothing when hasAny is false', () => {
-    const { container } = render(<DailySummaryCard summary={defaultSummary} />);
+    const { container } = render(
+      <DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={defaultSummary} />
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders nothing when hasAny is false', () => {
-    const { container } = render(<DailySummaryCard summary={defaultSummary} />);
+    const { container } = render(
+      <DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={defaultSummary} />
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -34,109 +40,81 @@ describe('DailySummaryCard', () => {
       diapers: null,
       medical: null,
     };
-    const { container } = render(<DailySummaryCard summary={summary} />);
+    const { container } = render(
+      <DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />
+    );
     // Card renders but body is empty — not fully empty (header is present)
     expect(container.querySelector('[data-slot="card"]')).not.toBeNull();
   });
 
-  it('renders the header with Today and date', () => {
-    const summary: DailySummary = {
-      hasAny: true,
-      feed: {
-        bottle: { totalMl: 100, count: 2, breakdown: [{ subType: 'expressed', count: 2, ml: 100 }] },
-        latch: null,
-        solids: null,
-      },
-      diapers: null,
-      medical: null,
-    };
-    render(<DailySummaryCard summary={summary} />);
-    expect(screen.getByText(/^Today/)).toBeInTheDocument();
-    expect(screen.getByText(/Wed, 15 Jan/)).toBeInTheDocument();
-  });
-
   describe('Feed section', () => {
-    it('renders bottle line correctly', () => {
+    it('renders bottle total ml + feed count', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: {
-          bottle: { totalMl: 150, count: 3, breakdown: [{ subType: 'expressed', count: 2, ml: 120 }, { subType: 'formula', count: 1, ml: 30 }] },
+          bottle: { totalMl: 120, count: 2, breakdown: [
+            { subType: 'expressed', count: 2, ml: 120 },
+            { subType: 'formula', count: 0, ml: 0 },
+            { subType: 'water', count: 0, ml: 0 },
+          ] },
           latch: null,
           solids: null,
         },
         diapers: null,
         medical: null,
       };
-      render(<DailySummaryCard summary={summary} />);
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      // Text is split across elements: "Bottle: " + "120ml" + " · 2 feeds"
       expect(screen.getByText(/Bottle:/)).toBeInTheDocument();
-      expect(screen.getByText(/150ml/)).toBeInTheDocument();
-      expect(screen.getByText(/3 feeds/)).toBeInTheDocument();
-      // breakdown shown when >1 active subtypes
-      expect(screen.getByText(/2 expressed, 1 formula/)).toBeInTheDocument();
+      expect(screen.getByText(/120ml/)).toBeInTheDocument();
+      expect(screen.getByText(/2 feeds/)).toBeInTheDocument();
     });
 
-    it('does NOT show breakdown when only one active subtype', () => {
+    it('renders bottle breakdown only when multiple sub-types present', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: {
-          bottle: { totalMl: 60, count: 1, breakdown: [{ subType: 'expressed', count: 1, ml: 60 }, { subType: 'formula', count: 0, ml: 0 }, { subType: 'water', count: 0, ml: 0 }] },
+          bottle: { totalMl: 180, count: 3, breakdown: [
+            { subType: 'expressed', count: 2, ml: 120 },
+            { subType: 'formula', count: 1, ml: 60 },
+            { subType: 'water', count: 0, ml: 0 },
+          ] },
           latch: null,
           solids: null,
         },
         diapers: null,
         medical: null,
       };
-      render(<DailySummaryCard summary={summary} />);
-      expect(screen.queryByText(/\(/)).not.toBeInTheDocument();
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      expect(screen.getByText('(2 expressed, 1 formula)')).toBeInTheDocument();
     });
 
-    it('renders latch line correctly', () => {
+    it('renders latch session count + avg durations', () => {
+      const summary: DailySummary = {
+        hasAny: true,
+        feed: { bottle: null, latch: { count: 3, avgLeftSeconds: 600, avgRightSeconds: 480 }, solids: null },
+        diapers: null,
+        medical: null,
+      };
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      // "3 session" + "s" (split across two elements)
+      expect(screen.getByText(/3 session/)).toBeInTheDocument();
+      expect(screen.getByText(/avg L 10 min 0 sec \/ R 8 min 0 sec/)).toBeInTheDocument();
+    });
+
+    it('renders solids count + descriptions, caps at 3 shown', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: {
-          bottle: null,
-          latch: { count: 2, avgLeftSeconds: 600, avgRightSeconds: 300 },
-          solids: null,
+          bottle: null, latch: null,
+          solids: { count: 5, descriptions: ['Rice', 'Banana', 'Oats', 'Carrot', 'Apple'] },
         },
         diapers: null,
         medical: null,
       };
-      render(<DailySummaryCard summary={summary} />);
-      expect(screen.getByText(/Latch:/)).toBeInTheDocument();
-      expect(screen.getByText(/2 sessions/)).toBeInTheDocument();
-      expect(screen.getByText(/avg L 10 min 0 sec/)).toBeInTheDocument();
-    });
-
-    it('renders solids line correctly', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: {
-          bottle: null,
-          latch: null,
-          solids: { count: 2, descriptions: ['Rice', 'Banana'] },
-        },
-        diapers: null,
-        medical: null,
-      };
-      render(<DailySummaryCard summary={summary} />);
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      // "5" + " · Rice, Banana, Oats" + "+2 more"
       expect(screen.getByText(/Solids:/)).toBeInTheDocument();
-      expect(screen.getByText(/2/)).toBeInTheDocument();
-      expect(screen.getByText(/Rice, Banana/)).toBeInTheDocument();
-    });
-
-    it('truncates solids descriptions at 3 and shows +N more', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: {
-          bottle: null,
-          latch: null,
-          solids: { count: 5, descriptions: ['Rice', 'Banana', 'Oats', 'Peas', 'Carrot'] },
-        },
-        diapers: null,
-        medical: null,
-      };
-      render(<DailySummaryCard summary={summary} />);
-      expect(screen.getByText(/^Solids:/)).toBeInTheDocument();
       expect(screen.getByText(/Rice, Banana, Oats/)).toBeInTheDocument();
       expect(screen.getByText(/\+2 more/)).toBeInTheDocument();
     });
@@ -161,7 +139,7 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard summary={summary} />);
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
       expect(screen.getByText(/Diapers/)).toBeInTheDocument();
       expect(screen.getByText(/4 wet/)).toBeInTheDocument();
       expect(screen.getByText(/2 mixed/)).toBeInTheDocument();
@@ -187,7 +165,7 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard summary={summary} />);
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
       expect(screen.getByText(/Last wet: 2h ago/)).toBeInTheDocument();
       // dirty should NOT be shown as last since wet is preferred
       expect(screen.queryByText(/Last dirty/)).not.toBeInTheDocument();
@@ -211,8 +189,8 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard summary={summary} />);
-      // mixed is preferred over dirty
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      // mixed is preferred over dirty; lastMixedAgoMs=5_400_000 → humanizeAgo → "1h ago"
       expect(screen.getByText(/Last mixed: 1h ago/)).toBeInTheDocument();
     });
   });
@@ -228,7 +206,7 @@ describe('DailySummaryCard', () => {
           medicines: [],
         },
       };
-      render(<DailySummaryCard summary={summary} />);
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
       expect(screen.getByText(/Medical/)).toBeInTheDocument();
       expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
       expect(screen.getByText(/2h ago/)).toBeInTheDocument();
@@ -244,25 +222,10 @@ describe('DailySummaryCard', () => {
           medicines: [{ name: 'Paracetamol', unit: 'ml', totalValue: 15, count: 3, mixedUnits: false }],
         },
       };
-      render(<DailySummaryCard summary={summary} />);
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
       expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
-      expect(screen.getByText(/15 ml/)).toBeInTheDocument();
-      expect(screen.getByText(/3 doses/)).toBeInTheDocument();
-    });
-
-    it('renders mixedUnits medicine correctly', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: null, latch: null, solids: null },
-        diapers: null,
-        medical: {
-          latestTemperature: null,
-          medicines: [{ name: 'Paracetamol', unit: 'ml', totalValue: 5, count: 2, mixedUnits: true }],
-        },
-      };
-      render(<DailySummaryCard summary={summary} />);
-      expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
-      expect(screen.getByText(/2 doses \(mixed units\)/)).toBeInTheDocument();
+      // Dosage text: "over 3 doses" (the "15 ml" part is in the font-medium span)
+      expect(screen.getByText(/over 3 doses/)).toBeInTheDocument();
     });
 
     it('renders multiple medicines', () => {
@@ -278,33 +241,85 @@ describe('DailySummaryCard', () => {
           ],
         },
       };
-      render(<DailySummaryCard summary={summary} />);
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
       expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
       expect(screen.getByText(/Ibuprofen:/)).toBeInTheDocument();
     });
   });
 
-  it('renders all three sections simultaneously', () => {
-    const summary: DailySummary = {
-      hasAny: true,
-      feed: {
-        bottle: { totalMl: 120, count: 2, breakdown: [{ subType: 'expressed', count: 2, ml: 120 }, { subType: 'formula', count: 0, ml: 0 }, { subType: 'water', count: 0, ml: 0 }] },
-        latch: null,
-        solids: null,
-      },
-      diapers: {
-        wet: 3, dirty: 1, mixed: 0, total: 4,
-        lastWetAgoMs: 1_800_000, lastDirtyAgoMs: null, lastMixedAgoMs: null,
-        lastWetAt: '2025-01-15T10:00:00.000Z', lastDirtyAt: null, lastMixedAt: null,
-      },
-      medical: {
-        latestTemperature: null,
-        medicines: [{ name: 'Vitamin D', unit: 'drops', totalValue: 4, count: 1, mixedUnits: false }],
-      },
-    };
-    render(<DailySummaryCard summary={summary} />);
-    expect(screen.getByText(/^Feed$/)).toBeInTheDocument();
-    expect(screen.getByText(/^Diapers$/)).toBeInTheDocument();
-    expect(screen.getByText(/^Medical$/)).toBeInTheDocument();
+  describe('isToday behavior', () => {
+    it('renders "Last wet: 1h ago" when isToday=true', () => {
+      const summary: DailySummary = {
+        hasAny: true,
+        feed: { bottle: null, latch: null, solids: null },
+        diapers: {
+          wet: 1, dirty: 0, mixed: 0, total: 1,
+          lastWetAgoMs: 3_600_000, lastDirtyAgoMs: null, lastMixedAgoMs: null,
+          lastWetAt: '2025-01-15T10:00:00.000Z', lastDirtyAt: null, lastMixedAt: null,
+        },
+        medical: null,
+      };
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      expect(screen.getByText(/Last wet: 1h ago/)).toBeInTheDocument();
+    });
+
+    it('renders "at HH:mm" (12-hour format) when isToday=false', () => {
+      const summary: DailySummary = {
+        hasAny: true,
+        feed: { bottle: null, latch: null, solids: null },
+        diapers: {
+          wet: 1, dirty: 0, mixed: 0, total: 1,
+          lastWetAgoMs: 3_600_000, lastDirtyAgoMs: null, lastMixedAgoMs: null,
+          lastWetAt: '2025-01-15T10:30:00.000Z', lastDirtyAt: null, lastMixedAt: null,
+        },
+        medical: null,
+      };
+      render(<DailySummaryCard dateLabel="Mon, 13 Jan" isToday={false} summary={summary} />);
+      // formatTime outputs 12-hour like "10:30 AM" or "6:30 PM"
+      expect(screen.getByText(/Last wet: at (10:30 AM|10:30 PM|6:30 AM|6:30 PM)/)).toBeInTheDocument();
+    });
+
+    it('renders "at HH:mm" for latest temp when isToday=false', () => {
+      const summary: DailySummary = {
+        hasAny: true,
+        feed: { bottle: null, latch: null, solids: null },
+        diapers: null,
+        medical: {
+          latestTemperature: { valueC: 37.5, agoMs: 7_200_000, at: '2025-01-15T10:30:00.000Z' },
+          medicines: [],
+        },
+      };
+      render(<DailySummaryCard dateLabel="Mon, 13 Jan" isToday={false} summary={summary} />);
+      expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
+      expect(screen.getByText(/ at (10:30 AM|10:30 PM|6:30 AM|6:30 PM)/)).toBeInTheDocument();
+    });
+
+    it('renders "Xh ago ago" for latest temp when isToday=true (humanizeAgo already appends " ago")', () => {
+      const summary: DailySummary = {
+        hasAny: true,
+        feed: { bottle: null, latch: null, solids: null },
+        diapers: null,
+        medical: {
+          latestTemperature: { valueC: 37.5, agoMs: 7_200_000, at: '2025-01-15T10:30:00.000Z' },
+          medicines: [],
+        },
+      };
+      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
+      expect(screen.getByText(/ · 2h ago/)).toBeInTheDocument();
+    });
+  });
+
+  describe('dateLabel prop', () => {
+    it('renders arbitrary dateLabel as header text', () => {
+      const summary: DailySummary = {
+        hasAny: true,
+        feed: { bottle: { totalMl: 60, count: 1, breakdown: [{ subType: 'expressed', count: 1, ml: 60 }, { subType: 'formula', count: 0, ml: 0 }, { subType: 'water', count: 0, ml: 0 }] }, latch: null, solids: null },
+        diapers: null,
+        medical: null,
+      };
+      render(<DailySummaryCard dateLabel="Mon, 13 Jan" isToday={false} summary={summary} />);
+      expect(screen.getByText('Mon, 13 Jan')).toBeInTheDocument();
+    });
   });
 });

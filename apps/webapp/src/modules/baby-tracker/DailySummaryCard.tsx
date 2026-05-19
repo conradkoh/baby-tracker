@@ -1,13 +1,16 @@
 'use client';
 
 import { Milk, Baby, Stethoscope } from 'lucide-react';
-import { DateTime } from 'luxon';
 import { Card } from '@/components/ui/card';
 import { DailySummary } from '@/lib/daily-summary';
-import { formatDuration, humanizeAgo } from '@/lib/activity-form-utils';
+import { formatDuration, humanizeAgo, formatTime } from '@/lib/activity-form-utils';
 
 interface DailySummaryCardProps {
   summary: DailySummary;
+  /** Full header label, e.g. "Today · Mon, 19 May" or "Mon, 19 May". Caller decides. */
+  dateLabel: string;
+  /** When true, show "Xh ago" for diaper/medical times. When false, show absolute HH:mm. */
+  isToday: boolean;
 }
 
 /** Capitalise + trim a description for display, max 30 chars. */
@@ -16,11 +19,8 @@ function cleanDescription(desc: string): string {
   return trimmed.length > 30 ? trimmed.slice(0, 27) + '…' : trimmed;
 }
 
-export function DailySummaryCard({ summary }: DailySummaryCardProps) {
+export function DailySummaryCard({ summary, dateLabel, isToday }: DailySummaryCardProps) {
   if (!summary.hasAny) return null;
-
-  const now = DateTime.now();
-  const dateLabel = now.toFormat('ccc, d MMM');
 
   const { feed, diapers, medical } = summary;
 
@@ -29,7 +29,7 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
       {/* Card header */}
       <div className="px-4 py-2 border-b border-border">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Today · {dateLabel}
+          {dateLabel}
         </span>
       </div>
 
@@ -124,18 +124,27 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
                   .join(' · ')}
               </p>
 
-              {/* Informative "last X ago" — prefer wet, then mixed, then dirty */}
+              {/* Informative "last X" — prefer wet, then mixed, then dirty */}
               {(() => {
-                const candidates: { label: string; agoMs: number | null }[] = [
-                  { label: 'wet', agoMs: diapers.lastWetAgoMs },
-                  { label: 'mixed', agoMs: diapers.lastMixedAgoMs },
-                  { label: 'dirty', agoMs: diapers.lastDirtyAgoMs },
+                const candidates: Array<{ label: string; agoMs: number | null; at: string | null }> = [
+                  { label: 'wet', agoMs: diapers.lastWetAgoMs, at: diapers.lastWetAt },
+                  { label: 'mixed', agoMs: diapers.lastMixedAgoMs, at: diapers.lastMixedAt },
+                  { label: 'dirty', agoMs: diapers.lastDirtyAgoMs, at: diapers.lastDirtyAt },
                 ];
                 const first = candidates.find((c) => c.agoMs !== null);
                 if (!first) return null;
+
+                const timeStr = isToday
+                  ? humanizeAgo(first.agoMs!)
+                  : first.at
+                  ? `at ${formatTime(first.at)}`
+                  : null;
+
+                if (!timeStr) return null;
+
                 return (
                   <p className="text-xs text-muted-foreground">
-                    Last {first.label}: {humanizeAgo(first.agoMs!)}
+                    Last {first.label}: {timeStr}
                   </p>
                 );
               })()}
@@ -159,7 +168,11 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
                   <span className="font-medium text-foreground">
                     {medical.latestTemperature.valueC}°C
                   </span>
-                  {` · ${humanizeAgo(medical.latestTemperature.agoMs)} ago`}
+                  {isToday
+                    ? ` · ${humanizeAgo(medical.latestTemperature.agoMs)}`
+                    : medical.latestTemperature.at
+                    ? ` · at ${formatTime(medical.latestTemperature.at)}`
+                    : null}
                 </p>
               )}
 
