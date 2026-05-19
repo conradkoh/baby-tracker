@@ -1,6 +1,6 @@
 'use client';
 
-import { Milk, Baby, Sparkles } from 'lucide-react';
+import { Milk, Baby, ClipboardList } from 'lucide-react';
 import { DailySummary } from '@/lib/daily-summary';
 import { formatDuration, humanizeAgo, formatTime } from '@/lib/activity-form-utils';
 
@@ -19,7 +19,7 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
     <div className="bg-indigo-50/60 dark:bg-indigo-950/20 border-b border-border">
       {/* Header — part of the tinted block, not a separate strip */}
       <div className="flex items-center gap-1.5 px-4 pt-2 pb-1">
-        <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+        <ClipboardList className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
         <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
           Daily Summary
         </span>
