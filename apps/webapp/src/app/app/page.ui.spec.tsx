@@ -337,6 +337,18 @@ describe('App home page', () => {
         expect(screen.queryByText('Feeding Summary')).not.toBeInTheDocument();
       });
     });
+
+    it('shows the Daily Summary card with Today header when any activities exist', async () => {
+      mockResults = makeBottleFeedsForSummary();
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/^Today/)).toBeInTheDocument();
+      });
+    });
   });
 
   // ── 4. Activity display ───────────────────────────────────────
