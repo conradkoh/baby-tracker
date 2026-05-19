@@ -23,8 +23,13 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
   const { feed, diapers, medical } = summary;
 
   return (
-    <Card className="mb-6 p-0">
-      <div className="divide-y divide-border">
+    <Card className="mb-6 p-0 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800">
+      <div className="px-4 py-2 border-b border-indigo-200 dark:border-indigo-800">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+          Daily Summary
+        </h2>
+      </div>
+      <div className="divide-y divide-indigo-200/60 dark:divide-indigo-800/60">
         {/* ── Feed section ──────────────────────────────── */}
         {feed.bottle !== null || feed.latch !== null || feed.solids !== null ? (
           <div className="flex items-start gap-3 px-4 py-2.5">

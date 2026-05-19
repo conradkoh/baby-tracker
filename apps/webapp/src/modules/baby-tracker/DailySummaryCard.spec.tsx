@@ -60,7 +60,7 @@ describe('DailySummaryCard', () => {
         medical: null,
       };
       render(<DailySummaryCard isToday summary={summary} />);
-      // Text is split across elements: "Bottle: " + "120ml" + " · 2 feeds"
+      expect(screen.getByText('Daily Summary')).toBeInTheDocument();
       expect(screen.getByText(/Bottle:/)).toBeInTheDocument();
       expect(screen.getByText(/120ml/)).toBeInTheDocument();
       expect(screen.getByText(/2 feeds/)).toBeInTheDocument();
