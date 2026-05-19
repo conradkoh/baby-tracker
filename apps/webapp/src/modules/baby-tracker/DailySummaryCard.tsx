@@ -6,7 +6,7 @@ import { formatDuration, humanizeAgo, formatTime } from '@/lib/activity-form-uti
 
 interface DailySummaryCardProps {
   summary: DailySummary;
-  /** When true, show "Xh ago" for diaper/medical times. When false, show absolute HH:mm. */
+  /** When true, show "Xh ago" for diaper times. When false, show absolute HH:mm. */
   isToday: boolean;
 }
 
