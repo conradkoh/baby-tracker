@@ -22,17 +22,17 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
   const { feed, diapers } = summary;
 
   return (
-    <div className="border-b border-border">
-      {/* Header strip */}
-      <div className="flex items-center gap-1.5 px-4 py-1.5 bg-muted/30">
-        <Sparkles className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
-        <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
+    <div className="bg-indigo-50/60 dark:bg-indigo-950/20 border-b border-border">
+      {/* Header — part of the tinted block, not a separate strip */}
+      <div className="flex items-center gap-1.5 px-4 pt-2 pb-1">
+        <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+        <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
           Daily Summary
         </span>
       </div>
 
-      {/* Section rows — no dividers */}
-      <div className="pb-1.5 pt-0.5">
+      {/* Section rows — no dividers between rows */}
+      <div className="pb-2">
         {/* ── Feed section ──────────────────────────────── */}
         <div className="flex items-start gap-2 px-4 py-1">
           <Milk className="h-3 w-3 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -120,8 +120,6 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
             </div>
           </div>
         </div>
-
-        
       </div>
     </div>
   );
