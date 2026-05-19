@@ -7,35 +7,27 @@ beforeEach(() => {
   vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
 });
 
-const defaultSummary = {
-  hasAny: false,
-  feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
-  diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
-};
-
 describe('Last24hSummaryCard', () => {
-  it('renders nothing when hasAny is false', () => {
-    const { container } = render(
-      <Last24hSummaryCard summary={defaultSummary} nowMs={Date.now()} />
-    );
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('hides card when hasAny is false even with populated feed/diapers', () => {
+  it('renders all 6 rows even when all values are empty or zero', () => {
     const summary = {
-      hasAny: false,
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
-      diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     const { container } = render(
       <Last24hSummaryCard summary={summary} nowMs={Date.now()} />
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(container.firstChild).not.toBeNull();
+    expect(screen.getByText(/Last:/)).toBeInTheDocument();
+    expect(screen.getByText(/3h:/)).toBeInTheDocument();
+    expect(screen.getByText(/24h:/)).toBeInTheDocument();
+    expect(screen.getByText('Wet:')).toBeInTheDocument();
+    expect(screen.getByText('Mixed:')).toBeInTheDocument();
+    expect(screen.getByText('Dirty:')).toBeInTheDocument();
+    expect(screen.getAllByText(/^\u2014$/)).toHaveLength(6);
   });
 
   it('renders feed stats when values are non-zero', () => {
     const summary = {
-      hasAny: true,
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
       diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
     };
@@ -49,25 +41,8 @@ describe('Last24hSummaryCard', () => {
     expect(screen.getByText(/^\d+h ago$/)).toBeInTheDocument();
   });
 
-  it('renders all rows including em-dashes when values are zero or null', () => {
-    const summary = {
-      hasAny: true,
-      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
-      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
-    };
-    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    expect(screen.getByText(/Last:/)).toBeInTheDocument();
-    expect(screen.getByText(/3h:/)).toBeInTheDocument();
-    expect(screen.getByText(/24h:/)).toBeInTheDocument();
-    expect(screen.getByText('Wet:')).toBeInTheDocument();
-    expect(screen.getByText('Mixed:')).toBeInTheDocument();
-    expect(screen.getByText('Dirty:')).toBeInTheDocument();
-    expect(screen.getAllByText(/^\u2014$/)).toHaveLength(6);
-  });
-
   it('renders non-zero values alongside em-dashes for zero values', () => {
     const summary = {
-      hasAny: true,
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 60, bottleCount: 1 },
       diapers: { wet: 2, dirty: 0, mixed: 0, total: 2 },
     };
@@ -80,7 +55,6 @@ describe('Last24hSummaryCard', () => {
 
   it('renders no em-dashes when all values are non-zero', () => {
     const summary = {
-      hasAny: true,
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2 },
       diapers: { wet: 2, dirty: 1, mixed: 3, total: 6 },
     };
@@ -90,7 +64,6 @@ describe('Last24hSummaryCard', () => {
 
   it('renders diaper labels in DOM order', () => {
     const summary = {
-      hasAny: true,
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
       diapers: { wet: 2, mixed: 1, dirty: 3, total: 6 },
     };
@@ -104,7 +77,6 @@ describe('Last24hSummaryCard', () => {
 
   it('applies font-medium only to volume values, not time-ago', () => {
     const summary = {
-      hasAny: true,
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
@@ -120,7 +92,6 @@ describe('Last24hSummaryCard', () => {
 
   it('renders large diaper counts correctly', () => {
     const summary = {
-      hasAny: true,
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
       diapers: { wet: 99, mixed: 99, dirty: 99, total: 297 },
     };
@@ -133,7 +104,6 @@ describe('Last24hSummaryCard', () => {
 
   it('applies dark mode classes via semantic color tokens', () => {
     const summary = {
-      hasAny: true,
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
       diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
     };

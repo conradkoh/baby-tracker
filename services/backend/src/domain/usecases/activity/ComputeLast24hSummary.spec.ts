@@ -23,10 +23,9 @@ describe('computeLast24hSummary', () => {
   });
 
   describe('empty input', () => {
-    it('returns hasAny: false with all zeros and null lastFeedAtMs', () => {
+    it('returns all zeros and null lastFeedAtMs for empty input', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
       const result = computeLast24hSummary([], Date.now());
-      expect(result.hasAny).toBe(false);
       expect(result.feed.lastFeedAtMs).toBeNull();
       expect(result.feed.last3hMl).toBe(0);
       expect(result.feed.total24hMl).toBe(0);
@@ -44,7 +43,6 @@ describe('computeLast24hSummary', () => {
       const ts = '2025-01-15T08:00:00.000Z';
       const activities = [makeFeed(ts, 'expressed', { volume: { ml: 60 } })];
       const result = computeLast24hSummary(activities, Date.now());
-      expect(result.hasAny).toBe(true);
       expect(result.feed.lastFeedAtMs).toBe(Date.parse(ts));
       expect(result.feed.last3hMl).toBe(0);  // 4h ago, outside 3h window
       expect(result.feed.total24hMl).toBe(60);
@@ -118,7 +116,6 @@ describe('computeLast24hSummary', () => {
         makeDiaper(outside, 'wet'),
       ];
       const result = computeLast24hSummary(activities, Date.now());
-      expect(result.hasAny).toBe(true);
       expect(result.feed.bottleCount).toBe(1);
       expect(result.feed.total24hMl).toBe(60);
       expect(result.diapers.total).toBe(0);
@@ -179,21 +176,20 @@ describe('computeLast24hSummary', () => {
   });
 
   describe('medical activities', () => {
-    it('are ignored (hasAny stays false if only medical)', () => {
+    it('are ignored (all zeroes if only medical)', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
       const activities = [makeTemp('2025-01-15T08:00:00.000Z', 37.5)];
       const result = computeLast24hSummary(activities, Date.now());
-      expect(result.hasAny).toBe(false);
     });
 
-    it('hasAny is true when medical + feed present', () => {
+    it('produces feed volumes when medical + feed present', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
       const activities = [
         makeTemp('2025-01-15T08:00:00.000Z', 37.5),
         makeFeed('2025-01-15T09:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
       ];
       const result = computeLast24hSummary(activities, Date.now());
-      expect(result.hasAny).toBe(true);
+      expect(result.feed.bottleCount).toBe(1);
     });
   });
 
@@ -278,7 +274,7 @@ describe('computeLast24hSummary', () => {
   });
 
   describe('composite input', () => {
-    it('counts feed and diaper, ignores medical, sets hasAny true', () => {
+    it('counts feed and diaper, ignores medical', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
       const activities = [
         makeFeed('2025-01-15T08:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
@@ -287,7 +283,6 @@ describe('computeLast24hSummary', () => {
         makeDiaper('2025-01-15T11:00:00.000Z', 'dirty'),
       ];
       const result = computeLast24hSummary(activities, Date.now());
-      expect(result.hasAny).toBe(true);
       expect(result.feed.bottleCount).toBe(1);
       expect(result.feed.total24hMl).toBe(60);
       expect(result.diapers.wet).toBe(1);
@@ -298,14 +293,13 @@ describe('computeLast24hSummary', () => {
   });
 
   describe('diapers only', () => {
-    it('returns hasAny true with feed fields zeroed when only diapers present', () => {
+    it('returns feed fields zeroed when only diapers present', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
       const activities = [
         makeDiaper('2025-01-15T08:00:00.000Z', 'wet'),
         makeDiaper('2025-01-15T09:00:00.000Z', 'mixed'),
       ];
       const result = computeLast24hSummary(activities, Date.now());
-      expect(result.hasAny).toBe(true);
       expect(result.feed.lastFeedAtMs).toBeNull();
       expect(result.feed.last3hMl).toBe(0);
       expect(result.feed.total24hMl).toBe(0);

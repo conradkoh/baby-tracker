@@ -2,7 +2,6 @@ import type { Activity } from '../../activity/Activity';
 import type { BottleFeedType } from '../../activity/Activity';
 
 export interface Last24hSummary {
-  hasAny: boolean;
   feed: {
     lastFeedAtMs: number | null;
     last3hMl: number;
@@ -32,14 +31,12 @@ export function computeLast24hSummary(
   let wet = 0;
   let dirty = 0;
   let mixed = 0;
-  let hasAny = false;
   const threeHourBoundaryMs = nowMs - 3 * 60 * 60 * 1000;
 
   for (const activity of activities) {
     const tsMs = Date.parse(activity.timestamp);
     if (tsMs <= nowMs && tsMs > windowStartMs) {
       if (activity.type === 'feed') {
-        hasAny = true;
         if (tsMs > (lastFeedAtMs ?? 0)) {
           lastFeedAtMs = tsMs;
         }
@@ -54,7 +51,6 @@ export function computeLast24hSummary(
           bottleCount++;
         }
       } else if (activity.type === 'diaper_change') {
-        hasAny = true;
         const diaperType = activity.diaperChange.type;
         if (diaperType === 'wet') wet++;
         else if (diaperType === 'dirty') dirty++;
@@ -64,7 +60,6 @@ export function computeLast24hSummary(
   }
 
   return {
-    hasAny,
     feed: {
       lastFeedAtMs,
       last3hMl,

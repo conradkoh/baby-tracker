@@ -15,8 +15,6 @@ interface Last24hSummaryCardProps {
 }
 
 export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) {
-  if (!summary.hasAny) return null;
-
   const { feed, diapers } = summary;
 
   return (
