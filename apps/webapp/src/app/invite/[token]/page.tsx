@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
 import { Baby, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { useSessionQuery, useSessionMutation } from 'convex-helpers/react/sessions';
@@ -11,6 +12,16 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 
 export default function InvitePage() {
@@ -30,6 +41,10 @@ export default function InvitePage() {
     !isAuthenticated ? 'skip' : {}
   );
   const acceptInvite = useSessionMutation(api.web.babyTracker.family.acceptInvite);
+  const switchFamily = useSessionMutation(api.web.babyTracker.family.switchFamily);
+
+  const [showSwitchDialog, setShowSwitchDialog] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
 
   // Loading state — wait for invite data and auth resolution
   if (invite === undefined || isAuthLoading) {
@@ -148,25 +163,69 @@ export default function InvitePage() {
   // Already in ANOTHER family
   if (currentFamilyId !== null) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-md">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              Already in a Family
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              You&apos;re already a member of another family. You must leave your current family
-              before joining a new one.
-            </p>
-            <Link href="/app/settings" className="mt-4 inline-block">
-              <Button className="mt-4">Go to Settings</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <>
+        <div className="container mx-auto px-4 py-8 max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <AlertCircle className="h-5 w-5 text-destructive" />
+                Switch Families?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Accepting this invite will leave your current family. If you are the only member,
+                all of that family&apos;s data will be permanently deleted. If others are still in
+                the family, they will keep the data.
+              </p>
+              <Button className="w-full" onClick={() => setShowSwitchDialog(true)}>
+                Switch Families
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <AlertDialog open={showSwitchDialog} onOpenChange={setShowSwitchDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Switch Families?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will leave your current family. If you are the only member, all of that
+                family&apos;s data will be permanently deleted. Continue?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isSwitching}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isSwitching}
+                onClick={async () => {
+                  setIsSwitching(true);
+                  try {
+                    await switchFamily({ token });
+                    toast.success('You switched families!');
+                    setShowSwitchDialog(false);
+                    router.push('/app');
+                  } catch (err) {
+                    console.error('Failed to switch families:', err);
+                    toast.error('Failed to switch families. Please try again.');
+                  } finally {
+                    setIsSwitching(false);
+                  }
+                }}
+              >
+                {isSwitching ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    Switching...
+                  </>
+                ) : (
+                  'Switch Families'
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
     );
   }
 
