@@ -520,7 +520,7 @@ describe('App home page', () => {
   // ── 7. Row click navigation (new edit paths) ──────────────────
 
   describe('row click navigation', () => {
-    it('navigates to feed edit page at /app/feed/edit/[id]', async () => {
+    it('links to feed edit page at /app/feed/edit/[id]', async () => {
       mockResults = [makeLatchActivity({ _id: 'act-feed-1' })];
       mockIsLoading = false;
       mockStatus = 'Exhausted';
@@ -531,14 +531,11 @@ describe('App home page', () => {
         expect(screen.getByText('Latch Feed')).toBeInTheDocument();
       });
 
-      screen.getByText('Latch Feed').closest('button')?.click();
-
-      await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/feed/edit/act-feed-1');
-      });
+      const link = screen.getByText('Latch Feed').closest('a');
+      expect(link).toHaveAttribute('href', '/app/feed/edit/act-feed-1');
     });
 
-    it('navigates to diaper edit page at /app/diaper-change/edit/[id]', async () => {
+    it('links to diaper edit page at /app/diaper-change/edit/[id]', async () => {
       mockResults = [makeDiaperActivity({ _id: 'act-diaper-1' })];
       mockIsLoading = false;
       mockStatus = 'Exhausted';
@@ -549,14 +546,11 @@ describe('App home page', () => {
         expect(screen.getByText('Diaper Change')).toBeInTheDocument();
       });
 
-      screen.getByText('Diaper Change').closest('button')?.click();
-
-      await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/diaper-change/edit/act-diaper-1');
-      });
+      const link = screen.getByText('Diaper Change').closest('a');
+      expect(link).toHaveAttribute('href', '/app/diaper-change/edit/act-diaper-1');
     });
 
-    it('navigates to medical edit page at /app/medical/edit/[id]', async () => {
+    it('links to medical edit page at /app/medical/edit/[id]', async () => {
       mockResults = [makeTemperatureActivity({ _id: 'act-med-1' })];
       mockIsLoading = false;
       mockStatus = 'Exhausted';
@@ -567,11 +561,8 @@ describe('App home page', () => {
         expect(screen.getByText('Temperature')).toBeInTheDocument();
       });
 
-      screen.getByText('Temperature').closest('button')?.click();
-
-      await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith('/app/medical/edit/act-med-1');
-      });
+      const link = screen.getByText('Temperature').closest('a');
+      expect(link).toHaveAttribute('href', '/app/medical/edit/act-med-1');
     });
   });
 

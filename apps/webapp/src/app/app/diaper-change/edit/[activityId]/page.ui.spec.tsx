@@ -215,13 +215,17 @@ describe('Diaper change edit page', () => {
   // ── 5. Delete ─────────────────────────────────────────────────
 
   describe('delete', () => {
-    it('renders a Delete button', async () => {
+    it('renders a Delete button in the kebab menu', async () => {
+      const user = userEvent.setup();
       mockQueryResult = EXISTING_DIRTY;
       render(<DiaperEditPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Delete')).toBeInTheDocument();
+        expect(screen.getByLabelText('More options')).toBeInTheDocument();
       });
+
+      await user.click(screen.getByLabelText('More options'));
+      expect(await screen.findByText('Delete')).toBeInTheDocument();
     });
 
     it('calls delete mutation then navigates to activities', async () => {
@@ -230,10 +234,11 @@ describe('Diaper change edit page', () => {
       render(<DiaperEditPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Delete')).toBeInTheDocument();
+        expect(screen.getByLabelText('More options')).toBeInTheDocument();
       });
 
-      await user.click(screen.getByText('Delete'));
+      await user.click(screen.getByLabelText('More options'));
+      await user.click(await screen.findByText('Delete'));
 
       await waitFor(() => {
         expect(mockMutate).toHaveBeenCalledWith({

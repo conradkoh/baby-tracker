@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { Clock, FlaskConical, Calendar, Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
@@ -448,9 +449,10 @@ export default function AppHomePage() {
                       const isLastOverall = isLastTimeGroup && isLastInGroup;
 
                       return (
-                        <button
+                        <Link
                           key={activity._id as string}
-                          onClick={() => router.push(getEditPath(activity))}
+                          href={getEditPath(activity)}
+                          prefetch={true}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors ${!isLastOverall ? 'border-b border-border' : ''}`}
                         >
                           <span className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-muted">
@@ -467,7 +469,7 @@ export default function AppHomePage() {
                           <span className="text-xs text-muted-foreground flex-shrink-0">
                             {formatTime(activity.timestamp as string)}
                           </span>
-                        </button>
+                        </Link>
                       );
                     })}
                   </div>
