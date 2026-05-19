@@ -338,7 +338,7 @@ describe('App home page', () => {
       });
     });
 
-    it('shows the Daily Summary card with Today header when any activities exist', async () => {
+    it('shows the Daily Summary card when any activities exist', async () => {
       mockResults = makeBottleFeedsForSummary();
       mockIsLoading = false;
       mockStatus = 'Exhausted';
@@ -346,7 +346,7 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/^Today/)).toBeInTheDocument();
+        expect(screen.getByText(/Feeding Summary/)).toBeInTheDocument();
       });
     });
   });
@@ -627,7 +627,7 @@ describe('App home page', () => {
       expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
     });
 
-    it('shows a yesterday card (no "Today ·" prefix) when only yesterday data exists', () => {
+    it('shows a yesterday card (no "Today ·" on card) when only yesterday data exists', () => {
       // yesterday 10:00 AM UTC = 2025-05-18T10:00:00Z
       mockResults = [
         {
@@ -643,15 +643,16 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      // No "Today ·" card — but a yesterday card should exist (without Today prefix)
+      // No "Today ·" prefix anywhere — the card has no date header anymore; page h3 shows date
       expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
-      // The yesterday card has a date heading (e.g. "Mon, 18 May") but no "Today ·" prefix
-      // Just verify the card is rendered with a different date label
+      // Yesterday's date heading appears in the h3
+      expect(screen.getByText(/May 18, 2025/)).toBeInTheDocument();
+      // Card still shows bottle data
       const allCards = screen.queryAllByText(/Bottle:/);
       expect(allCards.length).toBe(1); // yesterday card has the feed summary
     });
 
-    it('shows "Today · <date>" header when today has any activity', () => {
+    it('shows date heading when today has any activity', () => {
       // today at 08:00
       mockResults = [
         {
@@ -667,7 +668,8 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      expect(screen.getByText(/^Today/)).toBeInTheDocument();
+      // Date heading (h3) shows today's date; card has no date header anymore
+      expect(screen.getByText(/May 19, 2025/)).toBeInTheDocument();
     });
 
     it('bottle line shows breakdown with both subtypes for mixed expressed+formula', () => {
@@ -808,8 +810,8 @@ describe('App home page', () => {
       // Both unique names should appear (dedup by case-insensitive key, original case preserved, alpha-sorted: "Rice, banana")
       expect(screen.getByText(/Rice, banana/)).toBeInTheDocument();
       // Not 3 (the dup 'banana' should not add a third entry in the daily summary list)
-      // Scoped to the DailySummaryCard to avoid matching the activity feed row label "Banana"
-      const cardRoot = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
+      // Scoped to the DailySummaryCard using the Solids: label to find the card root
+      const cardRoot = screen.getByText(/Solids:/).closest('[data-slot="card"]') as HTMLElement;
       expect(within(cardRoot).queryByText('Banana')).not.toBeInTheDocument();
     });
 
@@ -898,8 +900,8 @@ describe('App home page', () => {
 
       expect(screen.getByText(/Latest temp:/)).toBeInTheDocument();
       // The temperature "37.8°C" appears in both the card's summary section AND the
-      // activity feed row. Use within() to scope to the DailySummaryCard to avoid ambiguity.
-      const cardRoot = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
+      // activity feed row. Use within() to scope to the DailySummaryCard using "Latest temp:" to find the card.
+      const cardRoot = screen.getByText(/Latest temp:/).closest('[data-slot="card"]') as HTMLElement;
       expect(within(cardRoot).getByText(/37\.8/)).toBeInTheDocument();
       expect(within(cardRoot).getByText(/°C/)).toBeInTheDocument();
     });
@@ -986,7 +988,7 @@ describe('App home page', () => {
       expect(feedSectionHeadings.length).toBeGreaterThan(0);
 
       // No Diapers or Medical sections in the Daily Summary card
-      const cardRoot = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
+      const cardRoot = screen.getByText(/Bottle:/).closest('[data-slot="card"]') as HTMLElement;
       const diaperLabels = within(cardRoot).queryAllByText(/^Diapers$/);
       const medicalLabels = within(cardRoot).queryAllByText(/^Medical$/);
       expect(diaperLabels.length).toBe(0);
@@ -1012,8 +1014,8 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      // The today card appears in the page — its header contains "Today · ..."
-      const dailySummaryCard = screen.getByText(/Today ·/).closest('[data-slot="card"]') as HTMLElement;
+      // The today card appears in the page — locate via "Bottle:" text inside it
+      const dailySummaryCard = screen.getByText(/Bottle:/).closest('[data-slot="card"]') as HTMLElement;
       expect(dailySummaryCard).not.toBeNull();
 
       // Feeding Summary is a separate rose card at the top of the page, above all day groups.
@@ -1053,19 +1055,16 @@ describe('App home page', () => {
 
       render(<AppHomePage />);
 
-      // Today card has "Today · ..." prefix
-      expect(screen.getByText(/^Today/)).toBeInTheDocument();
+      // Today shows the date in the h3 heading
+      expect(screen.getByText(/May 19, 2025/)).toBeInTheDocument();
 
-      // Yesterday card exists: has a card with a date label without "Today ·" prefix
-      // (the date label for yesterday will be a date like "Sun, 18 May")
+      // Yesterday card exists: has a card with diaper data
       const allCards = screen.queryAllByText(/Bottle:/);
       expect(allCards.length).toBe(1); // only today's card has bottle data
       const allDiapers = screen.queryAllByText(/Diapers/);
       expect(allDiapers.length).toBe(1); // only yesterday's card has diaper data
-      // The yesterday card should have a date heading (e.g. "May 18, 2025")
-      // We detect it by finding a card whose header does NOT include "Today ·"
+      // The yesterday card exists (no date label on card anymore, h3 shows date)
       const yesterdayCard = screen.getByText(/Diapers/).closest('[data-slot="card"]') as HTMLElement;
-      // Just verify the card is there (date heading could be any format like "Mon, 18 May" or "May 18, 2025")
       expect(yesterdayCard).not.toBeNull();
     });
 

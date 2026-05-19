@@ -433,7 +433,6 @@ export default function AppHomePage() {
         const summary = summaryByDateKey.get(dateKey);
         const isToday = dateKey === todayKey;
         const firstTs = dateGroup.timeGroups[0].activities[0].timestamp as string;
-        const dateLabel = isToday ? `Today · ${formatDate(firstTs)}` : formatDate(firstTs);
 
         return (
           <div key={dateKey} className="mb-6">
@@ -442,7 +441,7 @@ export default function AppHomePage() {
             </h3>
 
             {summary && (
-              <DailySummaryCard summary={summary} dateLabel={dateLabel} isToday={isToday} />
+              <DailySummaryCard summary={summary} isToday={isToday} />
             )}
 
             <Card>

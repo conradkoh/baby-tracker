@@ -7,8 +7,6 @@ import { formatDuration, humanizeAgo, formatTime } from '@/lib/activity-form-uti
 
 interface DailySummaryCardProps {
   summary: DailySummary;
-  /** Full header label, e.g. "Today · Mon, 19 May" or "Mon, 19 May". Caller decides. */
-  dateLabel: string;
   /** When true, show "Xh ago" for diaper/medical times. When false, show absolute HH:mm. */
   isToday: boolean;
 }
@@ -19,20 +17,13 @@ function cleanDescription(desc: string): string {
   return trimmed.length > 30 ? trimmed.slice(0, 27) + '…' : trimmed;
 }
 
-export function DailySummaryCard({ summary, dateLabel, isToday }: DailySummaryCardProps) {
+export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
   if (!summary.hasAny) return null;
 
   const { feed, diapers, medical } = summary;
 
   return (
     <Card className="mb-6 p-0">
-      {/* Card header */}
-      <div className="px-4 py-2 border-b border-border">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {dateLabel}
-        </span>
-      </div>
-
       <div className="divide-y divide-border">
         {/* ── Feed section ──────────────────────────────── */}
         {feed.bottle !== null || feed.latch !== null || feed.solids !== null ? (

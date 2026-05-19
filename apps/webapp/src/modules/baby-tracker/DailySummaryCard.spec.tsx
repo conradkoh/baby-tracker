@@ -15,25 +15,22 @@ const defaultSummary: DailySummary = {
   medical: null,
 };
 
-const TODAY_LABEL = 'Today · Wed, 15 Jan';
-
 describe('DailySummaryCard', () => {
   it('renders nothing when hasAny is false', () => {
     const { container } = render(
-      <DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={defaultSummary} />
+      <DailySummaryCard isToday summary={defaultSummary} />
     );
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders nothing when hasAny is false', () => {
     const { container } = render(
-      <DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={defaultSummary} />
+      <DailySummaryCard isToday summary={defaultSummary} />
     );
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders card with header even when all sections are null (hasAny:true is inconsistent)', () => {
-    // hasAny:true but all null — component still renders (hasAny drives null-return, not section nulls)
     const summary: DailySummary = {
       hasAny: true,
       feed: { bottle: null, latch: null, solids: null },
@@ -41,9 +38,8 @@ describe('DailySummaryCard', () => {
       medical: null,
     };
     const { container } = render(
-      <DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />
+      <DailySummaryCard isToday summary={summary} />
     );
-    // Card renders but body is empty — not fully empty (header is present)
     expect(container.querySelector('[data-slot="card"]')).not.toBeNull();
   });
 
@@ -63,7 +59,7 @@ describe('DailySummaryCard', () => {
         diapers: null,
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       // Text is split across elements: "Bottle: " + "120ml" + " · 2 feeds"
       expect(screen.getByText(/Bottle:/)).toBeInTheDocument();
       expect(screen.getByText(/120ml/)).toBeInTheDocument();
@@ -85,7 +81,7 @@ describe('DailySummaryCard', () => {
         diapers: null,
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText('(2 expressed, 1 formula)')).toBeInTheDocument();
     });
 
@@ -96,7 +92,7 @@ describe('DailySummaryCard', () => {
         diapers: null,
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       // "3 session" + "s" (split across two elements)
       expect(screen.getByText(/3 session/)).toBeInTheDocument();
       expect(screen.getByText(/avg L 10 min 0 sec \/ R 8 min 0 sec/)).toBeInTheDocument();
@@ -112,7 +108,7 @@ describe('DailySummaryCard', () => {
         diapers: null,
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       // "5" + " · Rice, Banana, Oats" + "+2 more"
       expect(screen.getByText(/Solids:/)).toBeInTheDocument();
       expect(screen.getByText(/Rice, Banana, Oats/)).toBeInTheDocument();
@@ -139,7 +135,7 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Diapers/)).toBeInTheDocument();
       expect(screen.getByText(/4 wet/)).toBeInTheDocument();
       expect(screen.getByText(/2 mixed/)).toBeInTheDocument();
@@ -165,7 +161,7 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Last wet: 2h ago/)).toBeInTheDocument();
       // dirty should NOT be shown as last since wet is preferred
       expect(screen.queryByText(/Last dirty/)).not.toBeInTheDocument();
@@ -189,7 +185,7 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       // mixed is preferred over dirty; lastMixedAgoMs=5_400_000 → humanizeAgo → "1h ago"
       expect(screen.getByText(/Last mixed: 1h ago/)).toBeInTheDocument();
     });
@@ -206,7 +202,7 @@ describe('DailySummaryCard', () => {
           medicines: [],
         },
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Medical/)).toBeInTheDocument();
       expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
       expect(screen.getByText(/2h ago/)).toBeInTheDocument();
@@ -222,7 +218,7 @@ describe('DailySummaryCard', () => {
           medicines: [{ name: 'Paracetamol', unit: 'ml', totalValue: 15, count: 3, mixedUnits: false }],
         },
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
       // Dosage text: "over 3 doses" (the "15 ml" part is in the font-medium span)
       expect(screen.getByText(/over 3 doses/)).toBeInTheDocument();
@@ -241,7 +237,7 @@ describe('DailySummaryCard', () => {
           ],
         },
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Paracetamol:/)).toBeInTheDocument();
       expect(screen.getByText(/Ibuprofen:/)).toBeInTheDocument();
     });
@@ -259,7 +255,7 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Last wet: 1h ago/)).toBeInTheDocument();
     });
 
@@ -274,7 +270,7 @@ describe('DailySummaryCard', () => {
         },
         medical: null,
       };
-      render(<DailySummaryCard dateLabel="Mon, 13 Jan" isToday={false} summary={summary} />);
+      render(<DailySummaryCard isToday={false} summary={summary} />);
       // formatTime outputs 12-hour like "10:30 AM" or "6:30 PM"
       expect(screen.getByText(/Last wet: at (10:30 AM|10:30 PM|6:30 AM|6:30 PM)/)).toBeInTheDocument();
     });
@@ -289,7 +285,7 @@ describe('DailySummaryCard', () => {
           medicines: [],
         },
       };
-      render(<DailySummaryCard dateLabel="Mon, 13 Jan" isToday={false} summary={summary} />);
+      render(<DailySummaryCard isToday={false} summary={summary} />);
       expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
       expect(screen.getByText(/ at (10:30 AM|10:30 PM|6:30 AM|6:30 PM)/)).toBeInTheDocument();
     });
@@ -304,22 +300,9 @@ describe('DailySummaryCard', () => {
           medicines: [],
         },
       };
-      render(<DailySummaryCard dateLabel={TODAY_LABEL} isToday summary={summary} />);
+      render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/37\.5.*°C/)).toBeInTheDocument();
       expect(screen.getByText(/ · 2h ago/)).toBeInTheDocument();
-    });
-  });
-
-  describe('dateLabel prop', () => {
-    it('renders arbitrary dateLabel as header text', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: { totalMl: 60, count: 1, breakdown: [{ subType: 'expressed', count: 1, ml: 60 }, { subType: 'formula', count: 0, ml: 0 }, { subType: 'water', count: 0, ml: 0 }] }, latch: null, solids: null },
-        diapers: null,
-        medical: null,
-      };
-      render(<DailySummaryCard dateLabel="Mon, 13 Jan" isToday={false} summary={summary} />);
-      expect(screen.getByText('Mon, 13 Jan')).toBeInTheDocument();
     });
   });
 });
