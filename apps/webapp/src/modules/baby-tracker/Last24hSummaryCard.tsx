@@ -36,10 +36,14 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
                 <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
                   <span>Last:</span>
                   <span className="text-foreground">{timeAgoFromMs(nowMs - feed.lastFeedAtMs)}</span>
-                  {feed.bottleCount >= 1 && (
+                  {feed.last3hMl > 0 && (
                     <>
                       <span>3h:</span>
                       <span className="font-medium text-foreground">{feed.last3hMl} ml</span>
+                    </>
+                  )}
+                  {feed.bottleCount >= 1 && (
+                    <>
                       <span>24h:</span>
                       <span className="font-medium text-foreground">{feed.total24hMl} ml</span>
                     </>

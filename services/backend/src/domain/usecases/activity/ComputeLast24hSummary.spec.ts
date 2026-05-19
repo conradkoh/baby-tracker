@@ -196,4 +196,123 @@ describe('computeLast24hSummary', () => {
       expect(result.hasAny).toBe(true);
     });
   });
+
+  describe('order independence', () => {
+    it('produces same result regardless of input order', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const activitiesSorted = [
+        makeFeed('2025-01-15T10:00:00.000Z', 'expressed', { volume: { ml: 90 } }),
+        makeFeed('2025-01-15T11:00:00.000Z', 'formula', { volume: { ml: 70 } }),
+        makeDiaper('2025-01-15T10:00:00.000Z', 'wet'),
+      ];
+      const activitiesShuffled = [
+        makeDiaper('2025-01-15T10:00:00.000Z', 'wet'),
+        makeFeed('2025-01-15T11:00:00.000Z', 'formula', { volume: { ml: 70 } }),
+        makeFeed('2025-01-15T10:00:00.000Z', 'expressed', { volume: { ml: 90 } }),
+      ];
+      const resultSorted = computeLast24hSummary(activitiesSorted, Date.now());
+      const resultShuffled = computeLast24hSummary(activitiesShuffled, Date.now());
+      expect(resultShuffled).toEqual(resultSorted);
+    });
+  });
+
+  describe('duplicate timestamps', () => {
+    it('counts both bottles at the same timestamp', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const ts = '2025-01-15T08:00:00.000Z';
+      const activities = [
+        makeFeed(ts, 'expressed', { volume: { ml: 60 } }),
+        makeFeed(ts, 'formula', { volume: { ml: 90 } }),
+      ];
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.feed.bottleCount).toBe(2);
+      expect(result.feed.total24hMl).toBe(150);
+      expect(result.feed.lastFeedAtMs).toBe(Date.parse(ts));
+    });
+  });
+
+  describe('mixed feed types — lastFeedAtMs', () => {
+    it('picks latest feed regardless of type (latch more recent than bottle)', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const breastTs = '2025-01-15T11:58:00.000Z';  // 2 min ago
+      const bottleTs = '2025-01-15T11:55:00.000Z';   // 5 min ago
+      const activities = [
+        makeFeed(bottleTs, 'expressed', { volume: { ml: 60 } }),
+        makeFeed(breastTs, 'latch', { duration: { left: { seconds: 300 }, right: { seconds: 200 } } }),
+      ];
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.feed.lastFeedAtMs).toBe(Date.parse(breastTs));
+      expect(result.feed.bottleCount).toBe(1);
+      expect(result.feed.total24hMl).toBe(60);
+    });
+  });
+
+  describe('zero-volume bottle', () => {
+    it('counts 0-ml bottle in bottleCount but contributes 0 to volumes', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const activities = [
+        makeFeed('2025-01-15T08:00:00.000Z', 'expressed', { volume: { ml: 0 } }),
+        makeFeed('2025-01-15T09:00:00.000Z', 'formula', { volume: { ml: 90 } }),
+      ];
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.feed.bottleCount).toBe(2);
+      expect(result.feed.total24hMl).toBe(90);
+      expect(result.feed.last3hMl).toBe(0);
+    });
+  });
+
+  describe('future-timestamped activity', () => {
+    it('is excluded from all aggregates', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const futureTs = '2025-01-15T13:00:00.000Z';
+      const activities = [
+        makeFeed('2025-01-15T08:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
+        makeFeed(futureTs, 'formula', { volume: { ml: 90 } }),
+        makeDiaper(futureTs, 'wet'),
+      ];
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.feed.bottleCount).toBe(1);
+      expect(result.feed.total24hMl).toBe(60);
+      expect(result.diapers.total).toBe(0);
+    });
+  });
+
+  describe('composite input', () => {
+    it('counts feed and diaper, ignores medical, sets hasAny true', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const activities = [
+        makeFeed('2025-01-15T08:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
+        makeDiaper('2025-01-15T09:00:00.000Z', 'wet'),
+        makeTemp('2025-01-15T10:00:00.000Z', 37.5),
+        makeDiaper('2025-01-15T11:00:00.000Z', 'dirty'),
+      ];
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.hasAny).toBe(true);
+      expect(result.feed.bottleCount).toBe(1);
+      expect(result.feed.total24hMl).toBe(60);
+      expect(result.diapers.wet).toBe(1);
+      expect(result.diapers.dirty).toBe(1);
+      expect(result.diapers.mixed).toBe(0);
+      expect(result.diapers.total).toBe(2);
+    });
+  });
+
+  describe('diapers only', () => {
+    it('returns hasAny true with feed fields zeroed when only diapers present', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const activities = [
+        makeDiaper('2025-01-15T08:00:00.000Z', 'wet'),
+        makeDiaper('2025-01-15T09:00:00.000Z', 'mixed'),
+      ];
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.hasAny).toBe(true);
+      expect(result.feed.lastFeedAtMs).toBeNull();
+      expect(result.feed.last3hMl).toBe(0);
+      expect(result.feed.total24hMl).toBe(0);
+      expect(result.feed.bottleCount).toBe(0);
+      expect(result.diapers.wet).toBe(1);
+      expect(result.diapers.mixed).toBe(1);
+      expect(result.diapers.total).toBe(2);
+    });
+  });
 });
