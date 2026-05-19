@@ -11,11 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { computeDailySummary } from '@/lib/daily-summary';
+import { DailySummaryCard } from '@/modules/baby-tracker/DailySummaryCard';
 import {
   formatTime,
   formatDate,
   toDateKey,
   formatDuration,
+  timeAgoFromMs,
 } from '@/lib/activity-form-utils';
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -140,17 +143,8 @@ interface SummaryStats {
   twentyFourHourVolume: number;
 }
 
-/** Compute human-readable "time ago" string from milliseconds difference. */
-function timeAgoFromMs(diffMs: number): string {
-  const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return 'just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
+// timeAgoFromMs imported from @/lib/activity-form-utils
+
 
 /** Compute summary stats from activities (mirrors mobile logic). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -265,6 +259,9 @@ export default function AppHomePage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const summaryStats = useMemo(() => computeSummaryStats(results as any[]), [results]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dailySummary = useMemo(() => computeDailySummary(results as any[]), [results]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
@@ -383,6 +380,8 @@ export default function AppHomePage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <QuickActionGrid router={router} />
+
+      <DailySummaryCard summary={dailySummary} />
 
       {/* Summary card — only when feed data exists */}
       {summaryStats.lastFeedTimeAgo && (
