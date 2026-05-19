@@ -7,6 +7,8 @@ import { v } from 'convex/values';
 import { paginationOptsValidator } from 'convex/server';
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { mutation, query } from '../../_generated/server';
+import { ConvexError } from 'convex/values';
+import { DateTime } from 'luxon';
 import { ConvexWebActivityRepository } from '../../../src/infra/ConvexWebActivityRepository';
 import {
   createActivity as createActivityUseCase,
@@ -14,6 +16,7 @@ import {
   deleteActivity as deleteActivityUseCase,
   getActivityById as getActivityByIdUseCase,
   getActivities as getActivitiesUseCase,
+  getLast24hSummary as getLast24hSummaryUseCase,
 } from '../../../src/domain/usecases/activity';
 import { requireAuthAndFamily } from './helpers';
 
@@ -161,5 +164,26 @@ export const getByTimestampDescPaginated = query({
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
     return await getActivitiesUseCase(repo, userId.toString(), args.paginationOpts);
+  },
+});
+
+/**
+ * Get a summary of all feed and diaper activities from the last 24 hours.
+ * The nowIso argument is rounded to the nearest 5-min bucket by the client
+ * using useNowBucket5Min(), so Convex can memoize the result per bucket.
+ */
+export const getLast24hSummary = query({
+  args: {
+    ...SessionIdArg,
+    nowIso: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
+    const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
+    const nowMs = DateTime.fromISO(args.nowIso).toMillis();
+    if (!Number.isFinite(nowMs)) {
+      throw new ConvexError({ code: 'BAD_REQUEST', message: 'Invalid nowIso' });
+    }
+    return await getLast24hSummaryUseCase(repo, nowMs);
   },
 });

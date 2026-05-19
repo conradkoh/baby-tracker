@@ -42,6 +42,7 @@ vi.mock('convex-helpers/react/sessions', () => ({
     isLoading: false,
     loadMore: vi.fn(),
   }),
+  useSessionQuery: () => null,
 }));
 
 // Mutable auth state

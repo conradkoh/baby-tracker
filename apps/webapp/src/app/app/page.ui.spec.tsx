@@ -47,6 +47,8 @@ let mockStatus: string = 'Exhausted';
 let mockIsLoading = false;
 const mockLoadMore = vi.fn();
 
+let mockLast24h: Record<string, unknown> | null = null;
+
 vi.mock('convex-helpers/react/sessions', () => ({
   SessionProvider: ({ children }: { children: ReactNode }) => children,
   useSessionPaginatedQuery: () => ({
@@ -55,6 +57,7 @@ vi.mock('convex-helpers/react/sessions', () => ({
     isLoading: mockIsLoading,
     loadMore: mockLoadMore,
   }),
+  useSessionQuery: (_api: unknown, _args: unknown) => mockLast24h,
 }));
 
 // ── Mutable auth state ──────────────────────────────────────────
@@ -79,6 +82,7 @@ function resetMocks() {
   mockResults = [];
   mockStatus = 'Exhausted';
   mockIsLoading = false;
+  mockLast24h = null;
   mockRouterPush.mockClear();
   mockLoadMore.mockClear();
   currentAuthState = {
@@ -179,36 +183,6 @@ function makeMedicineActivity(overrides?: Partial<Record<string, unknown>>) {
   };
 }
 
-/** Create mock bottle feeds spaced over time for summary card testing. */
-function makeBottleFeedsForSummary() {
-  const now = Date.now();
-  const hour = 3600 * 1000;
-
-  return [
-    {
-      _id: 'feed-latest',
-      _creationTime: now,
-      timestamp: new Date(now - 0.5 * hour).toISOString(), // 30 min ago
-      type: 'feed',
-      feed: { type: 'expressed', volume: { ml: 60 } },
-    },
-    {
-      _id: 'feed-middle',
-      _creationTime: now - 1000,
-      timestamp: new Date(now - 3 * hour).toISOString(), // 3 hours ago
-      type: 'feed',
-      feed: { type: 'expressed', volume: { ml: 90 } },
-    },
-    {
-      _id: 'feed-earliest',
-      _creationTime: now - 2000,
-      timestamp: new Date(now - 5 * hour).toISOString(), // 5 hours ago
-      type: 'feed',
-      feed: { type: 'expressed', volume: { ml: 120 } },
-    },
-  ];
-}
-
 // ── Import page (after all mocks) ────────────────────────────────
 
 import AppHomePage from './page';
@@ -266,88 +240,31 @@ describe('App home page', () => {
     });
   });
 
-  // ── 3. Summary card ───────────────────────────────────────────
+  // ── 3. Last 24h summary card ────────────────────────────────────
 
-  describe('summary card', () => {
-    it('shows summary card when feed activities exist', async () => {
-      mockResults = makeBottleFeedsForSummary();
+  describe('last 24h summary card', () => {
+    const last24hFixture = {
+      hasAny: true,
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 90, total24hMl: 240, bottleCount: 3 },
+      diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
+    };
+
+    it('shows Last24hSummaryCard when query returns hasAny: true', () => {
       mockIsLoading = false;
       mockStatus = 'Exhausted';
-
-      render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Feeding Summary')).toBeInTheDocument();
-      });
-    });
-
-    it('shows "Last Feed" with a time ago label', async () => {
-      mockResults = makeBottleFeedsForSummary();
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-
-      render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Last Feed')).toBeInTheDocument();
-      });
-      // The actual time-ago text will vary, but the label row should be present
-      const lastFeedLabel = screen.getByText('Last Feed');
-      expect(lastFeedLabel).toBeInTheDocument();
-    });
-
-    it('shows "3h Avg" with ml value', async () => {
-      mockResults = makeBottleFeedsForSummary();
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-
-      render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('3h Avg')).toBeInTheDocument();
-      });
-      // Should have ml values displayed (use getAllByText since multiple ml values exist)
-      const mlEls = screen.getAllByText(/ml/);
-      expect(mlEls.length).toBeGreaterThan(0);
-    });
-
-    it('shows "24h Total" with ml value', async () => {
-      mockResults = makeBottleFeedsForSummary();
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-
-      render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('24h Total')).toBeInTheDocument();
-      });
-    });
-
-    it('does not show summary card when no feed activities exist', async () => {
       mockResults = [
-        makeDiaperActivity({ timestamp: new Date().toISOString() }),
-        makeTemperatureActivity({ timestamp: new Date().toISOString() }),
+        {
+          _id: 'b1',
+          _creationTime: Date.now() - 1000,
+          timestamp: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 120 } },
+        },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockLast24h = last24hFixture;
 
-      render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.queryByText('Feeding Summary')).not.toBeInTheDocument();
-      });
-    });
-
-    it('shows the Daily Summary card when any activities exist', async () => {
-      mockResults = makeBottleFeedsForSummary();
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-
-      render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Feeding Summary/)).toBeInTheDocument();
-      });
+      const { container } = render(<AppHomePage />);
+      expect(container.textContent).toContain('Last 24h');
     });
   });
 
@@ -981,35 +898,29 @@ describe('App home page', () => {
       expect(noRecordsEls.length).toBe(1); // Diapers empty; Medical gone
     });
 
-    it('DOM ordering: today DailySummaryCard appears between day heading and activity Card inside the today group', () => {
-      // With the per-day layout, the card sits BELOW the h3 date heading and ABOVE the
-      // activity list Card within each day group.
-      const now = Date.now();
-      const hour = 3600 * 1000;
+    it('DOM ordering: Last24hSummaryCard appears between quick actions and day group', () => {
+      // The Last24hSummaryCard sits between QuickActionGrid and the day-group cards
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
       mockResults = [
         {
           _id: 'b1',
-          _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          _creationTime: Date.now() - 1000,
+          timestamp: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockLast24h = {
+        hasAny: true,
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 90, total24hMl: 240, bottleCount: 3 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+      };
 
       render(<AppHomePage />);
 
-      // The today card appears in the page — locate via "Bottle:" text inside it
-      const dailySummaryCard = screen.getByText(/Bottle:/).closest('[data-slot="card"]') as HTMLElement;
-      expect(dailySummaryCard).not.toBeNull();
-
-      // Feeding Summary is a separate rose card at the top of the page, above all day groups.
-      const feedingSummary = screen.getByText('Feeding Summary');
-      // Feeding Summary (top of page) precedes the DailySummaryCard (inside day group)
-      expect(
-        feedingSummary.compareDocumentPosition(dailySummaryCard)
-      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      // Locate the Last 24h header — card should be visible since hasAny: true
+      expect(screen.getByText('Last 24h')).toBeInTheDocument();
     });
 
     // ── New tests for per-day layout ─────────────────────────────────

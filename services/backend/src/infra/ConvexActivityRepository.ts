@@ -81,4 +81,27 @@ export class ConvexActivityRepository implements IActivityRepository {
       continueCursor: result.continueCursor,
     };
   }
+
+  async listByTimestampRange(
+    deviceId: string,
+    fromIso: string,
+    toIso: string
+  ): Promise<Activity[]> {
+    const stream = await activityStreamForDevice(this.ctx, { deviceId });
+    if (!stream) {
+      throw new Error(`activity stream not found for device: ${deviceId}`);
+    }
+    const docs = await this.ctx.db
+      .query('activities')
+      .withIndex('by_activityStreamId_by_timestamp', (q) =>
+        q
+          .eq('activityStreamId', stream._id)
+          .gte('activity.timestamp', fromIso)
+          .lte('activity.timestamp', toIso)
+      )
+      .order('asc')
+      .collect();
+
+    return docs.map((doc) => doc.activity as Activity);
+  }
 }
