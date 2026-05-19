@@ -23,13 +23,6 @@ describe('DailySummaryCard', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders nothing when hasAny is false', () => {
-    const { container } = render(
-      <DailySummaryCard isToday summary={defaultSummary} />
-    );
-    expect(container).toBeEmptyDOMElement();
-  });
-
   it('renders with Daily Summary header even when all sections are null (hasAny:true is inconsistent)', () => {
     const summary: DailySummary = {
       hasAny: true,
@@ -40,9 +33,7 @@ describe('DailySummaryCard', () => {
     render(
       <DailySummaryCard isToday summary={summary} />
     );
-    // Component renders the "Daily Summary" header strip (no Card wrapper anymore)
     expect(screen.getByText('Daily Summary')).toBeInTheDocument();
-    // Both sections show "No records" when their data is null (Feed + Diapers; Medical removed)
     expect(screen.getAllByText('No records')).toHaveLength(2);
   });
 
@@ -51,11 +42,7 @@ describe('DailySummaryCard', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: {
-          bottle: { totalMl: 120, count: 2, breakdown: [
-            { subType: 'expressed', count: 2, ml: 120 },
-            { subType: 'formula', count: 0, ml: 0 },
-            { subType: 'water', count: 0, ml: 0 },
-          ] },
+          bottle: { totalMl: 120, count: 2 },
           latch: null,
           solids: null,
         },
@@ -69,53 +56,31 @@ describe('DailySummaryCard', () => {
       expect(screen.getByText(/2 feeds/)).toBeInTheDocument();
     });
 
-    it('renders bottle breakdown only when multiple sub-types present', () => {
+    it('renders latch total duration', () => {
       const summary: DailySummary = {
         hasAny: true,
-        feed: {
-          bottle: { totalMl: 180, count: 3, breakdown: [
-            { subType: 'expressed', count: 2, ml: 120 },
-            { subType: 'formula', count: 1, ml: 60 },
-            { subType: 'water', count: 0, ml: 0 },
-          ] },
-          latch: null,
-          solids: null,
-        },
+        feed: { bottle: null, latch: { totalSeconds: 1500 }, solids: null },
         diapers: null,
         medical: null,
       };
       render(<DailySummaryCard isToday summary={summary} />);
-      expect(screen.getByText('(2 expressed, 1 formula)')).toBeInTheDocument();
+      expect(screen.getByText(/Latch:/)).toBeInTheDocument();
+      expect(screen.getByText(/25 min 0 sec total/)).toBeInTheDocument();
     });
 
-    it('renders latch session count + avg durations', () => {
-      const summary: DailySummary = {
-        hasAny: true,
-        feed: { bottle: null, latch: { count: 3, avgLeftSeconds: 600, avgRightSeconds: 480 }, solids: null },
-        diapers: null,
-        medical: null,
-      };
-      render(<DailySummaryCard isToday summary={summary} />);
-      // "3 session" + "s" (split across two elements)
-      expect(screen.getByText(/3 session/)).toBeInTheDocument();
-      expect(screen.getByText(/avg L 10 min 0 sec \/ R 8 min 0 sec/)).toBeInTheDocument();
-    });
-
-    it('renders solids count + descriptions, caps at 3 shown', () => {
+    it('renders solids count only', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: {
           bottle: null, latch: null,
-          solids: { count: 5, descriptions: ['Rice', 'Banana', 'Oats', 'Carrot', 'Apple'] },
+          solids: { count: 5 },
         },
         diapers: null,
         medical: null,
       };
       render(<DailySummaryCard isToday summary={summary} />);
-      // "5" + " · Rice, Banana, Oats" + "+2 more"
       expect(screen.getByText(/Solids:/)).toBeInTheDocument();
-      expect(screen.getByText(/Rice, Banana, Oats/)).toBeInTheDocument();
-      expect(screen.getByText(/\+2 more/)).toBeInTheDocument();
+      expect(screen.getByText(/5/)).toBeInTheDocument();
     });
   });
 
@@ -166,7 +131,6 @@ describe('DailySummaryCard', () => {
       };
       render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Last wet: 2h ago/)).toBeInTheDocument();
-      // dirty should NOT be shown as last since wet is preferred
       expect(screen.queryByText(/Last dirty/)).not.toBeInTheDocument();
     });
 
@@ -189,7 +153,6 @@ describe('DailySummaryCard', () => {
         medical: null,
       };
       render(<DailySummaryCard isToday summary={summary} />);
-      // mixed is preferred over dirty; lastMixedAgoMs=5_400_000 → humanizeAgo → "1h ago"
       expect(screen.getByText(/Last mixed: 1h ago/)).toBeInTheDocument();
     });
   });
@@ -222,14 +185,12 @@ describe('DailySummaryCard', () => {
         medical: null,
       };
       render(<DailySummaryCard isToday={false} summary={summary} />);
-      // formatTime outputs 12-hour like "10:30 AM" or "6:30 PM"
       expect(screen.getByText(/Last wet: at (10:30 AM|10:30 PM|6:30 AM|6:30 PM)/)).toBeInTheDocument();
     });
-
   });
 
   describe('all sections rendered', () => {
-    it('renders Feed and Diapers sections with appropriate content', () => {
+    it('renders Feed and Diapers columns with appropriate content', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: { bottle: null, latch: null, solids: null },
@@ -239,7 +200,6 @@ describe('DailySummaryCard', () => {
       render(<DailySummaryCard summary={summary} isToday={true} />);
       expect(screen.getByText('Feed')).toBeInTheDocument();
       expect(screen.getByText('Diapers')).toBeInTheDocument();
-      // Medical section removed — only Feed shows "No records" (Diapers has data)
       expect(screen.getAllByText('No records')).toHaveLength(1);
     });
   });

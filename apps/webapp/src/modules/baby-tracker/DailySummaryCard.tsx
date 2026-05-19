@@ -10,12 +10,6 @@ interface DailySummaryCardProps {
   isToday: boolean;
 }
 
-/** Capitalise + trim a description for display, max 30 chars. */
-function cleanDescription(desc: string): string {
-  const trimmed = desc.trim();
-  return trimmed.length > 30 ? trimmed.slice(0, 27) + '…' : trimmed;
-}
-
 export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
   if (!summary.hasAny) return null;
 
@@ -31,12 +25,12 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
         </span>
       </div>
 
-      {/* Section rows — no dividers between rows */}
-      <div className="pb-2">
-        {/* ── Feed section ──────────────────────────────── */}
-        <div className="flex items-start gap-2 px-4 py-1">
+      {/* Feed + Diapers side-by-side */}
+      <div className="grid grid-cols-2 gap-3 px-4 pb-2">
+        {/* ── Feed column ─────────────────────────────── */}
+        <div className="flex items-start gap-2">
           <Milk className="h-3 w-3 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Feed</p>
             <div className="text-xs text-muted-foreground">
               {feed.bottle !== null || feed.latch !== null || feed.solids !== null ? (
@@ -45,31 +39,16 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
                     <p>
                       Bottle: <span className="font-medium text-foreground">{feed.bottle.totalMl}ml</span>
                       {` · ${feed.bottle.count} feed${feed.bottle.count !== 1 ? 's' : ''}`}
-                      {(() => {
-                        const active = feed.bottle.breakdown.filter((b) => b.count > 0);
-                        if (active.length > 1) {
-                          return <span className="text-muted-foreground"> ({active.map((b) => `${b.count} ${b.subType}`).join(', ')})</span>;
-                        }
-                        return null;
-                      })()}
                     </p>
                   )}
                   {feed.latch !== null && (
                     <p>
-                      Latch: {feed.latch.count} session{feed.latch.count !== 1 ? 's' : ''}
-                      {` · avg L ${formatDuration(feed.latch.avgLeftSeconds)} / R ${formatDuration(feed.latch.avgRightSeconds)}`}
+                      Latch: {formatDuration(feed.latch.totalSeconds)} total
                     </p>
                   )}
                   {feed.solids !== null && (
                     <p>
                       Solids: <span className="font-medium text-foreground">{feed.solids.count}</span>
-                      {feed.solids.descriptions.length > 0 && (
-                        <>
-                          {' · '}
-                          {feed.solids.descriptions.slice(0, 3).map((d) => cleanDescription(d)).join(', ')}
-                          {feed.solids.descriptions.length > 3 && ` +${feed.solids.descriptions.length - 3} more`}
-                        </>
-                      )}
                     </p>
                   )}
                 </>
@@ -80,10 +59,10 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
           </div>
         </div>
 
-        {/* ── Diaper section ───────────────────────────── */}
-        <div className="flex items-start gap-2 px-4 py-1">
+        {/* ── Diapers column ──────────────────────────── */}
+        <div className="flex items-start gap-2">
           <Baby className="h-3 w-3 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Diapers</p>
             <div className="text-xs text-muted-foreground">
               {diapers !== null && diapers.total > 0 ? (

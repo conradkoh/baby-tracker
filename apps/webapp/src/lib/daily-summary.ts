@@ -56,29 +56,12 @@ export function toDateKey(dt: DateTime): string {
 
 // ── Output types ──────────────────────────────────────────────────────────────
 
-export interface BottleBreakdown {
-  subType: 'expressed' | 'formula' | 'water';
-  count: number;
-  ml: number;
-}
-
 export interface DailySummary {
   hasAny: boolean;
   feed: {
-    bottle: {
-      totalMl: number;
-      count: number;
-      breakdown: BottleBreakdown[];
-    } | null;
-    latch: {
-      count: number;
-      avgLeftSeconds: number;
-      avgRightSeconds: number;
-    } | null;
-    solids: {
-      count: number;
-      descriptions: string[];
-    } | null;
+    bottle: { totalMl: number; count: number } | null;
+    latch: { totalSeconds: number } | null;
+    solids: { count: number } | null;
   };
   diapers: {
     wet: number;
@@ -151,16 +134,10 @@ export function computeDailySummary(
   // Aggregate feed
   let bottleTotalMl = 0;
   let bottleCount = 0;
-  const bottleBreakdown: Record<string, { count: number; ml: number }> = {
-    expressed: { count: 0, ml: 0 },
-    formula: { count: 0, ml: 0 },
-    water: { count: 0, ml: 0 },
-  };
-  let latchCount = 0;
   let latchLeftTotal = 0;
   let latchRightTotal = 0;
-  const solidsDescriptions: string[] = [];
-  const seenSolids = new Set<string>();
+  let latchCount = 0;
+  let solidsCount = 0;
 
   // Aggregate diapers
   let wetCount = 0;
@@ -186,18 +163,12 @@ export function computeDailySummary(
           const ml = (act.feed.volume?.ml as number) ?? 0;
           bottleTotalMl += ml;
           bottleCount++;
-          bottleBreakdown[ft].count++;
-          bottleBreakdown[ft].ml += ml;
         } else if (ft === 'latch') {
           latchCount++;
           latchLeftTotal += (act.feed.duration?.left?.seconds as number) ?? 0;
           latchRightTotal += (act.feed.duration?.right?.seconds as number) ?? 0;
         } else if (ft === 'solids') {
-          const desc = (act.feed.description as string) ?? '';
-          if (desc && !seenSolids.has(desc.toLowerCase())) {
-            seenSolids.add(desc.toLowerCase());
-            solidsDescriptions.push(desc);
-          }
+          solidsCount++;
         }
         break;
       }
@@ -256,27 +227,15 @@ export function computeDailySummary(
       ? {
           totalMl: bottleTotalMl,
           count: bottleCount,
-          breakdown: (['expressed', 'formula', 'water'] as const).map((st) => ({
-            subType: st,
-            count: bottleBreakdown[st].count,
-            ml: bottleBreakdown[st].ml,
-          })),
         }
       : null;
 
   const latchBlock =
     latchCount > 0
-      ? {
-          count: latchCount,
-          avgLeftSeconds: Math.round(latchLeftTotal / latchCount),
-          avgRightSeconds: Math.round(latchRightTotal / latchCount),
-        }
+      ? { totalSeconds: latchLeftTotal + latchRightTotal }
       : null;
 
-  const solidsBlock =
-    solidsDescriptions.length > 0
-      ? { count: solidsDescriptions.length, descriptions: solidsDescriptions }
-      : null;
+  const solidsBlock = solidsCount > 0 ? { count: solidsCount } : null;
 
   const diaperBlock =
     wetCount + dirtyCount + mixedCount > 0

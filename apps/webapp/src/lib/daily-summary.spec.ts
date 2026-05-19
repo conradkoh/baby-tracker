@@ -100,24 +100,9 @@ describe('computeDailySummary', () => {
       const result = computeDailySummary(activities, { ...range, referenceTime: ref });
 
       expect(result.hasAny).toBe(true);
-      expect(result.feed.bottle).toEqual({
-        totalMl: 210,
-        count: 3,
-        breakdown: [
-          { subType: 'expressed', count: 2, ml: 120 },
-          { subType: 'formula', count: 1, ml: 90 },
-          { subType: 'water', count: 0, ml: 0 },
-        ],
-      });
-      expect(result.feed.latch).toEqual({
-        count: 1,
-        avgLeftSeconds: 300,
-        avgRightSeconds: 180,
-      });
-      expect(result.feed.solids).toEqual({
-        count: 2, // Rice deduped (case-insensitive), Banana added
-        descriptions: ['Rice', 'Banana'],
-      });
+      expect(result.feed.bottle).toEqual({ totalMl: 210, count: 3 });
+      expect(result.feed.latch).toEqual({ totalSeconds: 480 });
+      expect(result.feed.solids).toEqual({ count: 3 });
     });
   });
 
@@ -242,7 +227,7 @@ describe('computeDailySummary', () => {
 
       const result = computeDailySummary(activities, { ...range, referenceTime: ref });
       expect(result.hasAny).toBe(true);
-      expect(result.feed.latch).toEqual({ count: 1, avgLeftSeconds: 300, avgRightSeconds: 200 });
+      expect(result.feed.latch).toEqual({ totalSeconds: 500 });
     });
 
     it('treats 00:30 UTC as previous local day in UTC+8', () => {
@@ -257,7 +242,7 @@ describe('computeDailySummary', () => {
 
       const result = computeDailySummary(activities, { ...range, referenceTime: ref });
       expect(result.hasAny).toBe(true);
-      expect(result.feed.latch).toEqual({ count: 1, avgLeftSeconds: 100, avgRightSeconds: 100 });
+      expect(result.feed.latch).toEqual({ totalSeconds: 200 });
     });
   });
 
@@ -276,15 +261,7 @@ describe('computeDailySummary', () => {
 
       const result = computeDailySummary(activities as readonly unknown[], { ...range, referenceTime: ref });
       // Should not throw — all skipped gracefully
-      expect(result.feed.bottle).toEqual({
-        totalMl: 0,
-        count: 1,
-        breakdown: [
-          { subType: 'expressed', count: 0, ml: 0 },
-          { subType: 'formula', count: 0, ml: 0 },
-          { subType: 'water', count: 1, ml: 0 },
-        ],
-      });
+      expect(result.feed.bottle).toEqual({ totalMl: 0, count: 1 });
     });
 
     it('skips unparseable timestamps', () => {
@@ -299,8 +276,7 @@ describe('computeDailySummary', () => {
 
       const result = computeDailySummary(activities, { ...range, referenceTime: ref });
       expect(result.hasAny).toBe(true);
-      expect(result.feed.latch!.count).toBe(1);
-      expect(result.feed.latch!.avgLeftSeconds).toBe(200);
+      expect(result.feed.latch!.totalSeconds).toBe(400);
     });
   });
 
@@ -376,7 +352,7 @@ describe('computeDailySummariesByDay', () => {
     expect(result).toHaveLength(1);
     expect(result[0].dateKey).toBe('2025-01-15');
     expect(result[0].summary.feed.bottle?.totalMl).toBe(150);
-    expect(result[0].summary.feed.latch?.count).toBe(1);
+    expect(result[0].summary.feed.latch?.totalSeconds).toBe(500);
   });
 
   it('skips days where hasAny is false', () => {

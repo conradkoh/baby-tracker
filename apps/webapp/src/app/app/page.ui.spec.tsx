@@ -706,8 +706,8 @@ describe('App home page', () => {
       expect(screen.getByText(/Bottle:/)).toBeInTheDocument();
       // total = 60+90+120 = 270
       expect(screen.getByText(/270ml/)).toBeInTheDocument();
-      // breakdown: 2 expressed, 1 formula (parenthetical)
-      expect(screen.getByText(/2 expressed, 1 formula/)).toBeInTheDocument();
+      // 3 feeds total
+      expect(screen.getByText(/3 feeds/)).toBeInTheDocument();
     });
 
     it('bottle line hides breakdown parenthetical when only one active subtype', () => {
@@ -764,12 +764,8 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       expect(screen.getByText(/Latch:/)).toBeInTheDocument();
-      expect(screen.getByText(/2 sessions/)).toBeInTheDocument();
-      // avg L: (600+900)/2 = 750s = 12 min 30 sec; avg R: (300+450)/2 = 375s = 6 min 15 sec
-      expect(screen.getByText(/avg L 12 min 30 sec/)).toBeInTheDocument();
-      // "6 min 15 sec" is a contiguous text node inside the <p>; the "avg R " prefix
-      // lives in a separate child element so it can't be matched as a single string.
-      expect(screen.getByText(/6 min 15 sec/)).toBeInTheDocument();
+      // total seconds = (600+300) + (900+450) = 900 + 1350 = 2250
+      expect(screen.getByText(/37 min 30 sec total/)).toBeInTheDocument();
     });
 
     it('solids deduplicates by case-insensitive name and shows all unique names', () => {
@@ -804,15 +800,8 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       expect(screen.getByText(/Solids:/)).toBeInTheDocument();
-      // count = 2 (unique names: Banana + Rice, case-insensitive dedup removes lowercase "banana")
-      // "Solids:" and "2" are in separate child elements — match them individually
-      expect(screen.getByText('2')).toBeInTheDocument();
-      // Both unique names should appear (dedup by case-insensitive key, original case preserved, alpha-sorted: "Rice, banana")
-      expect(screen.getByText(/Rice, banana/)).toBeInTheDocument();
-      // Not 3 (the dup 'banana' should not add a third entry in the daily summary list)
-      // Scoped to the DailySummaryCard section using "Solids:" to find it within the page
-      const dailySummarySection = screen.getByText(/Solids:/).closest('div') as HTMLElement;
-      expect(within(dailySummarySection).queryByText('Banana')).not.toBeInTheDocument();
+      // count = 3 (solids deduplication removed, just counts total solids entries)
+      expect(screen.getByText('3')).toBeInTheDocument();
     });
 
     it('diaper counts omit zero types (2 wet + 1 mixed, 0 dirty → no dirty text)', () => {
