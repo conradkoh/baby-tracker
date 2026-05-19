@@ -33,21 +33,18 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
             <p className="text-xs font-semibold text-foreground mb-0.5">Feed</p>
             <div className="text-xs text-muted-foreground">
               {feed.lastFeedAtMs !== null ? (
-                <>
-                  <p>Last: {timeAgoFromMs(nowMs - feed.lastFeedAtMs)}</p>
+                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+                  <span>Last:</span>
+                  <span className="text-foreground">{timeAgoFromMs(nowMs - feed.lastFeedAtMs)}</span>
                   {feed.bottleCount >= 1 && (
                     <>
-                      <p>
-                        3h:{' '}
-                        <span className="font-medium text-foreground">{feed.last3hMl} ml</span>
-                      </p>
-                      <p>
-                        24h:{' '}
-                        <span className="font-medium text-foreground">{feed.total24hMl} ml</span>
-                      </p>
+                      <span>3h:</span>
+                      <span className="font-medium text-foreground">{feed.last3hMl} ml</span>
+                      <span>24h:</span>
+                      <span className="font-medium text-foreground">{feed.total24hMl} ml</span>
                     </>
                   )}
-                </>
+                </div>
               ) : (
                 <p className="italic">No feeds</p>
               )}
@@ -61,15 +58,26 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
             <p className="text-xs font-semibold text-foreground mb-0.5">Diapers</p>
             <div className="text-xs text-muted-foreground">
               {diapers.total > 0 ? (
-                <p>
-                  {[
-                    diapers.wet > 0 ? `${diapers.wet} wet` : null,
-                    diapers.mixed > 0 ? `${diapers.mixed} mixed` : null,
-                    diapers.dirty > 0 ? `${diapers.dirty} dirty` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
+                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+                  {diapers.wet > 0 && (
+                    <>
+                      <span>Wet:</span>
+                      <span className="font-medium text-foreground">{diapers.wet}</span>
+                    </>
+                  )}
+                  {diapers.mixed > 0 && (
+                    <>
+                      <span>Mixed:</span>
+                      <span className="font-medium text-foreground">{diapers.mixed}</span>
+                    </>
+                  )}
+                  {diapers.dirty > 0 && (
+                    <>
+                      <span>Dirty:</span>
+                      <span className="font-medium text-foreground">{diapers.dirty}</span>
+                    </>
+                  )}
+                </div>
               ) : (
                 <p className="italic">No changes</p>
               )}

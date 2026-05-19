@@ -68,9 +68,11 @@ describe('Last24hSummaryCard', () => {
       diapers: { wet: 3, dirty: 1, mixed: 0, total: 4 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    expect(screen.getByText(/3 wet/)).toBeInTheDocument();
-    expect(screen.getByText(/1 dirty/)).toBeInTheDocument();
-    expect(screen.queryByText(/mixed/)).not.toBeInTheDocument();
+    expect(screen.getByText('Wet:')).toBeInTheDocument();
+    expect(screen.getByText(/^3$/)).toBeInTheDocument();
+    expect(screen.getByText('Dirty:')).toBeInTheDocument();
+    expect(screen.getByText(/^1$/)).toBeInTheDocument();
+    expect(screen.queryByText('Mixed:')).not.toBeInTheDocument();
   });
 
   it('shows "No feeds" when lastFeedAtMs is null', () => {
