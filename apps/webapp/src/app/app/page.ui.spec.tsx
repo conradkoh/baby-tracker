@@ -245,7 +245,7 @@ describe('App home page', () => {
   describe('last 24h summary card', () => {
     const last24hFixture = {
       hasAny: true,
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 90, total24hMl: 240, bottleCount: 3 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
       diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
     };
 
@@ -913,7 +913,7 @@ describe('App home page', () => {
       ];
       mockLast24h = {
         hasAny: true,
-        feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 90, total24hMl: 240, bottleCount: 3 },
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
         diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
       };
 

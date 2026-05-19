@@ -28,7 +28,7 @@ describe('computeLast24hSummary', () => {
       const result = computeLast24hSummary([], Date.now());
       expect(result.hasAny).toBe(false);
       expect(result.feed.lastFeedAtMs).toBeNull();
-      expect(result.feed.threeHourAvgMl).toBe(0);
+      expect(result.feed.last3hMl).toBe(0);
       expect(result.feed.total24hMl).toBe(0);
       expect(result.feed.bottleCount).toBe(0);
       expect(result.diapers.wet).toBe(0);
@@ -39,53 +39,71 @@ describe('computeLast24hSummary', () => {
   });
 
   describe('single feed inside window', () => {
-    it('sets lastFeedAtMs, threeHourAvgMl is 0 (need >= 2)', () => {
+    it('sets lastFeedAtMs and total24hMl', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
       const ts = '2025-01-15T08:00:00.000Z';
       const activities = [makeFeed(ts, 'expressed', { volume: { ml: 60 } })];
       const result = computeLast24hSummary(activities, Date.now());
       expect(result.hasAny).toBe(true);
       expect(result.feed.lastFeedAtMs).toBe(Date.parse(ts));
-      expect(result.feed.threeHourAvgMl).toBe(0);
+      expect(result.feed.last3hMl).toBe(0);  // 4h ago, outside 3h window
       expect(result.feed.total24hMl).toBe(60);
       expect(result.feed.bottleCount).toBe(1);
     });
   });
 
-  describe('2+ bottle feeds → extrapolation formula', () => {
-    it('matches old computeSummaryStats extrapolation', () => {
+  describe('last3hMl — real sum of last 3 hours', () => {
+    it('is 0 when no bottle feeds in last 3h', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
-      const now = Date.now();
-      const t1 = '2025-01-15T06:00:00.000Z'; // 6h ago, 80ml
-      const t2 = '2025-01-15T08:00:00.000Z'; // 4h ago, 90ml
-      const t3 = '2025-01-15T10:00:00.000Z'; // 2h ago, 70ml
       const activities = [
-        makeFeed(t1, 'expressed', { volume: { ml: 80 } }),
-        makeFeed(t2, 'formula', { volume: { ml: 90 } }),
-        makeFeed(t3, 'expressed', { volume: { ml: 70 } }),
+        makeFeed('2025-01-15T06:00:00.000Z', 'expressed', { volume: { ml: 80 } }), // 6h ago
+        makeFeed('2025-01-15T08:00:00.000Z', 'formula', { volume: { ml: 90 } }),   // 4h ago
       ];
-      const result = computeLast24hSummary(activities, now);
-
-      expect(result.hasAny).toBe(true);
-      expect(result.feed.bottleCount).toBe(3);
-      expect(result.feed.total24hMl).toBe(240);
-
-      const latest = { dateMs: Date.parse(t3), volumeMl: 70 };
-      const earliest = { dateMs: Date.parse(t1), volumeMl: 80 };
-      const totalVol = 240;
-      const totalDurationMins = (latest.dateMs - earliest.dateMs) / (60 * 1000);
-      const minutelyVolume = (totalVol - latest.volumeMl) / totalDurationMins;
-      const expected3h = Math.ceil(minutelyVolume * 60 * 3);
-      expect(result.feed.threeHourAvgMl).toBe(expected3h);
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.feed.last3hMl).toBe(0);  // both outside 3h window
+      expect(result.feed.total24hMl).toBe(170);
     });
 
-    it('returns 0 for threeHourAvgMl when only 1 bottle feed', () => {
+    it('sums bottles inside 3h window and excludes those 3h-24h ago', () => {
       vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
       const activities = [
-        makeFeed('2025-01-15T08:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
-        makeFeed('2025-01-15T08:00:00.000Z', 'latch', { duration: { left: { seconds: 300 }, right: { seconds: 200 } } }),
+        makeFeed('2025-01-15T06:00:00.000Z', 'expressed', { volume: { ml: 80 } }), // 6h ago
+        makeFeed('2025-01-15T10:00:00.000Z', 'formula', { volume: { ml: 90 } }),   // 2h ago
+        makeFeed('2025-01-15T11:00:00.000Z', 'expressed', { volume: { ml: 70 } }), // 1h ago
       ];
-      expect(computeLast24hSummary(activities, Date.now()).feed.threeHourAvgMl).toBe(0);
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.feed.total24hMl).toBe(240);
+      expect(result.feed.last3hMl).toBe(160);  // 90 + 70 (within 3h)
+    });
+
+    it('excludes breastfeed / solids from last3hMl', () => {
+      vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
+      const activities = [
+        makeFeed('2025-01-15T11:00:00.000Z', 'latch', { duration: { left: { seconds: 300 }, right: { seconds: 200 } } }),
+        makeFeed('2025-01-15T10:30:00.000Z', 'solids', { description: 'carrots' }),
+      ];
+      const result = computeLast24hSummary(activities, Date.now());
+      expect(result.feed.last3hMl).toBe(0);
+      expect(result.feed.total24hMl).toBe(0);
+      expect(result.feed.bottleCount).toBe(0);
+    });
+
+    it('is exclusive on the 3h boundary (tsMs > nowMs - 3h)', () => {
+      vi.useRealTimers();
+      const now = new Date('2025-01-15T12:00:00.000Z').getTime();
+      const justInside = new Date(now - 3 * 60 * 60 * 1000 + 1).toISOString();  // 2h 59m 59s ago
+      const exactly3hAgo = new Date(now - 3 * 60 * 60 * 1000).toISOString();   // exactly 3h ago
+      const justOutside = new Date(now - 3 * 60 * 60 * 1000 - 1).toISOString(); // 3h 1ms ago
+
+      const activities = [
+        makeFeed(justInside, 'expressed', { volume: { ml: 60 } }),
+        makeFeed(exactly3hAgo, 'formula', { volume: { ml: 90 } }),
+        makeFeed(justOutside, 'expressed', { volume: { ml: 30 } }),
+      ];
+
+      const result = computeLast24hSummary(activities, now);
+      expect(result.feed.last3hMl).toBe(60);  // only justInside counts
+      expect(result.feed.total24hMl).toBe(180);
     });
   });
 
@@ -136,7 +154,7 @@ describe('computeLast24hSummary', () => {
       const result = computeLast24hSummary(activities, Date.now());
       expect(result.feed.bottleCount).toBe(3);
       expect(result.feed.total24hMl).toBe(160);
-      expect(result.feed.threeHourAvgMl).toBeGreaterThan(0);
+      expect(result.feed.last3hMl).toBe(0); // expressed/formula/water at 7-9h are outside 3h window
     });
   });
 

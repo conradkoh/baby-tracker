@@ -9,7 +9,7 @@ beforeEach(() => {
 
 const defaultSummary = {
   hasAny: false,
-  feed: { lastFeedAtMs: null, threeHourAvgMl: 0, total24hMl: 0, bottleCount: 0 },
+  feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
   diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
 };
 
@@ -24,34 +24,47 @@ describe('Last24hSummaryCard', () => {
   it('renders feed stats correctly with ≥2 bottle feeds', () => {
     const summary = {
       hasAny: true,
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 90, total24hMl: 240, bottleCount: 3 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
       diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText('Last 24h')).toBeInTheDocument();
     expect(screen.getByText(/Last:/)).toBeInTheDocument();
-    expect(screen.getByText(/3h avg:/)).toBeInTheDocument();
+    expect(screen.getByText(/3h:/)).toBeInTheDocument();
     expect(screen.getByText(/90 ml/)).toBeInTheDocument();
     expect(screen.getByText(/24h:/)).toBeInTheDocument();
     expect(screen.getByText(/240 ml/)).toBeInTheDocument();
   });
 
-  it('hides 3h avg / 24h total when bottleCount < 2', () => {
+  it('renders both volume lines when bottleCount === 1', () => {
     const summary = {
       hasAny: true,
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 0, total24hMl: 60, bottleCount: 1 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 60, bottleCount: 1 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText(/Last:/)).toBeInTheDocument();
-    expect(screen.queryByText(/3h avg:/)).not.toBeInTheDocument();
+    expect(screen.getByText(/3h:/)).toBeInTheDocument();
+    expect(screen.getByText(/24h:/)).toBeInTheDocument();
+    expect(screen.getAllByText(/60 ml/)).toHaveLength(2);
+  });
+
+  it('hides volume lines when bottleCount === 0', () => {
+    const summary = {
+      hasAny: true,
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    expect(screen.getByText(/Last:/)).toBeInTheDocument();
+    expect(screen.queryByText(/3h:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/24h:/)).not.toBeInTheDocument();
   });
 
   it('renders diaper counts excluding zeros', () => {
     const summary = {
       hasAny: true,
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
       diapers: { wet: 3, dirty: 1, mixed: 0, total: 4 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -63,7 +76,7 @@ describe('Last24hSummaryCard', () => {
   it('shows "No feeds" when lastFeedAtMs is null', () => {
     const summary = {
       hasAny: true,
-      feed: { lastFeedAtMs: null, threeHourAvgMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -73,7 +86,7 @@ describe('Last24hSummaryCard', () => {
   it('shows "No changes" when no diapers', () => {
     const summary = {
       hasAny: true,
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -83,12 +96,12 @@ describe('Last24hSummaryCard', () => {
   it('applies dark mode classes via semantic color tokens', () => {
     const summary = {
       hasAny: true,
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, threeHourAvgMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
       diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
     };
     const { container } = render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     const root = container.firstChild as Element;
-    expect(root.className).toMatch(/bg-indigo-50/);
-    expect(root.className).toMatch(/dark:bg-indigo-950/);
+    expect(root.className).toMatch(/bg-rose-50/);
+    expect(root.className).toMatch(/dark:bg-rose-950/);
   });
 });

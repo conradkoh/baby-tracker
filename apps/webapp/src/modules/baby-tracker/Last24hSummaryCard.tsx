@@ -18,28 +18,28 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
   const { feed, diapers } = summary;
 
   return (
-    <div className="bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900 rounded-lg mb-6">
+    <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
       <div className="flex items-center gap-1.5 px-4 pt-2 pb-1">
-        <Clock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-        <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 uppercase tracking-wide">
+        <Clock className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+        <span className="text-xs font-semibold text-rose-900 dark:text-rose-200 uppercase tracking-wide">
           Last 24h
         </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 px-4 pb-2">
         <div className="flex items-start gap-2">
-          <Milk className="h-3 w-3 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+          <Milk className="h-3 w-3 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Feed</p>
             <div className="text-xs text-muted-foreground">
               {feed.lastFeedAtMs !== null ? (
                 <>
                   <p>Last: {timeAgoFromMs(nowMs - feed.lastFeedAtMs)}</p>
-                  {feed.bottleCount >= 2 && (
+                  {feed.bottleCount >= 1 && (
                     <>
                       <p>
-                        3h avg:{' '}
-                        <span className="font-medium text-foreground">{feed.threeHourAvgMl} ml</span>
+                        3h:{' '}
+                        <span className="font-medium text-foreground">{feed.last3hMl} ml</span>
                       </p>
                       <p>
                         24h:{' '}
@@ -56,7 +56,7 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
         </div>
 
         <div className="flex items-start gap-2">
-          <Baby className="h-3 w-3 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+          <Baby className="h-3 w-3 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Diapers</p>
             <div className="text-xs text-muted-foreground">

@@ -5,7 +5,7 @@ export interface Last24hSummary {
   hasAny: boolean;
   feed: {
     lastFeedAtMs: number | null;
-    threeHourAvgMl: number;
+    last3hMl: number;
     total24hMl: number;
     bottleCount: number;
   };
@@ -27,11 +27,13 @@ export function computeLast24hSummary(
 
   let lastFeedAtMs: number | null = null;
   let total24hMl = 0;
+  let last3hMl = 0;
   let bottleCount = 0;
   let wet = 0;
   let dirty = 0;
   let mixed = 0;
   let hasAny = false;
+  const threeHourBoundaryMs = nowMs - 3 * 60 * 60 * 1000;
 
   for (const activity of activities) {
     const tsMs = Date.parse(activity.timestamp);
@@ -46,6 +48,9 @@ export function computeLast24hSummary(
         if (BOTTLE_TYPES.includes(feedType as BottleFeedType)) {
           const vol = (activity.feed as { type: BottleFeedType; volume: { ml: number } }).volume.ml;
           total24hMl += vol;
+          if (tsMs > threeHourBoundaryMs) {
+            last3hMl += vol;
+          }
           bottleCount++;
         }
       } else if (activity.type === 'diaper_change') {
@@ -58,40 +63,11 @@ export function computeLast24hSummary(
     }
   }
 
-  let threeHourAvgMl = 0;
-  if (bottleCount >= 2) {
-    const bottleFeedsInWindow: { dateMs: number; volumeMl: number }[] = [];
-    for (const activity of activities) {
-      const tsMs = Date.parse(activity.timestamp);
-      if (tsMs <= nowMs && tsMs > windowStartMs && activity.type === 'feed') {
-        const feedType = activity.feed.type;
-        if (BOTTLE_TYPES.includes(feedType as BottleFeedType)) {
-          bottleFeedsInWindow.push({
-            dateMs: tsMs,
-            volumeMl: (activity.feed as { type: BottleFeedType; volume: { ml: number } }).volume.ml,
-          });
-        }
-      }
-    }
-
-    if (bottleFeedsInWindow.length >= 2) {
-      bottleFeedsInWindow.sort((a, b) => b.dateMs - a.dateMs);
-      const latest = bottleFeedsInWindow[0];
-      const earliest = bottleFeedsInWindow[bottleFeedsInWindow.length - 1];
-      const totalVol = bottleFeedsInWindow.reduce((sum, f) => sum + f.volumeMl, 0);
-      const totalDurationMins = (latest.dateMs - earliest.dateMs) / (60 * 1000);
-      if (totalDurationMins > 0) {
-        const minutelyVolume = (totalVol - latest.volumeMl) / totalDurationMins;
-        threeHourAvgMl = Math.ceil(minutelyVolume * 60 * 3);
-      }
-    }
-  }
-
   return {
     hasAny,
     feed: {
       lastFeedAtMs,
-      threeHourAvgMl,
+      last3hMl,
       total24hMl,
       bottleCount,
     },
