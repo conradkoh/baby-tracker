@@ -305,4 +305,20 @@ describe('DailySummaryCard', () => {
       expect(screen.getByText(/ · 2h ago/)).toBeInTheDocument();
     });
   });
+
+  describe('all sections rendered', () => {
+    it('renders all three section headers with "No records" for missing categories', () => {
+      const summary: DailySummary = {
+        hasAny: true,
+        feed: { bottle: null, latch: null, solids: null },
+        diapers: { wet: 2, dirty: 0, mixed: 0, total: 2, lastWetAgoMs: 3_600_000, lastDirtyAgoMs: null, lastMixedAgoMs: null, lastWetAt: '2025-05-19T10:00:00.000Z', lastDirtyAt: null, lastMixedAt: null },
+        medical: null,
+      };
+      render(<DailySummaryCard summary={summary} isToday={true} />);
+      expect(screen.getByText('Feed')).toBeInTheDocument();
+      expect(screen.getByText('Diapers')).toBeInTheDocument();
+      expect(screen.getByText('Medical')).toBeInTheDocument();
+      expect(screen.getAllByText('No records')).toHaveLength(2); // Feed + Medical empty
+    });
+  });
 });

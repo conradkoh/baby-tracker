@@ -966,7 +966,7 @@ describe('App home page', () => {
       expect(screen.queryByText(/10/)).not.toBeInTheDocument();
     });
 
-    it('section hiding: only feed today → no Diapers heading, no Medical heading in the card', () => {
+    it('section showing: only feed today → Diapers and Medical show "No records" in the card', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
       mockResults = [
@@ -987,12 +987,15 @@ describe('App home page', () => {
       const feedSectionHeadings = screen.getAllByText(/^Feed$/);
       expect(feedSectionHeadings.length).toBeGreaterThan(0);
 
-      // No Diapers or Medical sections in the Daily Summary card
+      // Diapers and Medical sections are present but show "No records"
       const cardRoot = screen.getByText(/Bottle:/).closest('[data-slot="card"]') as HTMLElement;
       const diaperLabels = within(cardRoot).queryAllByText(/^Diapers$/);
       const medicalLabels = within(cardRoot).queryAllByText(/^Medical$/);
-      expect(diaperLabels.length).toBe(0);
-      expect(medicalLabels.length).toBe(0);
+      expect(diaperLabels.length).toBe(1);
+      expect(medicalLabels.length).toBe(1);
+      // Both empty sections show "No records"
+      const noRecordsEls = within(cardRoot).queryAllByText('No records');
+      expect(noRecordsEls.length).toBe(2); // Diapers + Medical empty
     });
 
     it('DOM ordering: today DailySummaryCard appears between day heading and activity Card inside the today group', () => {
@@ -1058,14 +1061,14 @@ describe('App home page', () => {
       // Today shows the date in the h3 heading
       expect(screen.getByText(/May 19, 2025/)).toBeInTheDocument();
 
-      // Yesterday card exists: has a card with diaper data
-      const allCards = screen.queryAllByText(/Bottle:/);
-      expect(allCards.length).toBe(1); // only today's card has bottle data
-      const allDiapers = screen.queryAllByText(/Diapers/);
-      expect(allDiapers.length).toBe(1); // only yesterday's card has diaper data
-      // The yesterday card exists (no date label on card anymore, h3 shows date)
-      const yesterdayCard = screen.getByText(/Diapers/).closest('[data-slot="card"]') as HTMLElement;
-      expect(yesterdayCard).not.toBeNull();
+      // Both day groups render cards with all three sections (Feed/Diapers/Medical)
+      // Today card: has bottle data (120ml)
+      // Yesterday card: has diaper data (1 wet)
+      const todayCard = screen.getByText(/120ml/).closest('[data-slot="card"]') as HTMLElement;
+      expect(within(todayCard).getByText(/Bottle:/)).toBeInTheDocument();
+
+      const yesterdayCard = screen.getByText(/1 wet/).closest('[data-slot="card"]') as HTMLElement;
+      expect(within(yesterdayCard).getByText(/Diapers/)).toBeInTheDocument();
     });
 
     it('isToday=false suppresses "ago" for diaper: yesterday wet shows "Last wet at HH:mm"', () => {
