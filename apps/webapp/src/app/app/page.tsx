@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-import { Clock, FlaskConical, Calendar, Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
+import { Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
 import { DateTime } from 'luxon';
-import { useSessionPaginatedQuery } from 'convex-helpers/react/sessions';
+import { useSessionPaginatedQuery, useSessionQuery } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { computeDailySummariesByDay, DailySummary } from '@/lib/daily-summary';
 import { DailySummaryCard } from '@/modules/baby-tracker/DailySummaryCard';
+import { Last24hSummaryCard } from '@/modules/baby-tracker/Last24hSummaryCard';
+import { useNowBucket5Min } from '@/lib/use-now-bucket';
 import {
   formatTime,
   formatDate,
   toDateKey,
   formatDuration,
-  timeAgoFromMs,
 } from '@/lib/activity-form-utils';
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -135,81 +136,6 @@ const TIME_OF_DAY_META: Record<TimeOfDay, { label: string; Icon: React.Component
 };
 
 
-// ── Summary Stats ───────────────────────────────────────────────
-
-interface SummaryStats {
-  isValid: boolean;
-  lastFeedTimeAgo: string | null;
-  threeHourlyVolume: number;
-  twentyFourHourVolume: number;
-}
-
-// timeAgoFromMs imported from @/lib/activity-form-utils
-
-
-/** Compute summary stats from activities (mirrors mobile logic). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function computeSummaryStats(activities: any[]): SummaryStats {
-  const now = Date.now();
-  const twentyFourHoursAgo = now - 24 * 60 * 60 * 1000;
-
-  let lastFeedTimestamp: string | null = null;
-  let lastFeedDateMs = 0;
-
-  const bottleFeedsIn24h: { dateMs: number; volumeMl: number }[] = [];
-
-  for (const activity of activities) {
-    const ts = activity.timestamp as string;
-    const dateMs = DateTime.fromISO(ts).toMillis();
-
-    if (activity.type === 'feed') {
-      if (dateMs <= now && dateMs > lastFeedDateMs) {
-        lastFeedDateMs = dateMs;
-        lastFeedTimestamp = ts;
-      }
-
-      const feedType = activity.feed?.type;
-      if (
-        (feedType === 'expressed' || feedType === 'formula' || feedType === 'water') &&
-        dateMs > twentyFourHoursAgo &&
-        dateMs <= now
-      ) {
-        bottleFeedsIn24h.push({
-          dateMs,
-          volumeMl: activity.feed?.volume?.ml ?? 0,
-        });
-      }
-    }
-  }
-
-  bottleFeedsIn24h.sort((a, b) => b.dateMs - a.dateMs);
-
-  const result: SummaryStats = {
-    isValid: false,
-    lastFeedTimeAgo: null,
-    threeHourlyVolume: 0,
-    twentyFourHourVolume: 0,
-  };
-
-  if (lastFeedTimestamp) {
-    result.lastFeedTimeAgo = timeAgoFromMs(now - lastFeedDateMs);
-  }
-
-  if (bottleFeedsIn24h.length < 2) return result;
-
-  const latest = bottleFeedsIn24h[0];
-  const earliest = bottleFeedsIn24h[bottleFeedsIn24h.length - 1];
-  const totalVol = bottleFeedsIn24h.reduce((sum, f) => sum + f.volumeMl, 0);
-  const totalDurationMins = (latest.dateMs - earliest.dateMs) / (60 * 1000);
-  if (totalDurationMins <= 0) return result;
-
-  const minutelyVolume = (totalVol - latest.volumeMl) / totalDurationMins;
-  result.threeHourlyVolume = Math.ceil(minutelyVolume * 60 * 3);
-  result.twentyFourHourVolume = totalVol;
-  result.isValid = true;
-  return result;
-}
-
 // ── Quick Action Grid (shared across states) ────────────────────
 
 function QuickActionGrid({ router }: { router: ReturnType<typeof useRouter> }) {
@@ -258,8 +184,9 @@ export default function AppHomePage() {
   const isLoading = paginated?.isLoading ?? true;
   const loadMore = paginated?.loadMore;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const summaryStats = useMemo(() => computeSummaryStats(results as any[]), [results]);
+  const nowIso = useNowBucket5Min();
+  const nowMs = DateTime.fromISO(nowIso).toMillis();
+  const last24h = useSessionQuery(api.web.babyTracker.activities.getLast24hSummary, { nowIso });
 
   // ── Per-day summary computation ──────────────────────────────
   const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results), [results]);
@@ -392,39 +319,8 @@ export default function AppHomePage() {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <QuickActionGrid router={router} />
 
-      {/* Summary card — only when feed data exists */}
-      {summaryStats.lastFeedTimeAgo && (
-        <Card className="mb-6 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800">
-          <CardContent className="p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400 mb-4">
-              Feeding Summary
-            </h2>
-            <div className="flex justify-between">
-              <div className="flex flex-col items-center flex-1 gap-0.5">
-                <Clock className="h-5 w-5 text-rose-500 dark:text-rose-400" />
-                <span className="text-xs text-rose-600 dark:text-rose-400 mt-1">Last Feed</span>
-                <span className="text-base font-bold text-rose-900 dark:text-rose-200">
-                  {summaryStats.lastFeedTimeAgo}
-                </span>
-              </div>
-              <div className="flex flex-col items-center flex-1 gap-0.5">
-                <FlaskConical className="h-5 w-5 text-rose-500 dark:text-rose-400" />
-                <span className="text-xs text-rose-600 dark:text-rose-400 mt-1">3h Avg</span>
-                <span className="text-base font-bold text-rose-900 dark:text-rose-200">
-                  {summaryStats.threeHourlyVolume} ml
-                </span>
-              </div>
-              <div className="flex flex-col items-center flex-1 gap-0.5">
-                <Calendar className="h-5 w-5 text-rose-500 dark:text-rose-400" />
-                <span className="text-xs text-rose-600 dark:text-rose-400 mt-1">24h Total</span>
-                <span className="text-base font-bold text-rose-900 dark:text-rose-200">
-                  {summaryStats.twentyFourHourVolume} ml
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Last 24h summary */}
+      {last24h && <Last24hSummaryCard summary={last24h} nowMs={nowMs} />}
 
       {/* Grouped activity list */}
       {groupedByDate.map((dateGroup) => {
