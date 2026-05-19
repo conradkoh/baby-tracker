@@ -12,11 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
+import { computeDailySummariesByDay, DailySummary } from '@/lib/daily-summary';
+import { DailySummaryCard } from '@/modules/baby-tracker/DailySummaryCard';
 import {
   formatTime,
   formatDate,
   toDateKey,
   formatDuration,
+  timeAgoFromMs,
 } from '@/lib/activity-form-utils';
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -141,17 +144,8 @@ interface SummaryStats {
   twentyFourHourVolume: number;
 }
 
-/** Compute human-readable "time ago" string from milliseconds difference. */
-function timeAgoFromMs(diffMs: number): string {
-  const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return 'just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
+// timeAgoFromMs imported from @/lib/activity-form-utils
+
 
 /** Compute summary stats from activities (mirrors mobile logic). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -267,6 +261,19 @@ export default function AppHomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const summaryStats = useMemo(() => computeSummaryStats(results as any[]), [results]);
 
+  // ── Per-day summary computation ──────────────────────────────
+  const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results), [results]);
+
+  // Index by dateKey for O(1) lookup inside the groupedByDate map
+  const summaryByDateKey = useMemo(() => {
+    const m = new Map<string, DailySummary>();
+    for (const entry of dailySummariesByDay) m.set(entry.dateKey, entry.summary);
+    return m;
+  }, [dailySummariesByDay]);
+
+  // Precompute today's dateKey — recomputes when results refresh (acceptable; midnight rollover is rare)
+  const todayKey = useMemo(() => toDateKey(DateTime.now()), [results]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
     const sorted = [...(results as any[])].sort((a, b) => {
@@ -379,7 +386,7 @@ export default function AppHomePage() {
     );
   }
 
-  // ── Activity feed with summary card ──────────────────────────
+  // ── Activity feed ────────────────────────────────────────────
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -420,14 +427,23 @@ export default function AppHomePage() {
       )}
 
       {/* Grouped activity list */}
-      {groupedByDate.map((dateGroup) => (
-        <div key={dateGroup.date} className="mb-6">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
-            {formatDate(dateGroup.timeGroups[0].activities[0].timestamp as string)}
-          </h3>
+      {groupedByDate.map((dateGroup) => {
+        const dateKey = dateGroup.date;
+        const summary = summaryByDateKey.get(dateKey);
+        const isToday = dateKey === todayKey;
+        const firstTs = dateGroup.timeGroups[0].activities[0].timestamp as string;
 
-          <Card>
+        return (
+          <div key={dateKey} className="mb-6">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">
+              {formatDate(firstTs)}
+            </h3>
+
+            <Card>
             <CardContent className="p-0">
+              {summary && (
+                <DailySummaryCard summary={summary} isToday={isToday} />
+              )}
               {dateGroup.timeGroups.map((timeGroup, tIdx) => {
                 const { label, Icon, colorClass } = TIME_OF_DAY_META[timeGroup.period];
                 const isLastTimeGroup = tIdx === dateGroup.timeGroups.length - 1;
@@ -479,7 +495,8 @@ export default function AppHomePage() {
             </CardContent>
           </Card>
         </div>
-      ))}
+      );
+      })}
 
       {/* Load more */}
       {status === 'CanLoadMore' && (

@@ -67,6 +67,25 @@ export function formatDate(ts: string): string {
  * not "2025-05-18".
  * Works with both Z-suffixed (UTC) and offset-suffixed (e.g. +08:00) inputs.
  */
-export function toDateKey(ts: string): string {
-  return DateTime.fromISO(ts).toLocal().toFormat('yyyy-MM-dd');
+export { toDateKey } from './daily-summary';
+
+/**
+ * Converts a diffMs (now - timestampMs) into a human-readable "time ago" string.
+ * Used by both page.tsx and DailySummaryCard.
+ */
+export function timeAgoFromMs(diffMs: number): string {
+  const seconds = Math.floor(diffMs / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
+
+/**
+ * Alias for timeAgoFromMs — used in DailySummaryCard for agoMs fields
+ * (lastWetAgoMs etc.) where the diff is already computed as (now - timestampMs).
+ */
+export const humanizeAgo = timeAgoFromMs;

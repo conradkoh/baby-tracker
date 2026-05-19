@@ -6,8 +6,8 @@
  *
  * Mirrors the mobile home screen experience.
  */
-import { render, screen, waitFor } from '@/__tests__/test-utils';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, within } from '@/__tests__/test-utils';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import type { ReactNode } from 'react';
 
 import {
@@ -337,6 +337,18 @@ describe('App home page', () => {
         expect(screen.queryByText('Feeding Summary')).not.toBeInTheDocument();
       });
     });
+
+    it('shows the Daily Summary card when any activities exist', async () => {
+      mockResults = makeBottleFeedsForSummary();
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Feeding Summary/)).toBeInTheDocument();
+      });
+    });
   });
 
   // ── 4. Activity display ───────────────────────────────────────
@@ -345,6 +357,7 @@ describe('App home page', () => {
     beforeEach(() => {
       mockIsLoading = false;
       mockStatus = 'Exhausted';
+      // No fake timers — activity display tests don't need DateTime.now()
       mockResults = [
         makeLatchActivity(),
         makeBottleActivity(),
@@ -355,58 +368,43 @@ describe('App home page', () => {
       ];
     });
 
-    it('renders latch feed with duration', async () => {
+    it('renders latch feed with duration', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Latch Feed')).toBeInTheDocument();
-      });
-      expect(screen.getByText(/5 min 0 sec/)).toBeInTheDocument();
-      expect(screen.getByText(/3 min 0 sec/)).toBeInTheDocument();
+      // Scope to the activity feed link to avoid matching the DailySummaryCard
+      const activityLink = screen.getByText('Latch Feed').closest('a') as HTMLElement;
+      expect(within(activityLink).getByText(/5 min 0 sec/)).toBeInTheDocument();
+      expect(within(activityLink).getByText(/3 min 0 sec/)).toBeInTheDocument();
     });
 
-    it('renders expressed feed with volume', async () => {
+    it('renders expressed feed with volume', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Expressed Feed')).toBeInTheDocument();
-      });
+      expect(screen.getByText('Expressed Feed')).toBeInTheDocument();
       expect(screen.getByText(/120 ml/)).toBeInTheDocument();
     });
 
-    it('renders solids feed with description', async () => {
+    it('renders solids feed with description', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Solids Feed')).toBeInTheDocument();
-      });
-      expect(screen.getByText(/Banana porridge/)).toBeInTheDocument();
+      // Description appears in both activity row and daily summary card — scope to activity link
+      const activityLink = screen.getByText('Solids Feed').closest('a') as HTMLElement;
+      expect(within(activityLink).getByText(/Banana porridge/)).toBeInTheDocument();
     });
 
-    it('renders diaper change with wet type', async () => {
+    it('renders diaper change with wet type', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Diaper Change')).toBeInTheDocument();
-      });
+      expect(screen.getByText('Diaper Change')).toBeInTheDocument();
       expect(screen.getByText('Wet')).toBeInTheDocument();
     });
 
-    it('renders temperature reading', async () => {
+    it('renders temperature reading', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Temperature')).toBeInTheDocument();
-      });
-      expect(screen.getByText(/37\.5\s*°C/)).toBeInTheDocument();
+      // Temperature value appears in both card and activity row — scope to activity link
+      const activityLink = screen.getByText('Temperature').closest('a') as HTMLElement;
+      expect(within(activityLink).getByText(/37\.5\s*°C/)).toBeInTheDocument();
     });
 
-    it('renders medicine with dosage', async () => {
+    it('renders medicine with dosage', () => {
       render(<AppHomePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Medicine')).toBeInTheDocument();
-      });
+      expect(screen.getByText('Medicine')).toBeInTheDocument();
       expect(screen.getByText(/5 ml Paracetamol/)).toBeInTheDocument();
     });
   });
@@ -604,6 +602,504 @@ describe('App home page', () => {
       expect(screen.queryByText('Feed')).not.toBeInTheDocument();
       expect(screen.queryByText('Diaper')).not.toBeInTheDocument();
       expect(screen.queryByText('Medical')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── 10. Daily Summary card (per-day) ─────────────────────────
+
+  describe('daily summary card', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2025-05-19T10:00:00.000Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('is hidden when no activities exist', () => {
+      mockResults = [];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
+    });
+
+    it('shows a yesterday card (no "Today ·" on card) when only yesterday data exists', () => {
+      // yesterday 10:00 AM UTC = 2025-05-18T10:00:00Z
+      mockResults = [
+        {
+          _id: 'act-yesterday',
+          _creationTime: Date.now() - 86400000,
+          timestamp: '2025-05-18T10:00:00.000Z',
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 120 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // No "Today ·" prefix anywhere — the card has no date header anymore; page h3 shows date
+      expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
+      // Yesterday's date heading appears in the h3
+      expect(screen.getByText(/May 18, 2025/)).toBeInTheDocument();
+      // Card still shows bottle data
+      const allCards = screen.queryAllByText(/Bottle:/);
+      expect(allCards.length).toBe(1); // yesterday card has the feed summary
+    });
+
+    it('shows date heading when today has any activity', () => {
+      // today at 08:00
+      mockResults = [
+        {
+          _id: 'act-today',
+          _creationTime: Date.now(),
+          timestamp: '2025-05-19T08:00:00.000Z',
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 120 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // Date heading (h3) shows today's date; card has no date header anymore
+      expect(screen.getByText(/May 19, 2025/)).toBeInTheDocument();
+    });
+
+    it('bottle line shows breakdown with both subtypes for mixed expressed+formula', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'b1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 60 } },
+        },
+        {
+          _id: 'b2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 2 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 90 } },
+        },
+        {
+          _id: 'b3',
+          _creationTime: now - 3000,
+          timestamp: new Date(now - 3 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'formula', volume: { ml: 120 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      expect(screen.getByText(/Bottle:/)).toBeInTheDocument();
+      // total = 60+90+120 = 270
+      expect(screen.getByText(/270ml/)).toBeInTheDocument();
+      // 3 feeds total
+      expect(screen.getByText(/3 feeds/)).toBeInTheDocument();
+    });
+
+    it('bottle line hides breakdown parenthetical when only one active subtype', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'b1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 60 } },
+        },
+        {
+          _id: 'b2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 2 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 90 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      expect(screen.getByText(/Bottle:/)).toBeInTheDocument();
+      // no parenthetical with mixed subtypes — no "expressed, " text
+      expect(screen.queryByText(/expressed, /)).not.toBeInTheDocument();
+    });
+
+    it('latch line shows session count and avg L/R via formatDuration', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'l1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'latch', duration: { left: { seconds: 600 }, right: { seconds: 300 } } },
+        },
+        {
+          _id: 'l2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 3 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'latch', duration: { left: { seconds: 900 }, right: { seconds: 450 } } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      expect(screen.getByText(/Latch:/)).toBeInTheDocument();
+      // total seconds = (600+300) + (900+450) = 900 + 1350 = 2250
+      expect(screen.getByText(/37 min 30 sec total/)).toBeInTheDocument();
+    });
+
+    it('solids deduplicates by case-insensitive name and shows all unique names', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 's1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'solids', description: 'Banana' },
+        },
+        {
+          _id: 's2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 2 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'solids', description: 'banana' },
+        },
+        {
+          _id: 's3',
+          _creationTime: now - 3000,
+          timestamp: new Date(now - 3 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'solids', description: 'Rice' },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      expect(screen.getByText(/Solids:/)).toBeInTheDocument();
+      // count = 3 (solids deduplication removed, just counts total solids entries)
+      expect(screen.getByText('3')).toBeInTheDocument();
+    });
+
+    it('diaper counts omit zero types (2 wet + 1 mixed, 0 dirty → no dirty text)', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'd1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+        {
+          _id: 'd2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 2 * hour).toISOString(),
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+        {
+          _id: 'd3',
+          _creationTime: now - 3000,
+          timestamp: new Date(now - 3 * hour).toISOString(),
+          type: 'diaper_change',
+          diaperChange: { type: 'mixed' },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      expect(screen.getByText(/Diapers/)).toBeInTheDocument();
+      expect(screen.getByText(/2 wet/)).toBeInTheDocument();
+      expect(screen.getByText(/1 mixed/)).toBeInTheDocument();
+      // dirty not shown
+      expect(screen.queryByText(/dirty/)).not.toBeInTheDocument();
+    });
+
+    it('diaper shows "Last wet: 2h ago" when last wet was 2 hours ago', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'd1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 2 * hour).toISOString(),
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      expect(screen.getByText(/Last wet:/)).toBeInTheDocument();
+      expect(screen.getByText(/2h ago/)).toBeInTheDocument();
+    });
+
+    it('medical shows latest temperature from two readings (latest is 37.8°C)', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'm1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 3 * hour).toISOString(),
+          type: 'medical',
+          medical: { type: 'temperature', temperature: { value: 37.8 } },
+        },
+        {
+          _id: 'm2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 5 * hour).toISOString(),
+          type: 'medical',
+          medical: { type: 'temperature', temperature: { value: 37.0 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // Medical section removed from summary card — temperature appears in activity feed rows
+      // Two temperature readings → two "Temperature" activity rows
+      const tempLabels = screen.getAllByText(/Temperature/);
+      expect(tempLabels.length).toBe(2);
+    });
+
+    it('medicine roll-up: Paracetamol 5ml + 5ml → 10ml over 2 doses', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'med1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'medical',
+          medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'ml', value: 5 } },
+        },
+        {
+          _id: 'med2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 2 * hour).toISOString(),
+          type: 'medical',
+          medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'ml', value: 5 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // Medical section removed from summary card — medicines appear in activity feed rows
+      const medicineLabels = screen.getAllByText(/Medicine/);
+      expect(medicineLabels.length).toBe(2);
+    });
+
+    it('mixed units medicine: Paracetamol 5ml + 0.5g → no total, shows "mixed units" and dose count', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'med1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'medical',
+          medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'ml', value: 5 } },
+        },
+        {
+          _id: 'med2',
+          _creationTime: now - 2000,
+          timestamp: new Date(now - 2 * hour).toISOString(),
+          type: 'medical',
+          medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'g', value: 0.5 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // Medical section removed from summary card — medicines appear in activity feed rows
+      const medicineLabels = screen.getAllByText(/Medicine/);
+      expect(medicineLabels.length).toBe(2);
+    });
+
+    it('section showing: only feed today → Diapers and Medical show "No records" in the card', () => {
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'b1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 120 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // Feed section heading (not the quick action "Feed" button)
+      const feedSectionHeadings = screen.getAllByText(/^Feed$/);
+      expect(feedSectionHeadings.length).toBeGreaterThan(0);
+
+      // Diapers section is present (Feed is the only data); Medical section removed
+      const cardRoot = screen.getByText(/Bottle:/).closest('[data-slot="card"]') as HTMLElement;
+      const diaperLabels = within(cardRoot).queryAllByText(/^Diapers$/);
+      expect(diaperLabels.length).toBe(1);
+      // Only Diapers shows "No records" (Medical section removed)
+      const noRecordsEls = within(cardRoot).queryAllByText('No records');
+      expect(noRecordsEls.length).toBe(1); // Diapers empty; Medical gone
+    });
+
+    it('DOM ordering: today DailySummaryCard appears between day heading and activity Card inside the today group', () => {
+      // With the per-day layout, the card sits BELOW the h3 date heading and ABOVE the
+      // activity list Card within each day group.
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        {
+          _id: 'b1',
+          _creationTime: now - 1000,
+          timestamp: new Date(now - 1 * hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 120 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // The today card appears in the page — locate via "Bottle:" text inside it
+      const dailySummaryCard = screen.getByText(/Bottle:/).closest('[data-slot="card"]') as HTMLElement;
+      expect(dailySummaryCard).not.toBeNull();
+
+      // Feeding Summary is a separate rose card at the top of the page, above all day groups.
+      const feedingSummary = screen.getByText('Feeding Summary');
+      // Feeding Summary (top of page) precedes the DailySummaryCard (inside day group)
+      expect(
+        feedingSummary.compareDocumentPosition(dailySummaryCard)
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    // ── New tests for per-day layout ─────────────────────────────────
+
+    it('multi-day: today feed + yesterday diaper → two DailySummaryCards, each with relevant data', () => {
+      // Today has a bottle feed; yesterday has a wet diaper
+      const now = Date.now();
+      const hour = 3600 * 1000;
+      mockResults = [
+        // yesterday's wet diaper
+        {
+          _id: 'd-yesterday',
+          _creationTime: now - 25 * hour,
+          timestamp: new Date(now - 25 * hour).toISOString(), // 25h ago = yesterday
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+        // today's bottle feed
+        {
+          _id: 'b-today',
+          _creationTime: now - hour,
+          timestamp: new Date(now - hour).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 120 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // Today shows the date in the h3 heading
+      expect(screen.getByText(/May 19, 2025/)).toBeInTheDocument();
+
+      // Both day groups render cards with all three sections (Feed/Diapers/Medical)
+      // Today card: has bottle data (120ml)
+      // Yesterday card: has diaper data (1 wet)
+      const todayCard = screen.getByText(/120ml/).closest('[data-slot="card"]') as HTMLElement;
+      expect(within(todayCard).getByText(/Bottle:/)).toBeInTheDocument();
+
+      const yesterdayCard = screen.getByText(/1 wet/).closest('[data-slot="card"]') as HTMLElement;
+      expect(within(yesterdayCard).getByText(/Diapers/)).toBeInTheDocument();
+    });
+
+    it('isToday=false suppresses "ago" for diaper: yesterday wet shows "Last wet at HH:mm"', () => {
+      // System time = 2025-05-19T10:00:00Z → today is May 19.
+      // Yesterday at 14:00 UTC
+      mockResults = [
+        {
+          _id: 'd-yesterday',
+          _creationTime: Date.now() - 20 * 3600 * 1000,
+          timestamp: '2025-05-18T14:00:00.000Z',
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // No "Today" card
+      expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
+
+      // Yesterday card: shows absolute time, NOT "Xh ago"
+      // The card should show "Last wet: at HH:MM" (absolute format from formatTime)
+      // We only assert that "at" is present (avoids timezone-specific HH:mm values)
+      expect(screen.getByText(/Last wet: at/)).toBeInTheDocument();
+      // Should NOT have "Xh ago"
+      expect(screen.queryByText(/Last wet: \d+h ago/)).not.toBeInTheDocument();
+    });
+
+    it('isToday=false suppresses "ago" for medical temperature: yesterday shows "· at HH:mm"', () => {
+      mockResults = [
+        {
+          _id: 't-yesterday',
+          _creationTime: Date.now() - 20 * 3600 * 1000,
+          timestamp: '2025-05-18T14:00:00.000Z',
+          type: 'medical',
+          medical: { type: 'temperature', temperature: { value: 37.5 } },
+        },
+      ];
+      mockIsLoading = false;
+      mockStatus = 'Exhausted';
+
+      render(<AppHomePage />);
+
+      // No "Today" card (no activities today)
+      expect(screen.queryByText(/^Today/)).not.toBeInTheDocument();
+      // Medical section removed — no temperature-related assertions needed
     });
   });
 });
