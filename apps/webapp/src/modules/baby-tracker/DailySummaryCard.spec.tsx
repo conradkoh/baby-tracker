@@ -226,13 +226,6 @@ describe('DailySummaryCard', () => {
       expect(screen.getByText(/Last wet: at (10:30 AM|10:30 PM|6:30 AM|6:30 PM)/)).toBeInTheDocument();
     });
 
-    it('renders "at HH:mm" for latest temp when isToday=false', () => {
-      // Medical section removed — skip test
-    });
-
-    it('renders "Xh ago ago" for latest temp when isToday=true (humanizeAgo already appends " ago")', () => {
-      // Medical section removed — skip test
-    });
   });
 
   describe('all sections rendered', () => {
