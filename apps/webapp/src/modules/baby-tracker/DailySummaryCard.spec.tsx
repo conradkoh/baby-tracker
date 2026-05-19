@@ -23,20 +23,6 @@ describe('DailySummaryCard', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders with Daily Summary header even when all sections are null (hasAny:true is inconsistent)', () => {
-    const summary: DailySummary = {
-      hasAny: true,
-      feed: { bottle: null, latch: null, solids: null },
-      diapers: null,
-      medical: null,
-    };
-    render(
-      <DailySummaryCard isToday summary={summary} />
-    );
-    expect(screen.getByText('Daily Summary')).toBeInTheDocument();
-    expect(screen.getAllByText('No records')).toHaveLength(2);
-  });
-
   describe('Feed section', () => {
     it('renders bottle total ml + feed count', () => {
       const summary: DailySummary = {
@@ -80,7 +66,7 @@ describe('DailySummaryCard', () => {
       };
       render(<DailySummaryCard isToday summary={summary} />);
       expect(screen.getByText(/Solids:/)).toBeInTheDocument();
-      expect(screen.getByText(/5/)).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
     });
   });
 

@@ -172,7 +172,8 @@ describe('computeDailySummary', () => {
 
       const result = computeDailySummary(activities, { ...range, referenceTime: ref });
 
-      expect(result.hasAny).toBe(true);
+      expect(result.hasAny).toBe(false);
+      expect(result.medical).not.toBeNull();
       expect(result.medical!.latestTemperature).toEqual({
         valueC: 37.5,
         agoMs: expect.any(Number),
@@ -295,7 +296,7 @@ describe('computeDailySummary', () => {
       expect(computeDailySummary(diaperOnly, { ...range, referenceTime: ref }).hasAny).toBe(true);
 
       const tempOnly = [makeTemp('2025-01-15T08:00:00.000Z', 37.0)];
-      expect(computeDailySummary(tempOnly, { ...range, referenceTime: ref }).hasAny).toBe(true);
+      expect(computeDailySummary(tempOnly, { ...range, referenceTime: ref }).hasAny).toBe(false);
     });
   });
 });
@@ -401,14 +402,19 @@ describe('computeDailySummariesByDay', () => {
     expect(result[0].dayStart.toISO()).toBe('2025-01-15T00:00:00.000Z');
   });
 
-  it('latestTemperature.at is an ISO string', () => {
+  it('latestTemperature.at is an ISO string when day has non-medical activity', () => {
     vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
     const ref = DateTime.utc();
 
-    const activities = [makeTemp('2025-01-15T10:00:00.000Z', 37.5)];
+    const activities = [
+      makeTemp('2025-01-15T10:00:00.000Z', 37.5),
+      makeFeed('2025-01-15T08:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
+    ];
 
     const result = computeDailySummariesByDay(activities, { zone: 'UTC', referenceTime: ref });
 
+    expect(result).toHaveLength(1);
+    expect(result[0].summary.hasAny).toBe(true);
     expect(result[0].summary.medical?.latestTemperature?.at).toBe('2025-01-15T10:00:00.000Z');
   });
 });
