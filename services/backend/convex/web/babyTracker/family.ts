@@ -13,6 +13,7 @@ import type { Id } from '../../_generated/dataModel';
 import { ConvexWebFamilyRepository } from '../../../src/infra/ConvexWebFamilyRepository';
 import {
   createFamily,
+  deleteFamily,
   requestJoin as requestJoinUseCase,
   approveJoinRequest as approveJoinRequestUseCase,
   leaveFamily as leaveFamilyUseCase,
@@ -88,8 +89,9 @@ export const approveJoin = mutation({
 
 /**
  * Leave the authenticated user's current family.
- * If the user is the last member, the family's activity stream becomes orphaned
- * (future work: dissolve family and transfer activities).
+ * If the user is the sole remaining member, the family and ALL of its data
+ * (memberships, join requests, invites, activityStream, and activities) are
+ * fully deleted via the deleteFamily use case.
  */
 export const leave = mutation({
   args: {
@@ -107,8 +109,20 @@ export const leave = mutation({
       throw new ConvexError({ code: 'FORBIDDEN', message: 'Not a family member' });
     }
 
+    // Check if this user is the sole member — if so, fully delete the family
+    const allMembers = await ctx.db
+      .query('userFamily')
+      .withIndex('by_familyId', (q) => q.eq('familyId', membership.familyId))
+      .collect();
+
     const repo = new ConvexWebFamilyRepository(ctx);
-    await leaveFamilyUseCase(repo, userId.toString(), membership.familyId.toString());
+    if (allMembers.length === 1) {
+      // Sole member — fully delete family + activity stream + all data via the use case
+      await deleteFamily(repo, userId.toString(), membership.familyId.toString());
+    } else {
+      // Other members remain — just remove this user's membership
+      await leaveFamilyUseCase(repo, userId.toString(), membership.familyId.toString());
+    }
   },
 });
 
@@ -118,11 +132,8 @@ export const leave = mutation({
  * CRITICAL: Validate invite FIRST before destroying any family data.
  *
  * If the user is the sole member of their current family, the old family
- * and all its join requests will be deleted.
- *
- * TODO (S4 from audit): Clean up orphaned activityStream when deleting
- * an auto-created family. The activityStream created during family init
- * should be deleted as well.
+ * and all its data (memberships, join requests, invites, activityStream,
+ * and activities) will be fully deleted via the deleteFamily use case.
  */
 export const switchFamily = mutation({
   args: {
@@ -180,10 +191,10 @@ export const switchFamily = mutation({
         .collect();
 
       if (remainingMembers.length === 1) {
-        // User is the sole member — delete family, join requests, and membership in one call.
-        // The family and its activity stream will be orphaned (TODO S4: clean up activityStream).
+        // User is the sole member — fully delete the old family (memberships, join requests,
+        // invites, activityStream, and all activities) via the deleteFamily use case.
         const repo = new ConvexWebFamilyRepository(ctx);
-        await repo.delete(userId.toString(), membership.familyId.toString());
+        await deleteFamily(repo, userId.toString(), membership.familyId.toString());
       } else {
         // Other members remain — remove this user's membership only. The family, its
         // activity stream, and all other members' data stay intact.

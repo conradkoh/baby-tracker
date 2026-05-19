@@ -85,11 +85,9 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
   }
 
   /**
-   * Delete a family. Verifies the authorizing user is a member via the
-   * userFamily join table.
-   *
-   * TODO: activity transfer not implemented — no personal user stream
-   * in current schema.
+   * Fully deletes the family and ALL of its data: userFamily memberships,
+   * familyJoinRequests, familyInvites, activityStream, and activities.
+   * Atomic within the Convex mutation transaction.
    */
   async delete(authorizingUserId: string, familyId: string): Promise<void> {
     const fid = this.fid(familyId);
@@ -103,18 +101,12 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
       throw new ConvexError({ code: 'FORBIDDEN', message: 'Not authorized to delete this family' });
     }
 
-    // Delete the authorizing user's membership
-    await this.ctx.db.delete(membership._id);
-
-    // Delete all userFamily entries for this family
-    const remainingMemberships = await this.ctx.db
+    // Delete all userFamily entries for this family (including the authorizing user)
+    const allMemberships = await this.ctx.db
       .query('userFamily')
       .withIndex('by_familyId', (q) => q.eq('familyId', fid))
       .collect();
-    await Promise.all(remainingMemberships.map((m) => this.ctx.db.delete(m._id)));
-
-    // Delete the family record
-    await this.ctx.db.delete(fid);
+    await Promise.all(allMemberships.map((m) => this.ctx.db.delete(m._id)));
 
     // Delete all join requests for this family
     const requests = await this.ctx.db
@@ -123,7 +115,29 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
       .collect();
     await Promise.all(requests.map((r) => this.ctx.db.delete(r._id)));
 
-    // TODO: activity transfer not implemented — no personal user stream in current schema
+    // Delete all pending invites for this family
+    const invites = await this.ctx.db
+      .query('familyInvites')
+      .withIndex('by_familyId', (q) => q.eq('familyId', fid))
+      .collect();
+    await Promise.all(invites.map((inv) => this.ctx.db.delete(inv._id)));
+
+    // Delete the family's activity stream and all activities on it
+    const streams = await this.ctx.db
+      .query('activityStream')
+      .withIndex('by_familyId', (q) => q.eq('family.id', fid))
+      .collect();
+    for (const stream of streams) {
+      const activities = await this.ctx.db
+        .query('activities')
+        .withIndex('by_activityStreamId', (q) => q.eq('activityStreamId', stream._id))
+        .collect();
+      await Promise.all(activities.map((a) => this.ctx.db.delete(a._id)));
+      await this.ctx.db.delete(stream._id);
+    }
+
+    // Delete the family record last (child rows gone first)
+    await this.ctx.db.delete(fid);
   }
 
   /**
@@ -231,16 +245,12 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
 
     // Delete the join request
     await this.ctx.db.delete(joinRequest._id);
-
-    // TODO: activity transfer not implemented — no personal user stream for web users in current schema
   }
 
   /**
-   * Leave a family. Removes the userFamily entry. If the user is the
-   * last member, the family and orphaned activity stream require manual
-   * cleanup.
-   *
-   * TODO: dissolve family and handle orphaned activity stream when last member leaves
+   * Leave a family. Removes the userFamily entry. The endpoint layer
+   * handles full deletion when the user is the sole remaining member
+   * (via the deleteFamily use case).
    */
   async leave(userId: string, familyId: string): Promise<void> {
     const uid = this.uid(userId);
@@ -255,15 +265,5 @@ export class ConvexWebFamilyRepository implements IFamilyRepository {
       throw new ConvexError({ code: 'FORBIDDEN', message: 'user is not a member of this family' });
     }
     await this.ctx.db.delete(membership._id);
-
-    // Check remaining members
-    const remaining = await this.ctx.db
-      .query('userFamily')
-      .withIndex('by_familyId', (q) => q.eq('familyId', fid))
-      .collect();
-
-    if (remaining.length === 0) {
-      // TODO: dissolve family and handle orphaned activity stream when last member leaves
-    }
   }
 }
