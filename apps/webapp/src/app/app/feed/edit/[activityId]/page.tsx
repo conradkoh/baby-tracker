@@ -2,7 +2,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Milk, ChevronLeft } from 'lucide-react';
+import { Milk, ChevronLeft, MoreVertical, Trash2 } from 'lucide-react';
 import { useSessionQuery, useSessionMutation } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 import { Id } from '@workspace/backend/convex/_generated/dataModel';
@@ -13,6 +13,12 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { toSeconds, toMinutesSeconds, toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
 
@@ -223,6 +229,25 @@ export default function FeedEditPage() {
         </button>
         <Milk className="h-6 w-6 text-blue-600 dark:text-blue-400" />
         <h1 className="text-xl font-bold">Edit Feed</h1>
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="More options">
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={handleDelete}
+                disabled={deleting}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -369,9 +394,6 @@ export default function FeedEditPage() {
         <Button variant="ghost" onClick={() => router.push('/app')}>Cancel</Button>
         <Button className="flex-1" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving...' : 'Save'}
-        </Button>
-        <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
-          Delete
         </Button>
       </div>
     </div>
