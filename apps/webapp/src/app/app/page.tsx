@@ -440,12 +440,11 @@ export default function AppHomePage() {
               {formatDate(firstTs)}
             </h3>
 
-            {summary && (
-              <DailySummaryCard summary={summary} isToday={isToday} />
-            )}
-
             <Card>
             <CardContent className="p-0">
+              {summary && (
+                <DailySummaryCard summary={summary} isToday={isToday} />
+              )}
               {dateGroup.timeGroups.map((timeGroup, tIdx) => {
                 const { label, Icon, colorClass } = TIME_OF_DAY_META[timeGroup.period];
                 const isLastTimeGroup = tIdx === dateGroup.timeGroups.length - 1;

@@ -30,17 +30,20 @@ describe('DailySummaryCard', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders card with header even when all sections are null (hasAny:true is inconsistent)', () => {
+  it('renders with Daily Summary header even when all sections are null (hasAny:true is inconsistent)', () => {
     const summary: DailySummary = {
       hasAny: true,
       feed: { bottle: null, latch: null, solids: null },
       diapers: null,
       medical: null,
     };
-    const { container } = render(
+    render(
       <DailySummaryCard isToday summary={summary} />
     );
-    expect(container.querySelector('[data-slot="card"]')).not.toBeNull();
+    // Component renders the "Daily Summary" header strip (no Card wrapper anymore)
+    expect(screen.getByText('Daily Summary')).toBeInTheDocument();
+    // All three sections show "No records" when their data is null
+    expect(screen.getAllByText('No records')).toHaveLength(3);
   });
 
   describe('Feed section', () => {

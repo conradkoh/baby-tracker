@@ -810,9 +810,9 @@ describe('App home page', () => {
       // Both unique names should appear (dedup by case-insensitive key, original case preserved, alpha-sorted: "Rice, banana")
       expect(screen.getByText(/Rice, banana/)).toBeInTheDocument();
       // Not 3 (the dup 'banana' should not add a third entry in the daily summary list)
-      // Scoped to the DailySummaryCard using the Solids: label to find the card root
-      const cardRoot = screen.getByText(/Solids:/).closest('[data-slot="card"]') as HTMLElement;
-      expect(within(cardRoot).queryByText('Banana')).not.toBeInTheDocument();
+      // Scoped to the DailySummaryCard section using "Solids:" to find it within the page
+      const dailySummarySection = screen.getByText(/Solids:/).closest('div') as HTMLElement;
+      expect(within(dailySummarySection).queryByText('Banana')).not.toBeInTheDocument();
     });
 
     it('diaper counts omit zero types (2 wet + 1 mixed, 0 dirty → no dirty text)', () => {
@@ -900,10 +900,10 @@ describe('App home page', () => {
 
       expect(screen.getByText(/Latest temp:/)).toBeInTheDocument();
       // The temperature "37.8°C" appears in both the card's summary section AND the
-      // activity feed row. Use within() to scope to the DailySummaryCard using "Latest temp:" to find the card.
-      const cardRoot = screen.getByText(/Latest temp:/).closest('[data-slot="card"]') as HTMLElement;
-      expect(within(cardRoot).getByText(/37\.8/)).toBeInTheDocument();
-      expect(within(cardRoot).getByText(/°C/)).toBeInTheDocument();
+      // activity feed row. Scope to the Daily Summary section using "Latest temp:" to find the container.
+      const dailySummarySection = screen.getByText(/Latest temp:/).closest('div') as HTMLElement;
+      expect(within(dailySummarySection).getByText(/37\.8/)).toBeInTheDocument();
+      expect(within(dailySummarySection).getByText(/°C/)).toBeInTheDocument();
     });
 
     it('medicine roll-up: Paracetamol 5ml + 5ml → 10ml over 2 doses', () => {

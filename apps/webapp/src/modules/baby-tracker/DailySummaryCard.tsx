@@ -1,7 +1,6 @@
 'use client';
 
-import { Milk, Baby, Stethoscope } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Milk, Baby, Stethoscope, Sparkles } from 'lucide-react';
 import { DailySummary } from '@/lib/daily-summary';
 import { formatDuration, humanizeAgo, formatTime } from '@/lib/activity-form-utils';
 
@@ -23,13 +22,17 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
   const { feed, diapers, medical } = summary;
 
   return (
-    <Card className="mb-6 p-0 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800">
-      <div className="px-4 py-2 border-b border-indigo-200 dark:border-indigo-800">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+    <div className="border-b border-border">
+      {/* Header strip — mirrors time-of-day header pattern */}
+      <div className="flex items-center gap-1.5 px-4 py-2 bg-muted/30">
+        <Sparkles className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
+        <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
           Daily Summary
-        </h2>
+        </span>
       </div>
-      <div className="divide-y divide-indigo-200/60 dark:divide-indigo-800/60">
+
+      {/* Section rows (Feed / Diapers / Medical) — all three always render, with 'No records' fallback */}
+      <div className="divide-y divide-border">
         {/* ── Feed section ──────────────────────────────── */}
         <div className="flex items-start gap-3 px-4 py-2.5">
           {/* Icon chip */}
@@ -206,6 +209,6 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
