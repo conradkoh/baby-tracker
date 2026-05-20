@@ -1,6 +1,10 @@
 /**
  * Usecase: Update an existing activity.
  * Validates the timestamp (business logic) before delegating to the repository.
+ *
+ * IMPORTANT: The timestamp is normalised to UTC before storing, identical to
+ * CreateActivity.ts. All query surfaces that filter by timestamp must pass
+ * ISO 8601 UTC strings (suffixed with Z) for correct string-index comparison.
  */
 import { DateTime } from 'luxon';
 import type { IActivityRepository } from '../../repositories/IActivityRepository';
@@ -18,6 +22,7 @@ export async function updateActivity(
   }
   await repo.update(deviceId, activityId, {
     ...activity,
+    // Normalise to UTC, matching CreateActivity behaviour.
     timestamp: ts.toUTC().toISO()!,
   });
 }

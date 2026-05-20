@@ -115,6 +115,9 @@ export class ConvexWebActivityRepository implements IActivityRepository {
   /**
    * List ALL activities in the repository's activity stream whose timestamp
    * falls within [fromIso, toIso] (inclusive), ordered by timestamp ascending.
+   *
+   * Both fromIso and toIso must be ISO 8601 UTC strings (suffixed with Z).
+   * The stored activity.timestamp is normalised to UTC by the Create/Update use cases.
    */
   async listByTimestampRange(
     _deviceId: string,

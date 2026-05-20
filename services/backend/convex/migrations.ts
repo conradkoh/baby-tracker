@@ -50,6 +50,12 @@ export const setUserAccessLevelDefault = migrations.define({
 /**
  * Migration: Fix webapp activity timestamps that were stored in UTC due to timezone bug.
  *
+ * NOTE on current UTC normalisation (as of the current codebase):
+ * The CreateActivity and UpdateActivity use cases now explicitly convert timestamps
+ * to UTC via ts.toUTC().toISO() before storing. This migration is a one-time fix for
+ * legacy data created before that normalisation was added. All new activities are
+ * stored in UTC format by the use case layer.
+ *
  * Old webapp used `new Date().toISOString().slice(0, 16)` for the datetime-local input default,
  * which returned UTC time. When saved, the browser re-interpreted this UTC string as local time,
  * resulting in timestamps shifted by the user's UTC offset (e.g., 8 hours early for UTC+8 users).

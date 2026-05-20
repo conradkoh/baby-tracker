@@ -25,6 +25,9 @@ import { requireAuthAndFamily } from './helpers';
 const activityValidator = v.union(
   // feed activity
   v.object({
+    // ISO 8601 UTC string (suffixed with Z). The Create and Update use cases normalise
+    // whatever the client sends into UTC via ts.toUTC().toISO() before storing.
+    // Query args (fromIso/toIso) must also be in UTC for string-index comparison to work.
     timestamp: v.string(),
     type: v.literal('feed'),
     feed: v.union(
@@ -51,6 +54,7 @@ const activityValidator = v.union(
   }),
   // diaper change activity
   v.object({
+    // ISO 8601 UTC string (suffixed with Z). See feed comment for details.
     timestamp: v.string(),
     type: v.literal('diaper_change'),
     diaperChange: v.object({
@@ -64,6 +68,7 @@ const activityValidator = v.union(
   }),
   // medical activity
   v.object({
+    // ISO 8601 UTC string (suffixed with Z). See feed comment for details.
     timestamp: v.string(),
     type: v.literal('medical'),
     medical: v.union(
@@ -193,6 +198,11 @@ export const getLast24hSummary = query({
  * Get all activities for the authenticated user's family within a timestamp range.
  * Returns activities ordered by timestamp descending (newest first).
  * Used for day-based pagination on the home page.
+ *
+ * Both fromIso and toIso must be ISO 8601 UTC strings (suffixed with Z) so that
+ * the Convex string-index comparison against the stored UTC timestamps is correct.
+ * Passing local-offset strings (e.g. +08:00) causes incorrect filtering for users
+ * with non-UTC timezones (see the app home page timezone bug fix).
  */
 export const getActivitiesByDateRange = query({
   args: {

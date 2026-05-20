@@ -12,6 +12,7 @@ export default defineSchema({
     activity: v.union(
       //feed activity
       v.object({
+        // ISO 8601 UTC string (suffixed with Z). Normalized by CreateActivity/UpdateActivity use cases.
         timestamp: v.string(),
         type: v.literal('feed'),
         feed: v.union(
@@ -44,6 +45,7 @@ export default defineSchema({
       }),
       //diaper change activity
       v.object({
+        // ISO 8601 UTC string (suffixed with Z). Normalized by CreateActivity/UpdateActivity use cases.
         timestamp: v.string(),
         type: v.literal('diaper_change'),
         diaperChange: v.object({
@@ -57,6 +59,7 @@ export default defineSchema({
       }),
       // medical activity
       v.object({
+        // ISO 8601 UTC string (suffixed with Z). Normalized by CreateActivity/UpdateActivity use cases.
         timestamp: v.string(),
         type: v.literal('medical'),
         medical: v.union(

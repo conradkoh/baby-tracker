@@ -49,6 +49,10 @@ export interface IActivityRepository {
    * List activities whose timestamp falls within [fromIso, toIso] (inclusive),
    * ordered by timestamp ascending. Returns ALL matching activities (no pagination).
    * Intended for bounded windows like "last 24h".
+   *
+   * Both fromIso and toIso must be ISO 8601 UTC strings (suffixed with Z) so that
+   * the Convex string-index comparison against the stored UTC timestamps is correct.
+   * The stored activity.timestamp field is normalised to UTC by the Create/Update use cases.
    */
   listByTimestampRange(
     deviceId: string,

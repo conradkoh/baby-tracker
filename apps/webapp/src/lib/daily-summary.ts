@@ -49,6 +49,11 @@ export type Activity = FeedActivity | DiaperActivity | MedicalActivity;
 /**
  * Formats a DateTime or ISO timestamp string as `YYYY-MM-DD` in the local zone.
  * Used to derive `dateKey` for grouping activities by day.
+ *
+ * Input timestamps are ISO 8601 UTC strings (suffixed with Z) as stored in the DB.
+ * The CreateActivity/UpdateActivity use cases normalise to UTC before storing.
+ * Luxon's DateTime.fromISO correctly handles the Z suffix and .toLocal() converts
+ * to the browser's local timezone for display.
  */
 export function toDateKey(input: string | DateTime, zone: string = 'local'): string {
   const dt = typeof input === 'string' ? DateTime.fromISO(input, { zone }) : input.setZone(zone);

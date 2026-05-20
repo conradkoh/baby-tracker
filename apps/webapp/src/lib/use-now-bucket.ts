@@ -25,5 +25,8 @@ export function useNowBucket5Min(): string {
     return () => clearTimeout(timerId);
   }, []);
 
+  // Returns ISO 8601 UTC string (Z suffix) to match the DB storage format.
+  // The CreateActivity/UpdateActivity use cases normalise timestamps to UTC,
+  // so all query bounds must be in UTC for correct string-index comparison.
   return DateTime.fromMillis(bucket, { zone: 'utc' }).toISO()!;
 }

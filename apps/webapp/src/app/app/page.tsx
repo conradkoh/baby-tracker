@@ -188,9 +188,15 @@ export default function AppHomePage() {
     // Load from the requested number of days back, but always at least from yesterday midnight.
     // The last-24h summary needs activities from (now - 24h), which always falls on yesterday,
     // so we must never load less than yesterday's data regardless of daysBack.
+    //
+    // IMPORTANT: .toUTC() is required because the DB stores timestamps as ISO 8601 UTC strings
+    // (suffixed with Z) — the CreateActivity/UpdateActivity use cases normalise to UTC.
+    // Without .toUTC(), the output is a local-offset string (e.g. +08:00) that breaks the
+    // Convex string-index comparison against UTC timestamps, silently dropping activities
+    // from the first 8 hours of the day for GMT+8 users (the timezone bug).
     const requestedFrom = DateTime.now().startOf('day').minus({ days: daysBack - 1 });
     const minFrom = DateTime.now().startOf('day').minus({ days: 1 }); // yesterday midnight
-    return (requestedFrom < minFrom ? requestedFrom : minFrom).toISO()!;
+    return (requestedFrom < minFrom ? requestedFrom : minFrom).toUTC().toISO()!;
   }, [daysBack]);
 
   const rangeResult = useSessionQuery(
