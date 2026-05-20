@@ -16,11 +16,11 @@ export function DailySummaryCard({ summary, isToday }: DailySummaryCardProps) {
   const { feed, diapers } = summary;
 
   return (
-    <div className="bg-indigo-50/60 dark:bg-indigo-950/20 border-b border-border">
+    <div className="bg-indigo-50/60 dark:bg-indigo-950/20 border-b border-border rounded-t-xl overflow-hidden">
       {/* Header — part of the tinted block, not a separate strip */}
-      <div className="flex items-center gap-1.5 px-4 pt-2 pb-1">
-        <ClipboardList className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-        <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+      <div className="flex items-center gap-1.5 px-4 pt-3 pb-2">
+        <ClipboardList className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+        <span className="text-sm font-bold text-indigo-800 dark:text-indigo-200">
           Daily Summary
         </span>
       </div>
