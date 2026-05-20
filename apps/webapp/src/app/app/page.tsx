@@ -335,7 +335,7 @@ export default function AppHomePage() {
               {formatDate(firstTs)}
             </h3>
 
-            <Card>
+            <Card className="overflow-hidden pt-0">
             <CardContent className="p-0">
               {summary && (
                 <DailySummaryCard summary={summary} isToday={isToday} />
