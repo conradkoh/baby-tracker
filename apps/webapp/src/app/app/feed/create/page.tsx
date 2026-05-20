@@ -39,7 +39,7 @@ export default function FeedCreatePage() {
   const createActivity = useSessionMutation(api.web.babyTracker.activities.create);
 
   // Form state
-  const [feedType, setFeedType] = useState<FeedType>('latch');
+  const [feedType, setFeedType] = useState<FeedType>('expressed');
   const [datetime, setDatetime] = useState(getDefaultDatetime());
 
   // Latch fields

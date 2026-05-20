@@ -136,9 +136,11 @@ describe('Feed create page', () => {
 
   describe('latch feed form', () => {
     it('shows duration inputs for left and right when Latch is selected', async () => {
+      const user = userEvent.setup();
       render(<FeedCreatePage />);
 
-      // Latch should be the default
+      await user.click(screen.getByText('Latch'));
+
       await waitFor(() => {
         expect(screen.getByText(/left side/i)).toBeInTheDocument();
         expect(screen.getByText(/right side/i)).toBeInTheDocument();
@@ -223,7 +225,8 @@ describe('Feed create page', () => {
       const user = userEvent.setup();
       render(<FeedCreatePage />);
 
-      // Latch is default — fill in duration fields via id
+      // Select Latch tab, then fill in duration fields via id
+      await user.click(screen.getByText('Latch'));
       await user.clear(getById('left-min'));
       await user.type(getById('left-min'), '10');
       await user.clear(getById('left-sec'));
