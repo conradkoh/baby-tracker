@@ -2,17 +2,18 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
 import { DateTime } from 'luxon';
-import { useSessionPaginatedQuery, useSessionQuery } from 'convex-helpers/react/sessions';
+import { useSessionQuery } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
+import type { FunctionReturnType } from 'convex/server';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { computeDailySummariesByDay, DailySummary } from '@/lib/daily-summary';
+import { computeDailySummariesByDay, computeLast24hSummary, DailySummary } from '@/lib/daily-summary';
 import { DailySummaryCard } from '@/modules/baby-tracker/DailySummaryCard';
 import { Last24hSummaryCard } from '@/modules/baby-tracker/Last24hSummaryCard';
 import { useNowBucket5Min } from '@/lib/use-now-bucket';
@@ -23,13 +24,18 @@ import {
   formatDuration,
 } from '@/lib/activity-form-utils';
 
+// ── Types ────────────────────────────────────────────────────────
+
+/** Activity item as returned by the date-range query (includes Convex _id). */
+type ActivityItem = NonNullable<
+  FunctionReturnType<typeof api.web.babyTracker.activities.getActivitiesByDateRange>
+>[number];
+
 // ── Helpers ─────────────────────────────────────────────────────
 
 /** Get a human-readable label and sub-detail for an activity. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getActivityDisplay(activity: any): { label: string; sub: string } {
-  const type: string = activity.type;
-  if (type === 'feed') {
+function getActivityDisplay(activity: ActivityItem): { label: string; sub: string } {
+  if (activity.type === 'feed') {
     const feed = activity.feed;
     switch (feed.type) {
       case 'latch': {
@@ -47,18 +53,18 @@ function getActivityDisplay(activity: any): { label: string; sub: string } {
       case 'water':
         return { label: 'Water Feed', sub: `${feed.volume.ml} ml` };
       case 'solids':
-        return { label: 'Solids Feed', sub: feed.description as string };
+        return { label: 'Solids Feed', sub: feed.description };
     }
   }
 
-  if (type === 'diaper_change') {
+  if (activity.type === 'diaper_change') {
     const d = activity.diaperChange;
-    const typeLabel: string = (d.type as string).charAt(0).toUpperCase() + (d.type as string).slice(1);
+    const typeLabel = d.type.charAt(0).toUpperCase() + d.type.slice(1);
     const sub = d.remarks ? `${typeLabel} · ${d.remarks}` : typeLabel;
     return { label: 'Diaper Change', sub };
   }
 
-  if (type === 'medical') {
+  if (activity.type === 'medical') {
     const med = activity.medical;
     switch (med.type) {
       case 'temperature':
@@ -75,8 +81,7 @@ function getActivityDisplay(activity: any): { label: string; sub: string } {
 }
 
 /** Build the edit navigation path for an activity (new routes). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getEditPath(activity: any): string {
+function getEditPath(activity: ActivityItem): string {
   switch (activity.type) {
     case 'feed':
       return `/app/feed/edit/${activity._id}`;
@@ -174,20 +179,31 @@ export default function AppHomePage() {
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 
-  const paginated = useSessionPaginatedQuery(
-    api.web.babyTracker.activities.getByTimestampDescPaginated,
-    {},
-    { initialNumItems: 20 }
-  );
-
-  const results = paginated?.results ?? [];
-  const status = paginated?.status ?? 'LoadingFirstPage';
-  const isLoading = paginated?.isLoading ?? true;
-  const loadMore = paginated?.loadMore;
+  const [daysBack, setDaysBack] = useState(2);
 
   const nowIso = useNowBucket5Min();
   const nowMs = DateTime.fromISO(nowIso).toMillis();
-  const last24h = useSessionQuery(api.web.babyTracker.activities.getLast24hSummary, { nowIso });
+
+  const fromIso = useMemo(() => {
+    // Load from the requested number of days back, but always at least from yesterday midnight.
+    // The last-24h summary needs activities from (now - 24h), which always falls on yesterday,
+    // so we must never load less than yesterday's data regardless of daysBack.
+    const requestedFrom = DateTime.now().startOf('day').minus({ days: daysBack - 1 });
+    const minFrom = DateTime.now().startOf('day').minus({ days: 1 }); // yesterday midnight
+    return (requestedFrom < minFrom ? requestedFrom : minFrom).toISO()!;
+  }, [daysBack]);
+
+  const rangeResult = useSessionQuery(
+    api.web.babyTracker.activities.getActivitiesByDateRange,
+    { fromIso, toIso: nowIso }
+  );
+  const results = rangeResult ?? [];
+  const isLoading = rangeResult === undefined;
+
+  const last24h = useMemo(
+    () => (rangeResult !== undefined ? computeLast24hSummary(results, nowMs) : undefined),
+    [results, nowMs, rangeResult]
+  );
 
   // ── Per-day summary computation ──────────────────────────────
   const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results), [results]);
@@ -202,17 +218,16 @@ export default function AppHomePage() {
   // Precompute today's dateKey — recomputes when results refresh (acceptable; midnight rollover is rare)
   const todayKey = useMemo(() => toDateKey(DateTime.now()), [results]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
-    const sorted = [...(results as any[])].sort((a, b) => {
-      const tsA = DateTime.fromISO(a.timestamp as string).toMillis();
-      const tsB = DateTime.fromISO(b.timestamp as string).toMillis();
+    const sorted = [...results].sort((a, b) => {
+      const tsA = DateTime.fromISO(a.timestamp).toMillis();
+      const tsB = DateTime.fromISO(b.timestamp).toMillis();
       return tsB - tsA;
     });
 
     const dateGroups: {
       date: string;
-      timeGroups: { period: TimeOfDay; activities: any[] }[];
+      timeGroups: { period: TimeOfDay; activities: ActivityItem[] }[];
     }[] = [];
 
     for (const activity of sorted) {
@@ -328,7 +343,7 @@ export default function AppHomePage() {
         const dateKey = dateGroup.date;
         const summary = summaryByDateKey.get(dateKey);
         const isToday = dateKey === todayKey;
-        const firstTs = dateGroup.timeGroups[0].activities[0].timestamp as string;
+        const firstTs = dateGroup.timeGroups[0].activities[0].timestamp;
 
         return (
           <div key={dateKey} className="mb-6">
@@ -356,15 +371,15 @@ export default function AppHomePage() {
                     </div>
 
                     {/* Activities in this time period */}
-                    {timeGroup.activities.map((activity: any, idx: number) => {
+                    {timeGroup.activities.map((activity, idx) => {
                       const { label: actLabel, sub } = getActivityDisplay(activity);
-                      const IconComponent = ACTIVITY_ICON_MAP[activity.type as string];
+                      const IconComponent = ACTIVITY_ICON_MAP[activity.type];
                       const isLastInGroup = idx === timeGroup.activities.length - 1;
                       const isLastOverall = isLastTimeGroup && isLastInGroup;
 
                       return (
                         <Link
-                          key={activity._id as string}
+                          key={activity._id}
                           href={getEditPath(activity)}
                           prefetch={true}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors ${!isLastOverall ? 'border-b border-border' : ''}`}
@@ -381,7 +396,7 @@ export default function AppHomePage() {
                             <p className="text-xs text-muted-foreground truncate">{sub}</p>
                           </div>
                           <span className="text-xs text-muted-foreground flex-shrink-0">
-                            {formatTime(activity.timestamp as string)}
+                            {formatTime(activity.timestamp)}
                           </span>
                         </Link>
                       );
@@ -396,16 +411,16 @@ export default function AppHomePage() {
       })}
 
       {/* Load more */}
-      {status === 'CanLoadMore' && (
+      {!isLoading && (
         <div className="flex justify-center mt-4">
-          <Button variant="outline" onClick={() => loadMore?.(20)}>
+          <Button variant="outline" onClick={() => setDaysBack((d) => d + 1)}>
             Load More
           </Button>
         </div>
       )}
 
       {/* Loading more indicator */}
-      {status === 'LoadingMore' && (
+      {isLoading && results.length > 0 && (
         <div className="flex justify-center mt-4">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>

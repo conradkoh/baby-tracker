@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DateTime } from 'luxon';
-import { computeDailySummary, computeDailySummariesByDay } from './daily-summary';
+import { computeDailySummary, computeDailySummariesByDay, computeLast24hSummary, type Activity } from './daily-summary';
 
 // ── Test helpers ──────────────────────────────────────────────────────────────
 
@@ -416,5 +416,43 @@ describe('computeDailySummariesByDay', () => {
     expect(result).toHaveLength(1);
     expect(result[0].summary.hasAny).toBe(true);
     expect(result[0].summary.medical?.latestTemperature?.at).toBe('2025-01-15T10:00:00.000Z');
+  });
+});
+
+describe('computeLast24hSummary', () => {
+  it('returns zeros when no activities in window', () => {
+    const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+    const result = computeLast24hSummary([], nowMs);
+    expect(result.feed.lastFeedAtMs).toBeNull();
+    expect(result.feed.last3hMl).toBe(0);
+    expect(result.feed.total24hMl).toBe(0);
+    expect(result.feed.bottleCount).toBe(0);
+    expect(result.diapers).toEqual({ wet: 0, dirty: 0, mixed: 0, total: 0 });
+  });
+
+  it('counts bottle feeds correctly within the 24h window', () => {
+    const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+    const activities = [
+      makeFeed('2025-01-14T13:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
+      makeFeed('2025-01-15T08:00:00.000Z', 'formula', { volume: { ml: 90 } }),
+      makeFeed('2025-01-15T11:30:00.000Z', 'water', { volume: { ml: 30 } }),
+    ] as Activity[];
+    const result = computeLast24hSummary(activities, nowMs);
+    expect(result.feed.bottleCount).toBe(3);
+    expect(result.feed.total24hMl).toBe(180);
+    expect(result.feed.last3hMl).toBe(30);
+  });
+
+  it('excludes activities older than 24h', () => {
+    const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+    const activities = [
+      makeFeed('2025-01-13T12:00:00.000Z', 'expressed', { volume: { ml: 60 } }),
+      makeDiaper('2025-01-13T12:00:00.000Z', 'wet'),
+      makeFeed('2025-01-15T10:00:00.000Z', 'expressed', { volume: { ml: 120 } }),
+    ] as Activity[];
+    const result = computeLast24hSummary(activities, nowMs);
+    expect(result.feed.bottleCount).toBe(1);
+    expect(result.feed.total24hMl).toBe(120);
+    expect(result.diapers).toEqual({ wet: 0, dirty: 0, mixed: 0, total: 0 });
   });
 });

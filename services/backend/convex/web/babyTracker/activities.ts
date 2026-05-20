@@ -188,3 +188,30 @@ export const getLast24hSummary = query({
     return await getLast24hSummaryUseCase(repo, nowMs);
   },
 });
+
+/**
+ * Get all activities for the authenticated user's family within a timestamp range.
+ * Returns activities ordered by timestamp descending (newest first).
+ * Used for day-based pagination on the home page.
+ */
+export const getActivitiesByDateRange = query({
+  args: {
+    ...SessionIdArg,
+    fromIso: v.string(),
+    toIso: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
+    const docs = await ctx.db
+      .query('activities')
+      .withIndex('by_activityStreamId_by_timestamp', (q) =>
+        q
+          .eq('activityStreamId', activityStreamId)
+          .gte('activity.timestamp', args.fromIso)
+          .lte('activity.timestamp', args.toIso)
+      )
+      .order('desc')
+      .collect();
+    return docs.map((doc) => ({ ...doc.activity, _id: doc._id }));
+  },
+});

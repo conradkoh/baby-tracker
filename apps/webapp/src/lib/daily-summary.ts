@@ -42,7 +42,7 @@ interface MedicalActivity {
   };
 }
 
-type Activity = FeedActivity | DiaperActivity | MedicalActivity;
+export type Activity = FeedActivity | DiaperActivity | MedicalActivity;
 
 // ── Date-key helper (shared with callers) ─────────────────────────────────────
 
@@ -345,4 +345,68 @@ export function computeDailySummariesByDay(
   }
 
   return entries;
+}
+
+// ── Last 24h Summary ────────────────────────────────────────────
+
+export interface Last24hSummary {
+  feed: {
+    lastFeedAtMs: number | null;
+    last3hMl: number;
+    total24hMl: number;
+    bottleCount: number;
+  };
+  diapers: {
+    wet: number;
+    dirty: number;
+    mixed: number;
+    total: number;
+  };
+}
+
+const BOTTLE_FEED_TYPES = ['expressed', 'formula', 'water'] as const;
+type BottleFeedSubType = (typeof BOTTLE_FEED_TYPES)[number];
+
+/**
+ * Compute the last-24h summary from a flat activities array.
+ * The array must cover at least the 24h window ending at nowMs.
+ */
+export function computeLast24hSummary(
+  activities: ReadonlyArray<Activity>,
+  nowMs: number
+): Last24hSummary {
+  const windowStartMs = nowMs - 24 * 60 * 60 * 1000;
+  const threeHourBoundaryMs = nowMs - 3 * 60 * 60 * 1000;
+
+  let lastFeedAtMs: number | null = null;
+  let total24hMl = 0;
+  let last3hMl = 0;
+  let bottleCount = 0;
+  let wet = 0, dirty = 0, mixed = 0;
+
+  for (const activity of activities) {
+    const tsMs = Date.parse(activity.timestamp);
+    if (tsMs <= nowMs && tsMs > windowStartMs) {
+      if (activity.type === 'feed') {
+        if (tsMs > (lastFeedAtMs ?? 0)) lastFeedAtMs = tsMs;
+        const feedType = activity.feed.type;
+        if ((BOTTLE_FEED_TYPES as readonly string[]).includes(feedType)) {
+          const vol = (activity.feed as { type: BottleFeedSubType; volume?: { ml?: number } }).volume?.ml ?? 0;
+          total24hMl += vol;
+          if (tsMs > threeHourBoundaryMs) last3hMl += vol;
+          bottleCount++;
+        }
+      } else if (activity.type === 'diaper_change') {
+        const dType = activity.diaperChange.type;
+        if (dType === 'wet') wet++;
+        else if (dType === 'dirty') dirty++;
+        else if (dType === 'mixed') mixed++;
+      }
+    }
+  }
+
+  return {
+    feed: { lastFeedAtMs, last3hMl, total24hMl, bottleCount },
+    diapers: { wet, dirty, mixed, total: wet + dirty + mixed },
+  };
 }
