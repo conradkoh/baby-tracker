@@ -83,7 +83,7 @@ describe('DailySummaryCard', () => {
           lastWetAgoMs: 3_600_000,
           lastDirtyAgoMs: null,
           lastMixedAgoMs: null,
-          lastWetAt: '2025-01-15T08:00:00.000Z',
+          lastWetAt: 1736928000000,
           lastDirtyAt: null,
           lastMixedAt: null,
         },
@@ -109,8 +109,8 @@ describe('DailySummaryCard', () => {
           lastWetAgoMs: 7_200_000,
           lastDirtyAgoMs: 5_400_000,
           lastMixedAgoMs: null,
-          lastWetAt: '2025-01-15T08:00:00.000Z',
-          lastDirtyAt: '2025-01-15T10:00:00.000Z',
+          lastWetAt: 1736928000000,
+          lastDirtyAt: 1736935200000,
           lastMixedAt: null,
         },
         medical: null,
@@ -133,8 +133,8 @@ describe('DailySummaryCard', () => {
           lastDirtyAgoMs: 10_800_000,
           lastMixedAgoMs: 5_400_000,
           lastWetAt: null,
-          lastDirtyAt: '2025-01-15T10:00:00.000Z',
-          lastMixedAt: '2025-01-15T08:00:00.000Z',
+          lastDirtyAt: 1736935200000,
+          lastMixedAt: 1736928000000,
         },
         medical: null,
       };
@@ -151,7 +151,7 @@ describe('DailySummaryCard', () => {
         diapers: {
           wet: 1, dirty: 0, mixed: 0, total: 1,
           lastWetAgoMs: 3_600_000, lastDirtyAgoMs: null, lastMixedAgoMs: null,
-          lastWetAt: '2025-01-15T10:00:00.000Z', lastDirtyAt: null, lastMixedAt: null,
+          lastWetAt: 1736935200000, lastDirtyAt: null, lastMixedAt: null,
         },
         medical: null,
       };
@@ -166,7 +166,7 @@ describe('DailySummaryCard', () => {
         diapers: {
           wet: 1, dirty: 0, mixed: 0, total: 1,
           lastWetAgoMs: 3_600_000, lastDirtyAgoMs: null, lastMixedAgoMs: null,
-          lastWetAt: '2025-01-15T10:30:00.000Z', lastDirtyAt: null, lastMixedAt: null,
+          lastWetAt: 1736937000000, lastDirtyAt: null, lastMixedAt: null,
         },
         medical: null,
       };
@@ -180,7 +180,7 @@ describe('DailySummaryCard', () => {
       const summary: DailySummary = {
         hasAny: true,
         feed: { bottle: null, latch: null, solids: null },
-        diapers: { wet: 2, dirty: 0, mixed: 0, total: 2, lastWetAgoMs: 3_600_000, lastDirtyAgoMs: null, lastMixedAgoMs: null, lastWetAt: '2025-05-19T10:00:00.000Z', lastDirtyAt: null, lastMixedAt: null },
+        diapers: { wet: 2, dirty: 0, mixed: 0, total: 2, lastWetAgoMs: 3_600_000, lastDirtyAgoMs: null, lastMixedAgoMs: null, lastWetAt: 1747648800000, lastDirtyAt: null, lastMixedAt: null },
         medical: null,
       };
       render(<DailySummaryCard summary={summary} isToday={true} />);

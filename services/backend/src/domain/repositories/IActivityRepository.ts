@@ -46,17 +46,16 @@ export interface IActivityRepository {
   ): Promise<PaginationResult<Activity>>;
 
   /**
-   * List activities whose timestamp falls within [fromIso, toIso] (inclusive),
+   * List activities whose timestamp falls within [fromMs, toMs] (inclusive, epoch ms),
    * ordered by timestamp ascending. Returns ALL matching activities (no pagination).
    * Intended for bounded windows like "last 24h".
    *
-   * Both fromIso and toIso must be ISO 8601 UTC strings (suffixed with Z) so that
-   * the Convex string-index comparison against the stored UTC timestamps is correct.
-   * The stored activity.timestamp field is normalised to UTC by the Create/Update use cases.
+   * The implementation converts fromMs/toMs to ISO 8601 UTC strings for the Convex
+   * string-index comparison against the stored UTC timestamps.
    */
   listByTimestampRange(
     deviceId: string,
-    fromIso: string,
-    toIso: string
+    fromMs: number,
+    toMs: number
   ): Promise<Activity[]>;
 }

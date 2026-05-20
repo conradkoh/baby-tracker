@@ -7,8 +7,6 @@ import { v } from 'convex/values';
 import { paginationOptsValidator } from 'convex/server';
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { mutation, query } from '../../_generated/server';
-import { ConvexError } from 'convex/values';
-import { DateTime } from 'luxon';
 import { ConvexWebActivityRepository } from '../../../src/infra/ConvexWebActivityRepository';
 import {
   createActivity as createActivityUseCase,
@@ -25,10 +23,8 @@ import { requireAuthAndFamily } from './helpers';
 const activityValidator = v.union(
   // feed activity
   v.object({
-    // ISO 8601 UTC string (suffixed with Z). The Create and Update use cases normalise
-    // whatever the client sends into UTC via ts.toUTC().toISO() before storing.
-    // Query args (fromIso/toIso) must also be in UTC for string-index comparison to work.
-    timestamp: v.string(),
+    // Epoch milliseconds (UTC). Converted to ISO 8601 UTC string by the repository layer.
+    timestamp: v.number(),
     type: v.literal('feed'),
     feed: v.union(
       v.object({
@@ -54,8 +50,8 @@ const activityValidator = v.union(
   }),
   // diaper change activity
   v.object({
-    // ISO 8601 UTC string (suffixed with Z). See feed comment for details.
-    timestamp: v.string(),
+    // Epoch milliseconds (UTC). Converted by the repository layer.
+    timestamp: v.number(),
     type: v.literal('diaper_change'),
     diaperChange: v.object({
       type: v.union(
@@ -68,8 +64,8 @@ const activityValidator = v.union(
   }),
   // medical activity
   v.object({
-    // ISO 8601 UTC string (suffixed with Z). See feed comment for details.
-    timestamp: v.string(),
+    // Epoch milliseconds (UTC). Converted by the repository layer.
+    timestamp: v.number(),
     type: v.literal('medical'),
     medical: v.union(
       v.object({
@@ -175,22 +171,18 @@ export const getByTimestampDescPaginated = query({
 
 /**
  * Get a summary of all feed and diaper activities from the last 24 hours.
- * The nowIso argument is rounded to the nearest 5-min bucket by the client
- * using useNowBucket5Min(), so Convex can memoize the result per bucket.
+ * The nowMs argument is epoch milliseconds (rounded to the nearest 5-min bucket
+ * by the client's useNowBucket5Min() for Convex memoization).
  */
 export const getLast24hSummary = query({
   args: {
     ...SessionIdArg,
-    nowIso: v.string(),
+    nowMs: v.number(),
   },
   handler: async (ctx, args) => {
     const { activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
-    const nowMs = DateTime.fromISO(args.nowIso).toMillis();
-    if (!Number.isFinite(nowMs)) {
-      throw new ConvexError({ code: 'BAD_REQUEST', message: 'Invalid nowIso' });
-    }
-    return await getLast24hSummaryUseCase(repo, nowMs);
+    return await getLast24hSummaryUseCase(repo, args.nowMs);
   },
 });
 
@@ -199,29 +191,33 @@ export const getLast24hSummary = query({
  * Returns activities ordered by timestamp descending (newest first).
  * Used for day-based pagination on the home page.
  *
- * Both fromIso and toIso must be ISO 8601 UTC strings (suffixed with Z) so that
- * the Convex string-index comparison against the stored UTC timestamps is correct.
- * Passing local-offset strings (e.g. +08:00) causes incorrect filtering for users
- * with non-UTC timezones (see the app home page timezone bug fix).
+ * Both fromMs and toMs are epoch milliseconds. The handler converts them to ISO 8601
+ * UTC strings for the Convex string-index comparison against the stored UTC timestamps.
  */
 export const getActivitiesByDateRange = query({
   args: {
     ...SessionIdArg,
-    fromIso: v.string(),
-    toIso: v.string(),
+    fromMs: v.number(),
+    toMs: v.number(),
   },
   handler: async (ctx, args) => {
     const { activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
+    const fromIso = new Date(args.fromMs).toISOString();
+    const toIso = new Date(args.toMs).toISOString();
     const docs = await ctx.db
       .query('activities')
       .withIndex('by_activityStreamId_by_timestamp', (q) =>
         q
           .eq('activityStreamId', activityStreamId)
-          .gte('activity.timestamp', args.fromIso)
-          .lte('activity.timestamp', args.toIso)
+          .gte('activity.timestamp', fromIso)
+          .lte('activity.timestamp', toIso)
       )
       .order('desc')
       .collect();
-    return docs.map((doc) => ({ ...doc.activity, _id: doc._id }));
+    return docs.map((doc) => ({
+      ...doc.activity,
+      _id: doc._id,
+      timestamp: Date.parse(doc.activity.timestamp),
+    }));
   },
 });

@@ -21,19 +21,19 @@ function referenceTime(iso: string, zone = 'local') {
 // ── Activity factories ───────────────────────────────────────────────────────
 
 function makeFeed(ts: string, subType: string, extras: Record<string, unknown> = {}) {
-  return { type: 'feed' as const, timestamp: ts, feed: { type: subType, ...extras } };
+  return { type: 'feed' as const, timestamp: Date.parse(ts), feed: { type: subType, ...extras } };
 }
 
 function makeDiaper(ts: string, diaperType: string) {
-  return { type: 'diaper_change' as const, timestamp: ts, diaperChange: { type: diaperType } };
+  return { type: 'diaper_change' as const, timestamp: Date.parse(ts), diaperChange: { type: diaperType } };
 }
 
 function makeTemp(ts: string, value: number) {
-  return { type: 'medical' as const, timestamp: ts, medical: { type: 'temperature' as const, temperature: { value } } };
+  return { type: 'medical' as const, timestamp: Date.parse(ts), medical: { type: 'temperature' as const, temperature: { value } } };
 }
 
 function makeMedicine(ts: string, name: string, unit: string, value: number) {
-  return { type: 'medical' as const, timestamp: ts, medical: { type: 'medicine' as const, medicine: { name, unit, value } } };
+  return { type: 'medical' as const, timestamp: Date.parse(ts), medical: { type: 'medicine' as const, medicine: { name, unit, value } } };
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────
@@ -256,8 +256,8 @@ describe('computeDailySummary', () => {
       const activities: unknown[] = [
         { type: 'feed' }, // completely malformed — missing timestamp, filtered out
         null,
-        { type: 'diaper_change', timestamp: 'invalid-ts' }, // unparseable timestamp
-        { type: 'feed', timestamp: '2025-01-15T08:00:00.000Z', feed: { type: 'water' } }, // valid timestamp, water feed = bottle total 0, count 1
+        { type: 'diaper_change', timestamp: NaN }, // unparseable timestamp (NaN)
+        { type: 'feed', timestamp: Date.parse('2025-01-15T08:00:00.000Z'), feed: { type: 'water' } }, // valid, water feed = bottle total 0, count 1
       ];
 
       const result = computeDailySummary(activities as readonly unknown[], { ...range, referenceTime: ref });

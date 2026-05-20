@@ -54,22 +54,22 @@ export type MedicalPayload = TemperaturePayload | MedicinePayload;
 export type ActivityType = 'feed' | 'diaper_change' | 'medical';
 
 export interface FeedActivity {
-  /** ISO 8601 UTC string (suffixed with Z). Normalized by the Create/Update use cases. */
-  timestamp: string;
+  /** Epoch milliseconds (UTC). Converted to/from ISO strings by the repository layer. */
+  timestamp: number;
   type: 'feed';
   feed: FeedPayload;
 }
 
 export interface DiaperChangeActivity {
-  /** ISO 8601 UTC string (suffixed with Z). Normalized by the Create/Update use cases. */
-  timestamp: string;
+  /** Epoch milliseconds (UTC). Converted to/from ISO strings by the repository layer. */
+  timestamp: number;
   type: 'diaper_change';
   diaperChange: DiaperChangePayload;
 }
 
 export interface MedicalActivity {
-  /** ISO 8601 UTC string (suffixed with Z). Normalized by the Create/Update use cases. */
-  timestamp: string;
+  /** Epoch milliseconds (UTC). Converted to/from ISO strings by the repository layer. */
+  timestamp: number;
   type: 'medical';
   medical: MedicalPayload;
 }

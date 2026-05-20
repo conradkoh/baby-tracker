@@ -9,29 +9,25 @@ import { DateTime } from 'luxon';
 
 /** Returns current local datetime as "YYYY-MM-DDTHH:MM" for datetime-local inputs. */
 export function getDefaultDatetime(): string {
-  return toLocalDatetimeString(new Date().toISOString());
+  return toLocalDatetimeString(Date.now());
 }
 
 /**
- * Converts an ISO timestamp (UTC or offset) to a local "YYYY-MM-DDTHH:MM" string
+ * Converts an epoch-ms timestamp or ISO string to a local "YYYY-MM-DDTHH:MM" string
  * for use as the value of a datetime-local input.
- * Mirrors how the mobile pre-populates edit forms.
  */
-export function toLocalDatetimeString(isoTs: string): string {
-  return DateTime.fromISO(isoTs).toLocal().toFormat("yyyy-MM-dd'T'HH:mm");
+export function toLocalDatetimeString(ts: number | string): string {
+  const dt = typeof ts === 'number' ? DateTime.fromMillis(ts) : DateTime.fromISO(ts);
+  return dt.toLocal().toFormat("yyyy-MM-dd'T'HH:mm");
 }
 
 /**
- * Converts a "datetime-local" input string (no timezone) to a timezone-aware ISO string.
- * Luxon treats a no-timezone ISO as local time, then .toISO() adds the offset.
- * Mirrors how mobile uses DateTime.fromJSDate(date).toISO() on submit.
- *
- * IMPORTANT: This produces a local-offset string (e.g. +08:00). The backend
- * CreateActivity/UpdateActivity use cases normalise it to UTC before storing.
- * The DB stores ISO 8601 UTC strings (suffixed with Z).
+ * Converts a "datetime-local" input string (no timezone) to epoch milliseconds.
+ * Luxon treats a no-timezone ISO as local time, so the epoch ms correctly represents
+ * the chosen local datetime in UTC.
  */
-export function toTimestamp(datetimeLocalValue: string): string {
-  return DateTime.fromISO(datetimeLocalValue).toISO()!;
+export function toTimestamp(datetimeLocalValue: string): number {
+  return DateTime.fromISO(datetimeLocalValue).toMillis();
 }
 
 /** Converts minutes + seconds to total seconds. */
@@ -55,20 +51,19 @@ export function formatDuration(totalSeconds: number): string {
 }
 
 /**
- * Formats an ISO timestamp to a short time like "2:30 PM" using Luxon in local time.
- * Input is expected to be an ISO 8601 UTC string (suffixed with Z), as stored in the DB.
- * Luxon's fromISO handles the Z suffix and .toLocal() converts to the browser's timezone.
+ * Formats an epoch-ms or ISO timestamp to a short time like "2:30 PM" in local time.
  */
-export function formatTime(ts: string): string {
-  return DateTime.fromISO(ts).toLocal().toFormat('h:mm a');
+export function formatTime(ts: number | string): string {
+  const dt = typeof ts === 'number' ? DateTime.fromMillis(ts) : DateTime.fromISO(ts);
+  return dt.toLocal().toFormat('h:mm a');
 }
 
 /**
- * Formats a timestamp to a locale date string like "Jan 15, 2025" using Luxon in local time.
- * Input is expected to be an ISO 8601 UTC string (suffixed with Z), as stored in the DB.
+ * Formats an epoch-ms or ISO timestamp to a locale date string like "Jan 15, 2025" in local time.
  */
-export function formatDate(ts: string): string {
-  return DateTime.fromISO(ts).toLocal().toFormat('MMM d, yyyy');
+export function formatDate(ts: number | string): string {
+  const dt = typeof ts === 'number' ? DateTime.fromMillis(ts) : DateTime.fromISO(ts);
+  return dt.toLocal().toFormat('MMM d, yyyy');
 }
 
 /**

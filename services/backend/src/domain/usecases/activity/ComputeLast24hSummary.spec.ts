@@ -2,15 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { computeLast24hSummary, type Last24hSummary } from './ComputeLast24hSummary';
 
 function makeFeed(ts: string, subType: string, extras: Record<string, unknown> = {}) {
-  return { type: 'feed' as const, timestamp: ts, feed: { type: subType, ...extras } };
+  return { type: 'feed' as const, timestamp: Date.parse(ts), feed: { type: subType, ...extras } };
 }
 
 function makeDiaper(ts: string, diaperType: string) {
-  return { type: 'diaper_change' as const, timestamp: ts, diaperChange: { type: diaperType } };
+  return { type: 'diaper_change' as const, timestamp: Date.parse(ts), diaperChange: { type: diaperType } };
 }
 
 function makeTemp(ts: string, value: number) {
-  return { type: 'medical' as const, timestamp: ts, medical: { type: 'temperature' as const, temperature: { value } } };
+  return { type: 'medical' as const, timestamp: Date.parse(ts), medical: { type: 'temperature' as const, temperature: { value } } };
 }
 
 describe('computeLast24hSummary', () => {

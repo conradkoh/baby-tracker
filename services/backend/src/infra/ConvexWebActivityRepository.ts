@@ -5,6 +5,15 @@
  * The web endpoint calls requireAuthAndFamily first to obtain activityStreamId,
  * then passes it to the constructor. This avoids repeated DB lookups inside
  * each method and keeps the repository focused on data access.
+ *
+ * ── Timestamp conversion ───────────────────────────────────────
+ * The domain operates on epoch-ms timestamps (number). Convex stores ISO 8601
+ * UTC strings (v.string()). The conversion between the two happens in this
+ * layer: toStorage() maps domain → storage and convertDoc() maps storage → domain.
+ * Both functions narrow the discriminated union explicitly so that TypeScript
+ * can verify the shape. A minimal cast (`act.feed as any`) is needed for the
+ * nested payload fields because their runtime shape matches but TypeScript's
+ * inference of the Convex document type is too generic to verify statically.
  */
 import type { GenericMutationCtx, GenericQueryCtx, GenericDatabaseWriter } from 'convex/server';
 import type { DataModel, Id } from '../../convex/_generated/dataModel';
@@ -13,6 +22,56 @@ import type { Activity } from '../domain/activity/Activity';
 import { ConvexError } from 'convex/values';
 
 type Ctx = GenericMutationCtx<DataModel> | GenericQueryCtx<DataModel>;
+
+/** Epoch ms → ISO 8601 UTC string for Convex storage. */
+function toIso(ms: number): string {
+  return new Date(ms).toISOString();
+}
+
+/** ISO 8601 UTC string → epoch ms for the domain. */
+function toMs(iso: string): number {
+  return Date.parse(iso);
+}
+
+/**
+ * Convert a domain Activity (epoch-ms timestamp) to the Convex storage shape
+ * (ISO 8601 UTC string timestamp). Each member of the discriminated union is
+ * handled explicitly so TypeScript can verify the returned shape.
+ */
+function toStorage(activity: Activity) {
+  const ts = toIso(activity.timestamp);
+  if (activity.type === 'feed') {
+    return { type: 'feed' as const, timestamp: ts, feed: activity.feed };
+  }
+  if (activity.type === 'diaper_change') {
+    return { type: 'diaper_change' as const, timestamp: ts, diaperChange: activity.diaperChange };
+  }
+  return { type: 'medical' as const, timestamp: ts, medical: activity.medical };
+}
+
+/**
+ * Convert a stored Convex activity document to a domain Activity (epoch-ms timestamp).
+ * The `as any` on nested payload fields is required because the Convex Doc type
+ * infers the activity union generically, and TypeScript cannot statically prove
+ * the payload shape matches the domain type after the timestamp field is remapped.
+ * At runtime the shapes are identical — only the timestamp type differs.
+ */
+function convertDoc(doc: {
+  activity:
+    | { type: 'feed'; timestamp: string; feed: unknown }
+    | { type: 'diaper_change'; timestamp: string; diaperChange: unknown }
+    | { type: 'medical'; timestamp: string; medical: unknown };
+}): Activity {
+  const act = doc.activity;
+  const ts = toMs(act.timestamp);
+  if (act.type === 'feed') {
+    return { type: 'feed' as const, timestamp: ts, feed: act.feed as any };
+  }
+  if (act.type === 'diaper_change') {
+    return { type: 'diaper_change' as const, timestamp: ts, diaperChange: act.diaperChange as any };
+  }
+  return { type: 'medical' as const, timestamp: ts, medical: act.medical as any };
+}
 
 export class ConvexWebActivityRepository implements IActivityRepository {
   constructor(
@@ -37,7 +96,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
   async create(_deviceId: string, activity: Activity): Promise<string> {
     const id = await this.dbWriter.insert('activities', {
       activityStreamId: this.activityStreamId,
-      activity: activity,
+      activity: toStorage(activity),
     });
     return id;
   }
@@ -56,16 +115,13 @@ export class ConvexWebActivityRepository implements IActivityRepository {
     }
     await this.dbWriter.replace(this.actId(activityId), {
       activityStreamId: this.activityStreamId,
-      activity: activity,
+      activity: toStorage(activity),
     });
   }
 
   /**
    * Delete an activity by ID. Verifies the activity belongs to this
    * repository's activity stream before allowing the deletion.
-   *
-   * @throws ConvexError({ code: 'NOT_FOUND' }) if the activity does not exist
-   * @throws ConvexError({ code: 'FORBIDDEN' }) if the activity belongs to a different stream
    */
   async delete(activityId: string): Promise<void> {
     const doc = await this.ctx.db.get(this.actId(activityId));
@@ -80,13 +136,12 @@ export class ConvexWebActivityRepository implements IActivityRepository {
 
   /**
    * Get a single activity by ID, scoped to this repository's activity stream.
-   * Returns null if the activity doesn't exist or belongs to a different stream.
    */
   async getById(_deviceId: string, activityId: string): Promise<Activity | null> {
     const doc = await this.ctx.db.get(this.actId(activityId));
     if (!doc) return null;
     if (doc.activityStreamId !== this.activityStreamId) return null;
-    return doc.activity;
+    return convertDoc(doc);
   }
 
   /**
@@ -106,7 +161,7 @@ export class ConvexWebActivityRepository implements IActivityRepository {
       .paginate(paginationOpts);
 
     return {
-      page: result.page.map((doc) => ({ ...doc.activity, _id: doc._id })),
+      page: result.page.map((doc) => ({ ...convertDoc(doc), _id: doc._id })),
       isDone: result.isDone,
       continueCursor: result.continueCursor,
     };
@@ -114,27 +169,26 @@ export class ConvexWebActivityRepository implements IActivityRepository {
 
   /**
    * List ALL activities in the repository's activity stream whose timestamp
-   * falls within [fromIso, toIso] (inclusive), ordered by timestamp ascending.
-   *
-   * Both fromIso and toIso must be ISO 8601 UTC strings (suffixed with Z).
-   * The stored activity.timestamp is normalised to UTC by the Create/Update use cases.
+   * falls within [fromMs, toMs] (inclusive, epoch ms), ordered by timestamp ascending.
    */
   async listByTimestampRange(
     _deviceId: string,
-    fromIso: string,
-    toIso: string
+    fromMs: number,
+    toMs: number
   ): Promise<Activity[]> {
+    const fromIso = toIso(fromMs);
+    const toIso_ = toIso(toMs);
     const docs = await this.ctx.db
       .query('activities')
       .withIndex('by_activityStreamId_by_timestamp', (q) =>
         q
           .eq('activityStreamId', this.activityStreamId)
           .gte('activity.timestamp', fromIso)
-          .lte('activity.timestamp', toIso)
+          .lte('activity.timestamp', toIso_)
       )
       .order('asc')
       .collect();
 
-    return docs.map((doc) => doc.activity);
+    return docs.map((doc) => convertDoc(doc));
   }
 }

@@ -85,7 +85,7 @@ export default function FeedEditPage() {
 
     const feed = activity.feed as Record<string, unknown> | undefined;
     const feedSubType = feed?.type as string;
-    const ts = activity.timestamp as string;
+    const ts = activity.timestamp;
 
     setFeedType((feedSubType as FeedType) || 'latch');
     setDatetime(ts ? toLocalDatetimeString(ts) : '');
