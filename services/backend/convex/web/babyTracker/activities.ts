@@ -201,9 +201,17 @@ export const getActivitiesByDateRange = query({
     toIso: v.string(),
   },
   handler: async (ctx, args) => {
-    const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
-    const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
-    const activities = await repo.listByTimestampRange(userId.toString(), args.fromIso, args.toIso);
-    return [...activities].reverse();
+    const { activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
+    const docs = await ctx.db
+      .query('activities')
+      .withIndex('by_activityStreamId_by_timestamp', (q) =>
+        q
+          .eq('activityStreamId', activityStreamId)
+          .gte('activity.timestamp', args.fromIso)
+          .lte('activity.timestamp', args.toIso)
+      )
+      .order('desc')
+      .collect();
+    return docs.map((doc) => ({ ...doc.activity, _id: doc._id }));
   },
 });
