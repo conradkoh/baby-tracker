@@ -54,7 +54,8 @@ function getActivityDisplay(activity: any): { label: string; sub: string } {
   if (type === 'diaper_change') {
     const d = activity.diaperChange;
     const typeLabel: string = (d.type as string).charAt(0).toUpperCase() + (d.type as string).slice(1);
-    return { label: 'Diaper Change', sub: typeLabel };
+    const sub = d.remarks ? `${typeLabel} · ${d.remarks}` : typeLabel;
+    return { label: 'Diaper Change', sub };
   }
 
   if (type === 'medical') {
