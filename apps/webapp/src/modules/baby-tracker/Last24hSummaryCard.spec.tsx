@@ -8,6 +8,13 @@ beforeEach(() => {
 });
 
 describe('Last24hSummaryCard', () => {
+  it('renders a skeleton placeholder when summary is undefined', () => {
+    render(<Last24hSummaryCard summary={undefined} nowMs={Date.now()} />);
+    expect(screen.getByText('Last 24h')).toBeInTheDocument();
+    expect(screen.queryByText(/Last:/)).not.toBeInTheDocument();
+  });
+
+
   it('renders all 6 rows even when all values are empty or zero', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },

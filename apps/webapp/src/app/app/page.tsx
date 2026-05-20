@@ -320,7 +320,7 @@ export default function AppHomePage() {
       <QuickActionGrid router={router} />
 
       {/* Last 24h summary */}
-      {last24h && <Last24hSummaryCard summary={last24h} nowMs={nowMs} />}
+      <Last24hSummaryCard summary={last24h} nowMs={nowMs} />
 
       {/* Grouped activity list */}
       {groupedByDate.map((dateGroup) => {

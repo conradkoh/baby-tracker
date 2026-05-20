@@ -1,6 +1,7 @@
 'use client';
 
 import { Milk, Baby, Clock } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { timeAgoFromMs } from '@/lib/activity-form-utils';
 import type { FunctionReturnType } from 'convex/server';
 import { api } from '@workspace/backend/convex/_generated/api';
@@ -10,11 +11,38 @@ const DASH = '\u2014';
 type Last24hSummary = FunctionReturnType<typeof api.web.babyTracker.activities.getLast24hSummary>;
 
 interface Last24hSummaryCardProps {
-  summary: Last24hSummary;
+  summary: Last24hSummary | undefined;
   nowMs: number;
 }
 
 export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) {
+  if (!summary) {
+    return (
+      <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
+        <div className="flex items-center gap-1.5 px-4 pt-2 pb-1">
+          <Clock className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+          <span className="text-xs font-semibold text-rose-900 dark:text-rose-200 uppercase tracking-wide">
+            Last 24h
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 px-4 pb-2">
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const { feed, diapers } = summary;
 
   return (
