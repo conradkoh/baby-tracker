@@ -38,7 +38,7 @@ describe('Last24hSummaryCard', () => {
     expect(screen.getByText(/90 ml/)).toBeInTheDocument();
     expect(screen.getByText(/24h:/)).toBeInTheDocument();
     expect(screen.getByText(/240 ml/)).toBeInTheDocument();
-    expect(screen.getByText(/^\d+h ago$/)).toBeInTheDocument();
+    expect(screen.getByText(/^\d+h( \d+min)? ago$/)).toBeInTheDocument();
   });
 
   it('renders non-zero values alongside em-dashes for zero values', () => {
@@ -81,7 +81,7 @@ describe('Last24hSummaryCard', () => {
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    const timeAgoEl = screen.getByText(/^\d+h ago$/);
+    const timeAgoEl = screen.getByText(/^\d+h( \d+min)? ago$/);
     expect(timeAgoEl.className).not.toMatch(/font-medium/);
     expect(timeAgoEl.className).toMatch(/text-foreground/);
     const vol3h = screen.getByText(/^60 ml$/);

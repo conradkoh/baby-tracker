@@ -79,7 +79,10 @@ export function timeAgoFromMs(diffMs: number): string {
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes} min ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {
+    const rem = minutes % 60;
+    return rem > 0 ? `${hours}h ${rem}min ago` : `${hours}h ago`;
+  }
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
