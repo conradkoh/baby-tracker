@@ -59,6 +59,7 @@ const activityValidator = v.union(
         v.literal('dirty'),
         v.literal('mixed')
       ),
+      remarks: v.optional(v.string()),
     }),
   }),
   // medical activity

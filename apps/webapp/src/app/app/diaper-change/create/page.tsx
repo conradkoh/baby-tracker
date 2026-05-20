@@ -34,6 +34,7 @@ export default function DiaperCreatePage() {
 
   const [diaperType, setDiaperType] = useState<DiaperType>('wet');
   const [datetime, setDatetime] = useState(getDefaultDatetime());
+  const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
 
   // Unauthenticated guard — after all hooks
@@ -50,7 +51,7 @@ export default function DiaperCreatePage() {
         activity: {
           timestamp,
           type: 'diaper_change',
-          diaperChange: { type: diaperType },
+          diaperChange: { type: diaperType, remarks: remarks || undefined },
         },
       } as any);
 
@@ -112,6 +113,16 @@ export default function DiaperCreatePage() {
                 className="h-11 w-auto max-w-full"
                 value={datetime}
                 onChange={(e) => setDatetime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="remarks">Remarks (optional)</Label>
+              <Input
+                id="remarks"
+                type="text"
+                placeholder="Add a note..."
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
               />
             </div>
           </CardContent>

@@ -52,6 +52,7 @@ export default defineSchema({
             v.literal('dirty'),
             v.literal('mixed')
           ),
+          remarks: v.optional(v.string()),
         }),
       }),
       // medical activity

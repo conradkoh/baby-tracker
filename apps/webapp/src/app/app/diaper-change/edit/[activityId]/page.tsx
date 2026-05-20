@@ -56,6 +56,7 @@ export default function DiaperEditPage() {
 
   const [diaperType, setDiaperType] = useState<DiaperType>('wet');
   const [datetime, setDatetime] = useState('');
+  const [remarks, setRemarks] = useState('');
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -68,8 +69,10 @@ export default function DiaperEditPage() {
     const existingType = dc?.type as string;
     const ts = activity.timestamp as string;
 
+    const existingRemarks = dc?.remarks as string | undefined;
     setDiaperType((existingType as DiaperType) || 'wet');
     setDatetime(ts ? toLocalDatetimeString(ts) : '');
+    setRemarks(existingRemarks || '');
     setInitialized(true);
   }, [activity, initialized]);
 
@@ -125,7 +128,7 @@ export default function DiaperEditPage() {
         activity: {
           timestamp,
           type: 'diaper_change',
-          diaperChange: { type: diaperType },
+          diaperChange: { type: diaperType, remarks: remarks || undefined },
         },
       } as any);
 
@@ -216,6 +219,16 @@ export default function DiaperEditPage() {
                 className="h-11 w-auto max-w-full"
                 value={datetime}
                 onChange={(e) => setDatetime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="remarks">Remarks (optional)</Label>
+              <Input
+                id="remarks"
+                type="text"
+                placeholder="Add a note..."
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
               />
             </div>
           </CardContent>
