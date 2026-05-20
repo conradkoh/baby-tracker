@@ -1030,4 +1030,86 @@ describe('App home page', () => {
       });
     });
   });
+
+  // ── 12. Regression: last-24h summary requires yesterday's data ────
+  //
+  // Regression for: fromIso was not clamped, so if daysBack=1 the query would
+  // start at today midnight — missing any activity from yesterday that still
+  // falls within the last-24h window (e.g., something logged at 10pm yesterday
+  // when it's currently 9am today is only 11h ago, but before today midnight).
+  //
+  // The fix: fromIso is clamped to at most yesterday midnight so the full
+  // last-24h window is always covered regardless of daysBack.
+
+  describe('regression: last-24h summary includes activities from yesterday within the 24h window', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // Fix system time to noon on May 20 so relative timestamps are predictable.
+      vi.setSystemTime(new Date('2025-05-20T12:00:00.000Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('bottle feed from 20h ago (yesterday 16:00 UTC) IS counted in last-24h total', () => {
+      // 20h ago = May 19 16:00 UTC — within last 24h window (window starts May 19 12:00 UTC)
+      mockRangeResults = [
+        {
+          _id: 'feed-20h-ago',
+          _creationTime: Date.now() - 20 * 3600 * 1000,
+          timestamp: new Date(Date.now() - 20 * 3600 * 1000).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 150 } },
+        },
+      ];
+
+      render(<AppHomePage />);
+
+      // Activity is within last 24h → should appear in the Last24hSummaryCard totals
+      expect(screen.getByText(/150ml/)).toBeInTheDocument();
+    });
+
+    it('bottle feed from 25h ago (yesterday 11:00 UTC) is NOT counted in last-24h total', () => {
+      // 25h ago = May 19 11:00 UTC — outside last 24h window (window starts May 19 12:00 UTC)
+      mockRangeResults = [
+        {
+          _id: 'feed-25h-ago',
+          _creationTime: Date.now() - 25 * 3600 * 1000,
+          timestamp: new Date(Date.now() - 25 * 3600 * 1000).toISOString(),
+          type: 'feed',
+          feed: { type: 'expressed', volume: { ml: 200 } },
+        },
+      ];
+
+      render(<AppHomePage />);
+
+      // Activity is outside last 24h → 24h ml total should be 0ml, not 200ml
+      // The Last 24h card is still rendered (shows skeleton/empty) — check total is absent
+      const last24hCard = screen.getByText('Last 24h').closest('div')!;
+      expect(within(last24hCard).queryByText(/200ml/)).not.toBeInTheDocument();
+    });
+
+    it('wet diaper from 23h ago (yesterday 13:00 UTC) IS counted in last-24h diaper total', () => {
+      // 23h ago = May 19 13:00 UTC — within last 24h window
+      mockRangeResults = [
+        {
+          _id: 'diaper-23h-ago',
+          _creationTime: Date.now() - 23 * 3600 * 1000,
+          timestamp: new Date(Date.now() - 23 * 3600 * 1000).toISOString(),
+          type: 'diaper_change',
+          diaperChange: { type: 'wet' },
+        },
+      ];
+
+      render(<AppHomePage />);
+
+      // Last24hSummaryCard renders diapers as separate label + count elements: "Wet:" / "1"
+      // Find the Last 24h section and assert Wet count is "1" (not "—")
+      const last24hSection = screen.getByText('Last 24h').closest('div')!.parentElement!;
+      expect(within(last24hSection).getByText('Wet:')).toBeInTheDocument();
+      const wetLabel = within(last24hSection).getByText('Wet:');
+      expect(wetLabel.nextElementSibling?.textContent).toBe('1');
+    });
+  });
 });
