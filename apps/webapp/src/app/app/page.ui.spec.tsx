@@ -983,4 +983,51 @@ describe('App home page', () => {
       // Medical section removed — no temperature-related assertions needed
     });
   });
+
+  // ── 11. Regression: edit link IDs must not be "undefined" ────────
+  //
+  // Regression for: getActivitiesByDateRange previously returned activities
+  // without _id (used repo.listByTimestampRange which stripped doc._id).
+  // This caused all edit links on the home page to be "/app/<type>/edit/undefined".
+
+  describe('regression: activity edit link IDs must not be "undefined"', () => {
+    it('feed activity link href contains the real _id, not "undefined"', async () => {
+      mockRangeResults = [makeLatchActivity({ _id: 'convex-feed-id-abc123' })];
+
+      render(<AppHomePage />);
+
+      await waitFor(() => {
+        const link = screen.getByText('Latch Feed').closest('a');
+        expect(link).toBeTruthy();
+        expect(link?.getAttribute('href')).not.toContain('undefined');
+        expect(link?.getAttribute('href')).toBe('/app/feed/edit/convex-feed-id-abc123');
+      });
+    });
+
+    it('diaper activity link href contains the real _id, not "undefined"', async () => {
+      mockRangeResults = [makeDiaperActivity({ _id: 'convex-diaper-id-def456' })];
+
+      render(<AppHomePage />);
+
+      await waitFor(() => {
+        const link = screen.getByText('Diaper Change').closest('a');
+        expect(link).toBeTruthy();
+        expect(link?.getAttribute('href')).not.toContain('undefined');
+        expect(link?.getAttribute('href')).toBe('/app/diaper-change/edit/convex-diaper-id-def456');
+      });
+    });
+
+    it('medical activity link href contains the real _id, not "undefined"', async () => {
+      mockRangeResults = [makeTemperatureActivity({ _id: 'convex-medical-id-ghi789' })];
+
+      render(<AppHomePage />);
+
+      await waitFor(() => {
+        const link = screen.getByText('Temperature').closest('a');
+        expect(link).toBeTruthy();
+        expect(link?.getAttribute('href')).not.toContain('undefined');
+        expect(link?.getAttribute('href')).toBe('/app/medical/edit/convex-medical-id-ghi789');
+      });
+    });
+  });
 });
