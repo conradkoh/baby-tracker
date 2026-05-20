@@ -184,10 +184,14 @@ export default function AppHomePage() {
   const nowIso = useNowBucket5Min();
   const nowMs = DateTime.fromISO(nowIso).toMillis();
 
-  const fromIso = useMemo(
-    () => DateTime.now().startOf('day').minus({ days: daysBack - 1 }).toISO()!,
-    [daysBack]
-  );
+  const fromIso = useMemo(() => {
+    // Load from the requested number of days back, but always at least from yesterday midnight.
+    // The last-24h summary needs activities from (now - 24h), which always falls on yesterday,
+    // so we must never load less than yesterday's data regardless of daysBack.
+    const requestedFrom = DateTime.now().startOf('day').minus({ days: daysBack - 1 });
+    const minFrom = DateTime.now().startOf('day').minus({ days: 1 }); // yesterday midnight
+    return (requestedFrom < minFrom ? requestedFrom : minFrom).toISO()!;
+  }, [daysBack]);
 
   const rangeResult = useSessionQuery(
     api.web.babyTracker.activities.getActivitiesByDateRange,
