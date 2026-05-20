@@ -139,7 +139,7 @@ describe('DailySummaryCard', () => {
         medical: null,
       };
       render(<DailySummaryCard isToday summary={summary} />);
-      expect(screen.getByText(/Last mixed: 1h ago/)).toBeInTheDocument();
+      expect(screen.getByText(/Last mixed: 1h 30min ago/)).toBeInTheDocument();
     });
   });
 
