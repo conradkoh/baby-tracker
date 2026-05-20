@@ -7,6 +7,7 @@ import { Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'luc
 import { DateTime } from 'luxon';
 import { useSessionQuery } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
+import type { FunctionReturnType } from 'convex/server';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,13 +24,18 @@ import {
   formatDuration,
 } from '@/lib/activity-form-utils';
 
+// ── Types ────────────────────────────────────────────────────────
+
+/** Activity item as returned by the date-range query (includes Convex _id). */
+type ActivityItem = NonNullable<
+  FunctionReturnType<typeof api.web.babyTracker.activities.getActivitiesByDateRange>
+>[number];
+
 // ── Helpers ─────────────────────────────────────────────────────
 
 /** Get a human-readable label and sub-detail for an activity. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getActivityDisplay(activity: any): { label: string; sub: string } {
-  const type: string = activity.type;
-  if (type === 'feed') {
+function getActivityDisplay(activity: ActivityItem): { label: string; sub: string } {
+  if (activity.type === 'feed') {
     const feed = activity.feed;
     switch (feed.type) {
       case 'latch': {
@@ -47,18 +53,18 @@ function getActivityDisplay(activity: any): { label: string; sub: string } {
       case 'water':
         return { label: 'Water Feed', sub: `${feed.volume.ml} ml` };
       case 'solids':
-        return { label: 'Solids Feed', sub: feed.description as string };
+        return { label: 'Solids Feed', sub: feed.description };
     }
   }
 
-  if (type === 'diaper_change') {
+  if (activity.type === 'diaper_change') {
     const d = activity.diaperChange;
-    const typeLabel: string = (d.type as string).charAt(0).toUpperCase() + (d.type as string).slice(1);
+    const typeLabel = d.type.charAt(0).toUpperCase() + d.type.slice(1);
     const sub = d.remarks ? `${typeLabel} · ${d.remarks}` : typeLabel;
     return { label: 'Diaper Change', sub };
   }
 
-  if (type === 'medical') {
+  if (activity.type === 'medical') {
     const med = activity.medical;
     switch (med.type) {
       case 'temperature':
@@ -75,8 +81,7 @@ function getActivityDisplay(activity: any): { label: string; sub: string } {
 }
 
 /** Build the edit navigation path for an activity (new routes). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getEditPath(activity: any): string {
+function getEditPath(activity: ActivityItem): string {
   switch (activity.type) {
     case 'feed':
       return `/app/feed/edit/${activity._id}`;
@@ -209,17 +214,16 @@ export default function AppHomePage() {
   // Precompute today's dateKey — recomputes when results refresh (acceptable; midnight rollover is rare)
   const todayKey = useMemo(() => toDateKey(DateTime.now()), [results]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupedByDate = useMemo(() => {
-    const sorted = [...(results as any[])].sort((a, b) => {
-      const tsA = DateTime.fromISO(a.timestamp as string).toMillis();
-      const tsB = DateTime.fromISO(b.timestamp as string).toMillis();
+    const sorted = [...results].sort((a, b) => {
+      const tsA = DateTime.fromISO(a.timestamp).toMillis();
+      const tsB = DateTime.fromISO(b.timestamp).toMillis();
       return tsB - tsA;
     });
 
     const dateGroups: {
       date: string;
-      timeGroups: { period: TimeOfDay; activities: any[] }[];
+      timeGroups: { period: TimeOfDay; activities: ActivityItem[] }[];
     }[] = [];
 
     for (const activity of sorted) {
@@ -335,7 +339,7 @@ export default function AppHomePage() {
         const dateKey = dateGroup.date;
         const summary = summaryByDateKey.get(dateKey);
         const isToday = dateKey === todayKey;
-        const firstTs = dateGroup.timeGroups[0].activities[0].timestamp as string;
+        const firstTs = dateGroup.timeGroups[0].activities[0].timestamp;
 
         return (
           <div key={dateKey} className="mb-6">
@@ -363,15 +367,15 @@ export default function AppHomePage() {
                     </div>
 
                     {/* Activities in this time period */}
-                    {timeGroup.activities.map((activity: any, idx: number) => {
+                    {timeGroup.activities.map((activity, idx) => {
                       const { label: actLabel, sub } = getActivityDisplay(activity);
-                      const IconComponent = ACTIVITY_ICON_MAP[activity.type as string];
+                      const IconComponent = ACTIVITY_ICON_MAP[activity.type];
                       const isLastInGroup = idx === timeGroup.activities.length - 1;
                       const isLastOverall = isLastTimeGroup && isLastInGroup;
 
                       return (
                         <Link
-                          key={activity._id as string}
+                          key={activity._id}
                           href={getEditPath(activity)}
                           prefetch={true}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors ${!isLastOverall ? 'border-b border-border' : ''}`}
@@ -388,7 +392,7 @@ export default function AppHomePage() {
                             <p className="text-xs text-muted-foreground truncate">{sub}</p>
                           </div>
                           <span className="text-xs text-muted-foreground flex-shrink-0">
-                            {formatTime(activity.timestamp as string)}
+                            {formatTime(activity.timestamp)}
                           </span>
                         </Link>
                       );
