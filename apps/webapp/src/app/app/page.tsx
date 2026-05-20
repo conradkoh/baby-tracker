@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { useSessionQuery } from 'convex-helpers/react/sessions';
@@ -197,12 +197,35 @@ export default function AppHomePage() {
     api.web.babyTracker.activities.getActivitiesByDateRange,
     { fromIso, toIso: nowIso }
   );
-  const results = rangeResult ?? [];
-  const isLoading = rangeResult === undefined;
 
+  // Stale-while-revalidate: keep the last confirmed results so "Load More"
+  // doesn't flash the full-page skeleton while the wider query is in-flight.
+  // Convex returns undefined while a query is loading; some test mocks return null.
+  // We treat both as "not yet resolved" using loose equality (== null).
+  const [stableResults, setStableResults] = useState<ActivityItem[]>([]);
+  const hasEverLoaded = useRef(false);
+  useEffect(() => {
+    // Guard against null (some test mocks return null instead of undefined).
+    // Convex returns undefined while loading; a resolved query always returns an array.
+    if (rangeResult !== undefined && rangeResult !== null) {
+      setStableResults(rangeResult);
+      hasEverLoaded.current = true;
+    }
+  }, [rangeResult]);
+
+  // Display the fresh result if available, otherwise the last stable snapshot.
+  const results = rangeResult ?? stableResults;
+  // Convex signals "query in flight" with undefined (not null).
+  // Show the full skeleton only on the very first load; subsequent re-fetches
+  // (Load More) use the stale results and show a subtle background indicator.
+  const isInitialLoading = rangeResult === undefined && !hasEverLoaded.current;
+  const isRefetching = rangeResult === undefined && hasEverLoaded.current;
+
+  // Compute last24h from whatever results we have (fresh or stale).
+  // Returns undefined only when there is genuinely no data yet (initial empty load).
   const last24h = useMemo(
-    () => (rangeResult !== undefined ? computeLast24hSummary(results, nowMs) : undefined),
-    [results, nowMs, rangeResult]
+    () => (results.length > 0 ? computeLast24hSummary(results, nowMs) : undefined),
+    [results, nowMs]
   );
 
   // ── Per-day summary computation ──────────────────────────────
@@ -265,7 +288,7 @@ export default function AppHomePage() {
 
   // ── Loading state ───────────────────────────────────────────
 
-  if (isLoading && results.length === 0) {
+  if (isInitialLoading && results.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         {/* Quick action grid — skeleton */}
@@ -312,7 +335,7 @@ export default function AppHomePage() {
 
   // ── Empty state ──────────────────────────────────────────────
 
-  if (!isLoading && results.length === 0) {
+  if (!isInitialLoading && results.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <QuickActionGrid router={router} />
@@ -410,21 +433,16 @@ export default function AppHomePage() {
       );
       })}
 
-      {/* Load more */}
-      {!isLoading && (
-        <div className="flex justify-center mt-4">
+      {/* Load more / background-refetch indicator */}
+      <div className="flex justify-center mt-4">
+        {isRefetching ? (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        ) : (
           <Button variant="outline" onClick={() => setDaysBack((d) => d + 1)}>
             Load More
           </Button>
-        </div>
-      )}
-
-      {/* Loading more indicator */}
-      {isLoading && results.length > 0 && (
-        <div className="flex justify-center mt-4">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
