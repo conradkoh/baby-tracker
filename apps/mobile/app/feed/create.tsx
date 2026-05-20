@@ -20,9 +20,7 @@ export default function CreateFeedPage() {
             allowCreate = await requestAllowFutureDate(); //update creation based on user permission
           }
           if (allowCreate) {
-            const ts = formData.timestamp.toISO();
-            if (ts === null)
-              throw new Error('invalid timestamp: ' + formData.timestamp);
+            const ts = formData.timestamp.toMillis();
             switch (formData.type) {
               case FeedType.Water:
               case FeedType.Expressed:

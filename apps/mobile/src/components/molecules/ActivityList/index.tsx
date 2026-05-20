@@ -56,12 +56,12 @@ function ActivityItem(props: {
   onPress: (e: { activity: Activity }) => void;
 }) {
   const activity = props.activity;
-  const activityTimestamp = DateTime.fromISO(activity.activity.timestamp);
+  const activityTimestamp = DateTime.fromMillis(activity.timestamp);
   let icon = <></>;
-  switch (activity.activity.type) {
+  switch (activity.type) {
     case ActivityType.Feed: {
       icon = <Text>🍼</Text>;
-      if (activity.activity.feed.type === FeedType.Water) {
+      if (activity.feed.type === FeedType.Water) {
         icon = <Text>💧</Text>;
       }
       break;
@@ -72,7 +72,7 @@ function ActivityItem(props: {
     }
     case ActivityType.Medical: {
       icon = <Text>💊</Text>;
-      if (activity.activity.medical.type === 'temperature') {
+      if (activity.medical.type === 'temperature') {
         icon = <Text>🌡️</Text>;
       }
       break;
@@ -85,9 +85,9 @@ function ActivityItem(props: {
   const { mainContent, subContent } = useMemo(() => {
     let mainContent = '';
     let subContent = '';
-    switch (activity.activity.type) {
+    switch (activity.type) {
       case ActivityType.Feed: {
-        const feed = activity.activity.feed;
+        const feed = activity.feed;
         mainContent = `${toPascalCase(feed.type)}`;
         switch (feed.type) {
           case FeedType.Latch: {
@@ -117,12 +117,12 @@ function ActivityItem(props: {
         break;
       }
       case ActivityType.DiaperChange: {
-        const diaperChange = activity.activity.diaperChange;
+        const diaperChange = activity.diaperChange;
         mainContent = `${toPascalCase(diaperChange.type)}`;
         break;
       }
       case ActivityType.Medical: {
-        const medical = activity.activity.medical;
+        const medical = activity.medical;
         switch (medical.type) {
           case 'temperature': {
             mainContent = `Temperature`;
@@ -139,7 +139,7 @@ function ActivityItem(props: {
       }
     }
     return { mainContent, subContent };
-  }, [activity.activity]);
+  }, [activity]);
   return (
     <TouchableOpacity
       onPress={() => props.onPress({ activity: props.activity })}

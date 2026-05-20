@@ -71,7 +71,7 @@ export default function DiaperEditPage() {
 
     const existingRemarks = dc?.remarks as string | undefined;
     setDiaperType((existingType as DiaperType) || 'wet');
-    setDatetime(ts ? toLocalDatetimeString(ts) : '');
+    setDatetime(ts ? toLocalDatetimeString(ts as string | number) : '');
     setRemarks(existingRemarks || '');
     setInitialized(true);
   }, [activity, initialized]);

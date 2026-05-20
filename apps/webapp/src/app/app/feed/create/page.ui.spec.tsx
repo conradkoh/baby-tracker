@@ -241,7 +241,7 @@ describe('Feed create page', () => {
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'feed',
             feed: {
               type: 'latch',
@@ -268,7 +268,7 @@ describe('Feed create page', () => {
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'feed',
             feed: {
               type: 'expressed',
@@ -292,7 +292,7 @@ describe('Feed create page', () => {
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'feed',
             feed: {
               type: 'solids',

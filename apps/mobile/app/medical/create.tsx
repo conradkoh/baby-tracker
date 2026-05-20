@@ -14,13 +14,11 @@ export default function CreateMedicalPage() {
       <MedicalActivityForm
         mode="create"
         onSubmit={async (val) => {
-          const ts = val.timestamp.toISO();
+          const ts = val.timestamp.toMillis();
           let allowCreate = true;
           if (val.timestamp.toMillis() > Date.now()) {
             allowCreate = await requestAllowFutureDate();
           }
-          if (ts === null)
-            throw new Error('invalid timestamp: ' + val.timestamp);
           if (allowCreate) {
             switch (val.type) {
               case 'temperature': {

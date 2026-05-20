@@ -160,7 +160,7 @@ describe('Diaper change create page', () => {
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'diaper_change',
             diaperChange: { type: 'wet' },
           },
@@ -178,7 +178,7 @@ describe('Diaper change create page', () => {
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'diaper_change',
             diaperChange: { type: 'dirty' },
           },
@@ -196,7 +196,7 @@ describe('Diaper change create page', () => {
       await waitFor(() => {
         expect(mockCreateActivity).toHaveBeenCalledWith({
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'diaper_change',
             diaperChange: { type: 'mixed' },
           },

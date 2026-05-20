@@ -1,6 +1,5 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
-import { Doc } from '../convex/_generated/dataModel';
 import { paginationOptsValidator } from 'convex/server';
 import { ConvexActivityRepository } from '../src/infra/ConvexActivityRepository';
 import {
@@ -11,9 +10,48 @@ import {
   getActivities as getActivitiesUsecase,
 } from '../src/domain/usecases/activity';
 
-// ── Public types (backward-compatible exports) ─────────────────
+// ── Public types ───────────────────────────────────────────────
 
-export type Activity = Doc<'activities'>;
+/**
+ * Runtime shape returned by the mobile endpoints.
+ * `getById` returns the inner activity (no `_id`).
+ * `getByTimestampDescPaginated` returns the inner activity with `_id`.
+ * Timestamps are epoch milliseconds.
+ */
+export type Activity = {
+  type: 'feed';
+  timestamp: number;
+  feed: {
+    type: 'latch';
+    duration: { left?: { seconds?: number }; right?: { seconds?: number } };
+  } | {
+    type: 'expressed' | 'formula' | 'water';
+    volume: { ml: number };
+  } | {
+    type: 'solids';
+    description: string;
+  };
+  _id?: string;
+} | {
+  type: 'diaper_change';
+  timestamp: number;
+  diaperChange: {
+    type: 'wet' | 'dirty' | 'mixed';
+  };
+  _id?: string;
+} | {
+  type: 'medical';
+  timestamp: number;
+  medical: {
+    type: 'temperature';
+    temperature: { value: number };
+  } | {
+    type: 'medicine';
+    medicine: { name: string; unit: string; value: number };
+  };
+  _id?: string;
+};
+
 export enum ActivityType {
   Feed = 'feed',
   DiaperChange = 'diaper_change',
@@ -28,7 +66,7 @@ export const create = mutation({
     activity: v.union(
       //feed activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('feed'),
         feed: v.union(
           v.object({
@@ -60,7 +98,7 @@ export const create = mutation({
       }),
       //diaper change activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('diaper_change'),
         diaperChange: v.object({
           type: v.union(
@@ -72,7 +110,7 @@ export const create = mutation({
       }),
       // medical activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('medical'),
         medical: v.union(
           v.object({
@@ -95,7 +133,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const repo = new ConvexActivityRepository(ctx);
-    const activityId = await createActivityUsecase(repo, args.deviceId, args.activity as any);
+    const activityId = await createActivityUsecase(repo, args.deviceId, args.activity);
     return { activityId };
   },
 });
@@ -107,7 +145,7 @@ export const update = mutation({
     activity: v.union(
       //feed activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('feed'),
         feed: v.union(
           v.object({
@@ -139,7 +177,7 @@ export const update = mutation({
       }),
       //diaper change activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('diaper_change'),
         diaperChange: v.object({
           type: v.union(
@@ -151,7 +189,7 @@ export const update = mutation({
       }),
       // medical activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('medical'),
         medical: v.union(
           v.object({
@@ -174,7 +212,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const repo = new ConvexActivityRepository(ctx);
-    await updateActivityUsecase(repo, args.deviceId, args.activityId, args.activity as any);
+    await updateActivityUsecase(repo, args.deviceId, args.activityId, args.activity);
     // Maintain backward-compatible return: all activities
     const activities = await ctx.db.query('activities').collect();
     return activities;

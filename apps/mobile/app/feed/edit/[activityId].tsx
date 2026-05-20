@@ -23,15 +23,15 @@ export default function EditFeedPage() {
   const deleteActivity = useMutation(api.activities.deleteActivity);
   const feedFormRef = useRef<FeedFormRef>(null);
   useEffect(() => {
-    if (activity?.activity.type === ActivityType.Feed) {
-      const feed = activity.activity.feed;
+    if (activity?.type === ActivityType.Feed) {
+      const feed = activity.feed;
       switch (feed.type) {
         case 'water':
         case 'expressed':
         case 'formula': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Expressed | FeedType.Formula,
-            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            timestamp: DateTime.fromMillis(activity.timestamp),
             volume: feed.volume.ml,
           });
           break;
@@ -39,7 +39,7 @@ export default function EditFeedPage() {
         case 'latch': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Latch,
-            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            timestamp: DateTime.fromMillis(activity.timestamp),
             duration: {
               left: {
                 seconds: feed.duration.left?.seconds || 0,
@@ -54,7 +54,7 @@ export default function EditFeedPage() {
         case 'solids': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Solids,
-            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            timestamp: DateTime.fromMillis(activity.timestamp),
             description: feed.description,
           });
           break;
@@ -66,7 +66,7 @@ export default function EditFeedPage() {
         }
       }
     }
-  }, [activity?.activity]);
+  }, [activity]);
   return (
     <Page title="Edit Feed">
       <View className=" items-end mr-2">
@@ -84,9 +84,7 @@ export default function EditFeedPage() {
         mode="edit"
         ref={feedFormRef}
         onSubmit={async function (formData): Promise<void> {
-          const ts = formData.timestamp.toISO();
-          if (ts === null)
-            throw new Error('invalid timestamp: ' + formData.timestamp);
+          const ts = formData.timestamp.toMillis();
           switch (formData.type) {
             case FeedType.Water:
             case FeedType.Expressed:

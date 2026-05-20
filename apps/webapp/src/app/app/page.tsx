@@ -107,8 +107,8 @@ const ACTIVITY_ICON_MAP: Record<string, React.ComponentType<{ className?: string
 export type TimeOfDay = 'midnight' | 'morning' | 'afternoon' | 'night';
 
 /** Classify a timestamp into a time-of-day bucket based on local hour. */
-function getTimeOfDay(ts: string): TimeOfDay {
-  const hour = DateTime.fromISO(ts).toLocal().hour;
+function getTimeOfDay(ts: number): TimeOfDay {
+  const hour = DateTime.fromMillis(ts).toLocal().hour;
   if (hour >= 6 && hour < 12) return 'morning';
   if (hour >= 12 && hour < 18) return 'afternoon';
   if (hour >= 18) return 'night';
@@ -242,9 +242,7 @@ export default function AppHomePage() {
 
   const groupedByDate = useMemo(() => {
     const sorted = [...results].sort((a, b) => {
-      const tsA = DateTime.fromISO(a.timestamp).toMillis();
-      const tsB = DateTime.fromISO(b.timestamp).toMillis();
-      return tsB - tsA;
+      return b.timestamp - a.timestamp;
     });
 
     const dateGroups: {
@@ -253,7 +251,7 @@ export default function AppHomePage() {
     }[] = [];
 
     for (const activity of sorted) {
-      const ts: string = activity.timestamp;
+      const ts = activity.timestamp;
       const dateKey = toDateKey(ts);
       const period = getTimeOfDay(ts);
 

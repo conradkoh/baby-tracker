@@ -23,18 +23,18 @@ export default function EditDiaperChangePage() {
   const deleteActivity = useMutation(api.activities.deleteActivity);
   const diaperChangeFormRef = useRef<DiaperChangeFormRef>(null);
   useEffect(() => {
-    if (activity?.activity.type === ActivityType.DiaperChange) {
-      const diaperChange = activity.activity.diaperChange;
+    if (activity?.type === ActivityType.DiaperChange) {
+      const diaperChange = activity.diaperChange;
       if (!diaperChange) {
         alert('failed to load - diaper change data not found.');
         return;
       }
       diaperChangeFormRef.current?.load({
         type: diaperChangeFromLiteral(diaperChange.type),
-        timestamp: DateTime.fromISO(activity.activity.timestamp),
+        timestamp: DateTime.fromMillis(activity.timestamp),
       });
     }
-  }, [activity?.activity]);
+  }, [activity]);
   return (
     <EditActivityPageLayout
       title="Edit Feed"
@@ -47,9 +47,7 @@ export default function EditDiaperChangePage() {
         mode="edit"
         ref={diaperChangeFormRef}
         onSubmit={async function (formData): Promise<void> {
-          const ts = formData.timestamp.toISO();
-          if (ts === null)
-            throw new Error('invalid timestamp: ' + formData.timestamp);
+          const ts = formData.timestamp.toMillis();
           await updateActivity({
             deviceId,
             activityId,

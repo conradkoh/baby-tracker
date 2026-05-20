@@ -137,9 +137,9 @@ describe('computeDailySummary', () => {
         lastWetAgoMs: expect.any(Number),
         lastDirtyAgoMs: expect.any(Number),
         lastMixedAgoMs: expect.any(Number),
-        lastWetAt: twoHoursAgo,
-        lastDirtyAt: eightHoursAgo,
-        lastMixedAt: sixHoursAgo,
+        lastWetAt: Date.parse(twoHoursAgo),
+        lastDirtyAt: Date.parse(eightHoursAgo),
+        lastMixedAt: Date.parse(sixHoursAgo),
       });
 
       const lastWetAgo = result.diapers!.lastWetAgoMs!;
@@ -177,7 +177,7 @@ describe('computeDailySummary', () => {
       expect(result.medical!.latestTemperature).toEqual({
         valueC: 37.5,
         agoMs: expect.any(Number),
-        at: nineAmJan15,
+        at: Date.parse(nineAmJan15),
       });
       expect(result.medical!.medicines).toHaveLength(2);
 
@@ -402,7 +402,7 @@ describe('computeDailySummariesByDay', () => {
     expect(result[0].dayStart.toISO()).toBe('2025-01-15T00:00:00.000Z');
   });
 
-  it('latestTemperature.at is an ISO string when day has non-medical activity', () => {
+  it('latestTemperature.at is an epoch ms number when day has non-medical activity', () => {
     vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
     const ref = DateTime.utc();
 
@@ -415,7 +415,7 @@ describe('computeDailySummariesByDay', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].summary.hasAny).toBe(true);
-    expect(result[0].summary.medical?.latestTemperature?.at).toBe('2025-01-15T10:00:00.000Z');
+    expect(result[0].summary.medical?.latestTemperature?.at).toBe(Date.parse('2025-01-15T10:00:00.000Z'));
   });
 });
 
