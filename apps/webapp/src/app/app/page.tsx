@@ -2,17 +2,17 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Loader2, Milk, Baby, Stethoscope, Sunrise, Sun, Moon, Stars } from 'lucide-react';
 import { DateTime } from 'luxon';
-import { useSessionPaginatedQuery, useSessionQuery } from 'convex-helpers/react/sessions';
+import { useSessionQuery } from 'convex-helpers/react/sessions';
 import { api } from '@workspace/backend/convex/_generated/api';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { computeDailySummariesByDay, DailySummary } from '@/lib/daily-summary';
+import { computeDailySummariesByDay, computeLast24hSummary, DailySummary } from '@/lib/daily-summary';
 import { DailySummaryCard } from '@/modules/baby-tracker/DailySummaryCard';
 import { Last24hSummaryCard } from '@/modules/baby-tracker/Last24hSummaryCard';
 import { useNowBucket5Min } from '@/lib/use-now-bucket';
@@ -174,20 +174,27 @@ export default function AppHomePage() {
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 
-  const paginated = useSessionPaginatedQuery(
-    api.web.babyTracker.activities.getByTimestampDescPaginated,
-    {},
-    { initialNumItems: 20 }
-  );
-
-  const results = paginated?.results ?? [];
-  const status = paginated?.status ?? 'LoadingFirstPage';
-  const isLoading = paginated?.isLoading ?? true;
-  const loadMore = paginated?.loadMore;
+  const [daysBack, setDaysBack] = useState(2);
 
   const nowIso = useNowBucket5Min();
   const nowMs = DateTime.fromISO(nowIso).toMillis();
-  const last24h = useSessionQuery(api.web.babyTracker.activities.getLast24hSummary, { nowIso });
+
+  const fromIso = useMemo(
+    () => DateTime.now().startOf('day').minus({ days: daysBack - 1 }).toISO()!,
+    [daysBack]
+  );
+
+  const rangeResult = useSessionQuery(
+    api.web.babyTracker.activities.getActivitiesByDateRange,
+    { fromIso, toIso: nowIso }
+  );
+  const results = rangeResult ?? [];
+  const isLoading = rangeResult === undefined;
+
+  const last24h = useMemo(
+    () => (rangeResult !== undefined ? computeLast24hSummary(results, nowMs) : undefined),
+    [results, nowMs, rangeResult]
+  );
 
   // ── Per-day summary computation ──────────────────────────────
   const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results), [results]);
@@ -396,16 +403,16 @@ export default function AppHomePage() {
       })}
 
       {/* Load more */}
-      {status === 'CanLoadMore' && (
+      {!isLoading && (
         <div className="flex justify-center mt-4">
-          <Button variant="outline" onClick={() => loadMore?.(20)}>
+          <Button variant="outline" onClick={() => setDaysBack((d) => d + 1)}>
             Load More
           </Button>
         </div>
       )}
 
       {/* Loading more indicator */}
-      {status === 'LoadingMore' && (
+      {isLoading && results.length > 0 && (
         <div className="flex justify-center mt-4">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>

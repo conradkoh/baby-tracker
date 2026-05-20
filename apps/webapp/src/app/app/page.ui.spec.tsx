@@ -40,24 +40,14 @@ vi.mock('next/link', () => createNextLinkMock());
 vi.mock('convex/react', () => createConvexReactMock());
 vi.mock('@workspace/backend/convex/_generated/api', () => createApiMock());
 
-// ── Mutable paginated query state ───────────────────────────────
+// ── Mutable query state ─────────────────────────────────────────
 
-let mockResults: Record<string, unknown>[] = [];
-let mockStatus: string = 'Exhausted';
-let mockIsLoading = false;
-const mockLoadMore = vi.fn();
-
-let mockLast24h: Record<string, unknown> | null = null;
+let mockRangeResults: Record<string, unknown>[] | undefined = [];
 
 vi.mock('convex-helpers/react/sessions', () => ({
   SessionProvider: ({ children }: { children: ReactNode }) => children,
-  useSessionPaginatedQuery: () => ({
-    results: mockResults,
-    status: mockStatus,
-    isLoading: mockIsLoading,
-    loadMore: mockLoadMore,
-  }),
-  useSessionQuery: (_api: unknown, _args: unknown) => mockLast24h,
+  useSessionPaginatedQuery: () => undefined,
+  useSessionQuery: (_api: unknown, _args: unknown) => mockRangeResults,
 }));
 
 // ── Mutable auth state ──────────────────────────────────────────
@@ -79,12 +69,8 @@ vi.mock('@/modules/auth/AuthProvider', () => ({
 
 /** Reset all mutable mock state between tests. */
 function resetMocks() {
-  mockResults = [];
-  mockStatus = 'Exhausted';
-  mockIsLoading = false;
-  mockLast24h = null;
+  mockRangeResults = [];
   mockRouterPush.mockClear();
-  mockLoadMore.mockClear();
   currentAuthState = {
     sessionId: 'test-session',
     state: 'authenticated',
@@ -198,9 +184,7 @@ describe('App home page', () => {
 
   describe('loading state', () => {
     it('shows skeletons while fetching activities', () => {
-      mockIsLoading = true;
-      mockStatus = 'LoadingFirstPage';
-      mockResults = [];
+      mockRangeResults = undefined;
 
       render(<AppHomePage />);
 
@@ -214,9 +198,9 @@ describe('App home page', () => {
 
   describe('empty state', () => {
     it('shows empty message when no activities exist', async () => {
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-      mockResults = [];
+
+
+      mockRangeResults = [];
 
       render(<AppHomePage />);
 
@@ -226,9 +210,9 @@ describe('App home page', () => {
     });
 
     it('shows action buttons even when empty', async () => {
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-      mockResults = [];
+
+
+      mockRangeResults = [];
 
       render(<AppHomePage />);
 
@@ -243,15 +227,10 @@ describe('App home page', () => {
   // ── 3. Last 24h summary card ────────────────────────────────────
 
   describe('last 24h summary card', () => {
-    const last24hFixture = {
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
-      diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
-    };
-
     it('shows Last24hSummaryCard when query returns data', () => {
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-      mockResults = [
+
+
+      mockRangeResults = [
         {
           _id: 'b1',
           _creationTime: Date.now() - 1000,
@@ -260,7 +239,6 @@ describe('App home page', () => {
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
       ];
-      mockLast24h = last24hFixture;
 
       const { container } = render(<AppHomePage />);
       expect(container.textContent).toContain('Last 24h');
@@ -271,10 +249,10 @@ describe('App home page', () => {
 
   describe('activity display', () => {
     beforeEach(() => {
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
       // No fake timers — activity display tests don't need DateTime.now()
-      mockResults = [
+      mockRangeResults = [
         makeLatchActivity(),
         makeBottleActivity(),
         makeSolidsActivity(),
@@ -329,15 +307,15 @@ describe('App home page', () => {
 
   describe('date grouping', () => {
     it('groups activities by date with separators', async () => {
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
       // Timestamps chosen to span two local dates in UTC+8 (Asia/Singapore).
       // Midnight SGT = 16:00 Z.
       // Jan 14 23:59 Z → SGT Jan 14 (night) — local date = Jan 14.
       // Jan 15 00:00 Z → SGT Jan 15 (midnight) — local date = Jan 15.
       // Jan 15 08:00 Z → SGT Jan 15 16:00 (afternoon) — local date = Jan 15.
       // Jan 15 12:00 Z → SGT Jan 15 20:00 (night) — local date = Jan 15.
-      mockResults = [
+      mockRangeResults = [
         makeLatchActivity({ timestamp: '2025-01-14T15:59:59.000Z' }),
         makeSolidsActivity({ timestamp: '2025-01-14T16:00:00.000Z' }),
         makeBottleActivity({ timestamp: '2025-01-15T08:00:00.000Z' }),
@@ -357,9 +335,9 @@ describe('App home page', () => {
 
   describe('action buttons', () => {
     it('shows Log Feed, Log Diaper, Log Medical buttons when authenticated', async () => {
-      mockResults = [];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [];
+
+
 
       render(<AppHomePage />);
 
@@ -371,9 +349,9 @@ describe('App home page', () => {
     });
 
     it('Log Feed navigates to /app/feed/create', async () => {
-      mockResults = [];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [];
+
+
 
       render(<AppHomePage />);
 
@@ -387,9 +365,9 @@ describe('App home page', () => {
     });
 
     it('Log Diaper navigates to /app/diaper-change/create', async () => {
-      mockResults = [];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [];
+
+
 
       render(<AppHomePage />);
 
@@ -403,9 +381,9 @@ describe('App home page', () => {
     });
 
     it('Log Medical navigates to /app/medical/create', async () => {
-      mockResults = [];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [];
+
+
 
       render(<AppHomePage />);
 
@@ -423,9 +401,9 @@ describe('App home page', () => {
 
   describe('row click navigation', () => {
     it('links to feed edit page at /app/feed/edit/[id]', async () => {
-      mockResults = [makeLatchActivity({ _id: 'act-feed-1' })];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [makeLatchActivity({ _id: 'act-feed-1' })];
+
+
 
       render(<AppHomePage />);
 
@@ -438,9 +416,9 @@ describe('App home page', () => {
     });
 
     it('links to diaper edit page at /app/diaper-change/edit/[id]', async () => {
-      mockResults = [makeDiaperActivity({ _id: 'act-diaper-1' })];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [makeDiaperActivity({ _id: 'act-diaper-1' })];
+
+
 
       render(<AppHomePage />);
 
@@ -453,9 +431,9 @@ describe('App home page', () => {
     });
 
     it('links to medical edit page at /app/medical/edit/[id]', async () => {
-      mockResults = [makeTemperatureActivity({ _id: 'act-med-1' })];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [makeTemperatureActivity({ _id: 'act-med-1' })];
+
+
 
       render(<AppHomePage />);
 
@@ -472,9 +450,9 @@ describe('App home page', () => {
 
   describe('load more', () => {
     it('shows load more button when more pages available', async () => {
-      mockResults = [makeLatchActivity()];
-      mockIsLoading = false;
-      mockStatus = 'CanLoadMore';
+      mockRangeResults = [makeLatchActivity()];
+
+
 
       render(<AppHomePage />);
 
@@ -483,10 +461,8 @@ describe('App home page', () => {
       });
     });
 
-    it('calls loadMore when load more button clicked', async () => {
-      mockResults = [makeLatchActivity()];
-      mockIsLoading = false;
-      mockStatus = 'CanLoadMore';
+    it('shows load more button and clicks without error', async () => {
+      mockRangeResults = [makeLatchActivity()];
 
       render(<AppHomePage />);
 
@@ -495,8 +471,6 @@ describe('App home page', () => {
       });
 
       screen.getByText(/load more/i).click();
-
-      expect(mockLoadMore).toHaveBeenCalled();
     });
   });
 
@@ -509,9 +483,9 @@ describe('App home page', () => {
         state: 'unauthenticated',
         reason: 'test',
       };
-      mockResults = [];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [];
+
+
 
       render(<AppHomePage />);
 
@@ -534,9 +508,9 @@ describe('App home page', () => {
     });
 
     it('is hidden when no activities exist', () => {
-      mockResults = [];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+      mockRangeResults = [];
+
+
 
       render(<AppHomePage />);
 
@@ -545,7 +519,7 @@ describe('App home page', () => {
 
     it('shows a yesterday card (no "Today ·" on card) when only yesterday data exists', () => {
       // yesterday 10:00 AM UTC = 2025-05-18T10:00:00Z
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'act-yesterday',
           _creationTime: Date.now() - 86400000,
@@ -554,8 +528,8 @@ describe('App home page', () => {
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -570,7 +544,7 @@ describe('App home page', () => {
 
     it('shows date heading when today has any activity', () => {
       // today at 08:00
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'act-today',
           _creationTime: Date.now(),
@@ -579,8 +553,8 @@ describe('App home page', () => {
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -591,7 +565,7 @@ describe('App home page', () => {
     it('bottle line shows breakdown with both subtypes for mixed expressed+formula', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'b1',
           _creationTime: now - 1000,
@@ -614,8 +588,8 @@ describe('App home page', () => {
           feed: { type: 'formula', volume: { ml: 120 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -629,7 +603,7 @@ describe('App home page', () => {
     it('bottle line hides breakdown parenthetical when only one active subtype', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'b1',
           _creationTime: now - 1000,
@@ -645,8 +619,8 @@ describe('App home page', () => {
           feed: { type: 'expressed', volume: { ml: 90 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -658,7 +632,7 @@ describe('App home page', () => {
     it('latch line shows session count and avg L/R via formatDuration', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'l1',
           _creationTime: now - 1000,
@@ -674,8 +648,8 @@ describe('App home page', () => {
           feed: { type: 'latch', duration: { left: { seconds: 900 }, right: { seconds: 450 } } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -687,7 +661,7 @@ describe('App home page', () => {
     it('solids deduplicates by case-insensitive name and shows all unique names', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 's1',
           _creationTime: now - 1000,
@@ -710,8 +684,8 @@ describe('App home page', () => {
           feed: { type: 'solids', description: 'Rice' },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -723,7 +697,7 @@ describe('App home page', () => {
     it('diaper counts omit zero types (2 wet + 1 mixed, 0 dirty → no dirty text)', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'd1',
           _creationTime: now - 1000,
@@ -746,22 +720,24 @@ describe('App home page', () => {
           diaperChange: { type: 'mixed' },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
-      expect(screen.getByText(/Diapers/)).toBeInTheDocument();
-      expect(screen.getByText(/2 wet/)).toBeInTheDocument();
-      expect(screen.getByText(/1 mixed/)).toBeInTheDocument();
+      // Both Last24hSummaryCard and DailySummaryCard show "Diapers" — scope to the daily card wrapper
+      const dailyCard = screen.getByText('Daily Summary').closest('div')!.parentElement!;
+      expect(within(dailyCard).getByText(/Diapers/)).toBeInTheDocument();
+      expect(within(dailyCard).getByText(/2 wet/)).toBeInTheDocument();
+      expect(within(dailyCard).getByText(/1 mixed/)).toBeInTheDocument();
       // dirty not shown
-      expect(screen.queryByText(/dirty/)).not.toBeInTheDocument();
+      expect(within(dailyCard).queryByText(/dirty/)).not.toBeInTheDocument();
     });
 
     it('diaper shows "Last wet: 2h ago" when last wet was 2 hours ago', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'd1',
           _creationTime: now - 1000,
@@ -770,8 +746,8 @@ describe('App home page', () => {
           diaperChange: { type: 'wet' },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -782,7 +758,7 @@ describe('App home page', () => {
     it('medical shows latest temperature from two readings (latest is 37.8°C)', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'm1',
           _creationTime: now - 1000,
@@ -798,8 +774,8 @@ describe('App home page', () => {
           medical: { type: 'temperature', temperature: { value: 37.0 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -812,7 +788,7 @@ describe('App home page', () => {
     it('medicine roll-up: Paracetamol 5ml + 5ml → 10ml over 2 doses', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'med1',
           _creationTime: now - 1000,
@@ -828,8 +804,8 @@ describe('App home page', () => {
           medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'ml', value: 5 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -841,7 +817,7 @@ describe('App home page', () => {
     it('mixed units medicine: Paracetamol 5ml + 0.5g → no total, shows "mixed units" and dose count', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'med1',
           _creationTime: now - 1000,
@@ -857,8 +833,8 @@ describe('App home page', () => {
           medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'g', value: 0.5 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -870,7 +846,7 @@ describe('App home page', () => {
     it('section showing: only feed today → Diapers and Medical show "No records" in the card', () => {
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'b1',
           _creationTime: now - 1000,
@@ -879,8 +855,8 @@ describe('App home page', () => {
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -899,9 +875,9 @@ describe('App home page', () => {
 
     it('DOM ordering: Last24hSummaryCard appears between quick actions and day group', () => {
       // The Last24hSummaryCard sits between QuickActionGrid and the day-group cards
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
-      mockResults = [
+
+
+      mockRangeResults = [
         {
           _id: 'b1',
           _creationTime: Date.now() - 1000,
@@ -910,10 +886,6 @@ describe('App home page', () => {
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
       ];
-      mockLast24h = {
-        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
-        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
-      };
 
       render(<AppHomePage />);
 
@@ -927,7 +899,7 @@ describe('App home page', () => {
       // Today has a bottle feed; yesterday has a wet diaper
       const now = Date.now();
       const hour = 3600 * 1000;
-      mockResults = [
+      mockRangeResults = [
         // yesterday's wet diaper
         {
           _id: 'd-yesterday',
@@ -945,8 +917,8 @@ describe('App home page', () => {
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -966,7 +938,7 @@ describe('App home page', () => {
     it('isToday=false suppresses "ago" for diaper: yesterday wet shows "Last wet at HH:mm"', () => {
       // System time = 2025-05-19T10:00:00Z → today is May 19.
       // Yesterday at 14:00 UTC
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 'd-yesterday',
           _creationTime: Date.now() - 20 * 3600 * 1000,
@@ -975,8 +947,8 @@ describe('App home page', () => {
           diaperChange: { type: 'wet' },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 
@@ -992,7 +964,7 @@ describe('App home page', () => {
     });
 
     it('isToday=false suppresses "ago" for medical temperature: yesterday shows "· at HH:mm"', () => {
-      mockResults = [
+      mockRangeResults = [
         {
           _id: 't-yesterday',
           _creationTime: Date.now() - 20 * 3600 * 1000,
@@ -1001,8 +973,8 @@ describe('App home page', () => {
           medical: { type: 'temperature', temperature: { value: 37.5 } },
         },
       ];
-      mockIsLoading = false;
-      mockStatus = 'Exhausted';
+
+
 
       render(<AppHomePage />);
 

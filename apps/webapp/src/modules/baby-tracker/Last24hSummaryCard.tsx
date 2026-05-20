@@ -3,12 +3,9 @@
 import { Milk, Baby, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { timeAgoFromMs } from '@/lib/activity-form-utils';
-import type { FunctionReturnType } from 'convex/server';
-import { api } from '@workspace/backend/convex/_generated/api';
+import type { Last24hSummary } from '@/lib/daily-summary';
 
 const DASH = '\u2014';
-
-type Last24hSummary = FunctionReturnType<typeof api.web.babyTracker.activities.getLast24hSummary>;
 
 interface Last24hSummaryCardProps {
   summary: Last24hSummary | undefined;
