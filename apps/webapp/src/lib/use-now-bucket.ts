@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { DateTime } from 'luxon';
 
 export function roundUpToNext5Min(ms: number): number {
   const boundary = Math.ceil(ms / 300_000) * 300_000;
@@ -7,7 +6,7 @@ export function roundUpToNext5Min(ms: number): number {
   return boundary;
 }
 
-export function useNowBucket5Min(): string {
+export function useNowBucket5Min(): number {
   const [bucket, setBucket] = useState<number>(() => roundUpToNext5Min(Date.now()));
 
   useEffect(() => {
@@ -25,5 +24,5 @@ export function useNowBucket5Min(): string {
     return () => clearTimeout(timerId);
   }, []);
 
-  return DateTime.fromMillis(bucket, { zone: 'utc' }).toISO()!;
+  return bucket;
 }

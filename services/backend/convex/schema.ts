@@ -12,7 +12,7 @@ export default defineSchema({
     activity: v.union(
       //feed activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('feed'),
         feed: v.union(
           v.object({
@@ -44,7 +44,7 @@ export default defineSchema({
       }),
       //diaper change activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('diaper_change'),
         diaperChange: v.object({
           type: v.union(
@@ -57,7 +57,7 @@ export default defineSchema({
       }),
       // medical activity
       v.object({
-        timestamp: v.string(),
+        timestamp: v.number(),
         type: v.literal('medical'),
         medical: v.union(
           v.object({

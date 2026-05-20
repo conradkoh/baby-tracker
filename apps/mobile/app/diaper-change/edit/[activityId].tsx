@@ -31,7 +31,7 @@ export default function EditDiaperChangePage() {
       }
       diaperChangeFormRef.current?.load({
         type: diaperChangeFromLiteral(diaperChange.type),
-        timestamp: DateTime.fromISO(activity.activity.timestamp),
+        timestamp: DateTime.fromMillis(activity.activity.timestamp),
       });
     }
   }, [activity?.activity]);

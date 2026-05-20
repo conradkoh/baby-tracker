@@ -107,8 +107,8 @@ const ACTIVITY_ICON_MAP: Record<string, React.ComponentType<{ className?: string
 export type TimeOfDay = 'midnight' | 'morning' | 'afternoon' | 'night';
 
 /** Classify a timestamp into a time-of-day bucket based on local hour. */
-function getTimeOfDay(ts: string): TimeOfDay {
-  const hour = DateTime.fromISO(ts).toLocal().hour;
+function getTimeOfDay(ts: number): TimeOfDay {
+  const hour = DateTime.fromMillis(ts).toLocal().hour;
   if (hour >= 6 && hour < 12) return 'morning';
   if (hour >= 12 && hour < 18) return 'afternoon';
   if (hour >= 18) return 'night';
@@ -181,21 +181,20 @@ export default function AppHomePage() {
 
   const [daysBack, setDaysBack] = useState(2);
 
-  const nowIso = useNowBucket5Min();
-  const nowMs = DateTime.fromISO(nowIso).toMillis();
+  const nowMs = useNowBucket5Min();
 
-  const fromIso = useMemo(() => {
+  const fromMs = useMemo(() => {
     // Load from the requested number of days back, but always at least from yesterday midnight.
     // The last-24h summary needs activities from (now - 24h), which always falls on yesterday,
     // so we must never load less than yesterday's data regardless of daysBack.
     const requestedFrom = DateTime.now().startOf('day').minus({ days: daysBack - 1 });
     const minFrom = DateTime.now().startOf('day').minus({ days: 1 }); // yesterday midnight
-    return (requestedFrom < minFrom ? requestedFrom : minFrom).toISO()!;
+    return (requestedFrom < minFrom ? requestedFrom : minFrom).toMillis();
   }, [daysBack]);
 
   const rangeResult = useSessionQuery(
     api.web.babyTracker.activities.getActivitiesByDateRange,
-    { fromIso, toIso: nowIso }
+    { fromMs, toMs: nowMs }
   );
 
   // Stale-while-revalidate: keep the last confirmed results so "Load More"
@@ -243,8 +242,8 @@ export default function AppHomePage() {
 
   const groupedByDate = useMemo(() => {
     const sorted = [...results].sort((a, b) => {
-      const tsA = DateTime.fromISO(a.timestamp).toMillis();
-      const tsB = DateTime.fromISO(b.timestamp).toMillis();
+      const tsA = a.timestamp;
+      const tsB = b.timestamp;
       return tsB - tsA;
     });
 
@@ -254,7 +253,7 @@ export default function AppHomePage() {
     }[] = [];
 
     for (const activity of sorted) {
-      const ts: string = activity.timestamp;
+      const ts = activity.timestamp;
       const dateKey = toDateKey(ts);
       const period = getTimeOfDay(ts);
 

@@ -26,13 +26,13 @@ export default function EditMedicalPage() {
       if (medicalActivity.type === 'temperature') {
         medicalFormRef.current?.load({
           type: 'temperature',
-          timestamp: DateTime.fromISO(activity.activity.timestamp),
+          timestamp: DateTime.fromMillis(activity.activity.timestamp),
           temperature: medicalActivity.temperature.value,
         });
       } else if (medicalActivity.type === 'medicine') {
         medicalFormRef.current?.load({
           type: 'medicine',
-          timestamp: DateTime.fromISO(activity.activity.timestamp),
+          timestamp: DateTime.fromMillis(activity.activity.timestamp),
           name: medicalActivity.medicine.name,
           unit: medicalActivity.medicine.unit,
           value: medicalActivity.medicine.value,

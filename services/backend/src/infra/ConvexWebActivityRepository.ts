@@ -114,20 +114,20 @@ export class ConvexWebActivityRepository implements IActivityRepository {
 
   /**
    * List ALL activities in the repository's activity stream whose timestamp
-   * falls within [fromIso, toIso] (inclusive), ordered by timestamp ascending.
+   * falls within [fromMs, toMs] (inclusive), ordered by timestamp ascending.
    */
   async listByTimestampRange(
     _deviceId: string,
-    fromIso: string,
-    toIso: string
+    fromMs: number,
+    toMs: number
   ): Promise<Activity[]> {
     const docs = await this.ctx.db
       .query('activities')
       .withIndex('by_activityStreamId_by_timestamp', (q) =>
         q
           .eq('activityStreamId', this.activityStreamId)
-          .gte('activity.timestamp', fromIso)
-          .lte('activity.timestamp', toIso)
+          .gte('activity.timestamp', fromMs)
+          .lte('activity.timestamp', toMs)
       )
       .order('asc')
       .collect();

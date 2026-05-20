@@ -13,12 +13,13 @@ export function getDefaultDatetime(): string {
 }
 
 /**
- * Converts an ISO timestamp (UTC or offset) to a local "YYYY-MM-DDTHH:MM" string
+ * Converts an ISO timestamp (UTC or offset) or epoch ms to a local "YYYY-MM-DDTHH:MM" string
  * for use as the value of a datetime-local input.
  * Mirrors how the mobile pre-populates edit forms.
  */
-export function toLocalDatetimeString(isoTs: string): string {
-  return DateTime.fromISO(isoTs).toLocal().toFormat("yyyy-MM-dd'T'HH:mm");
+export function toLocalDatetimeString(isoTsOrMs: string | number): string {
+  const dt = typeof isoTsOrMs === 'number' ? DateTime.fromMillis(isoTsOrMs) : DateTime.fromISO(isoTsOrMs);
+  return dt.toLocal().toFormat("yyyy-MM-dd'T'HH:mm");
 }
 
 /**
@@ -50,14 +51,14 @@ export function formatDuration(totalSeconds: number): string {
   return `${minutes} min ${seconds} sec`;
 }
 
-/** Formats an ISO timestamp to a short time like "2:30 PM" using Luxon in local time. */
-export function formatTime(ts: string): string {
-  return DateTime.fromISO(ts).toLocal().toFormat('h:mm a');
+/** Formats an epoch ms timestamp to a short time like "2:30 PM" using Luxon in local time. */
+export function formatTime(ts: number): string {
+  return DateTime.fromMillis(ts).toLocal().toFormat('h:mm a');
 }
 
 /** Formats a timestamp to a locale date string like "Jan 15, 2025" using Luxon in local time. */
-export function formatDate(ts: string): string {
-  return DateTime.fromISO(ts).toLocal().toFormat('MMM d, yyyy');
+export function formatDate(ts: number): string {
+  return DateTime.fromMillis(ts).toLocal().toFormat('MMM d, yyyy');
 }
 
 /**

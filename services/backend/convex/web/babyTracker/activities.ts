@@ -96,7 +96,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
-    const activityId = await createActivityUseCase(repo, userId.toString(), args.activity);
+    const activityId = await createActivityUseCase(repo, userId.toString(), args.activity as any);
     return { activityId };
   },
 });
@@ -113,7 +113,7 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
-    await updateActivityUseCase(repo, userId.toString(), args.activityId.toString(), args.activity);
+    await updateActivityUseCase(repo, userId.toString(), args.activityId.toString(), args.activity as any);
   },
 });
 
@@ -197,8 +197,8 @@ export const getLast24hSummary = query({
 export const getActivitiesByDateRange = query({
   args: {
     ...SessionIdArg,
-    fromIso: v.string(),
-    toIso: v.string(),
+    fromMs: v.number(),
+    toMs: v.number(),
   },
   handler: async (ctx, args) => {
     const { activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
@@ -207,8 +207,8 @@ export const getActivitiesByDateRange = query({
       .withIndex('by_activityStreamId_by_timestamp', (q) =>
         q
           .eq('activityStreamId', activityStreamId)
-          .gte('activity.timestamp', args.fromIso)
-          .lte('activity.timestamp', args.toIso)
+          .gte('activity.timestamp', args.fromMs)
+          .lte('activity.timestamp', args.toMs)
       )
       .order('desc')
       .collect();

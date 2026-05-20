@@ -54,19 +54,19 @@ export type MedicalPayload = TemperaturePayload | MedicinePayload;
 export type ActivityType = 'feed' | 'diaper_change' | 'medical';
 
 export interface FeedActivity {
-  timestamp: string;
+  timestamp: number;
   type: 'feed';
   feed: FeedPayload;
 }
 
 export interface DiaperChangeActivity {
-  timestamp: string;
+  timestamp: number;
   type: 'diaper_change';
   diaperChange: DiaperChangePayload;
 }
 
 export interface MedicalActivity {
-  timestamp: string;
+  timestamp: number;
   type: 'medical';
   medical: MedicalPayload;
 }

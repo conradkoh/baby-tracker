@@ -56,7 +56,7 @@ function ActivityItem(props: {
   onPress: (e: { activity: Activity }) => void;
 }) {
   const activity = props.activity;
-  const activityTimestamp = DateTime.fromISO(activity.activity.timestamp);
+  const activityTimestamp = DateTime.fromMillis(activity.activity.timestamp);
   let icon = <></>;
   switch (activity.activity.type) {
     case ActivityType.Feed: {

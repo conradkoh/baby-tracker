@@ -84,8 +84,8 @@ export class ConvexActivityRepository implements IActivityRepository {
 
   async listByTimestampRange(
     deviceId: string,
-    fromIso: string,
-    toIso: string
+    fromMs: number,
+    toMs: number
   ): Promise<Activity[]> {
     const stream = await activityStreamForDevice(this.ctx, { deviceId });
     if (!stream) {
@@ -96,8 +96,8 @@ export class ConvexActivityRepository implements IActivityRepository {
       .withIndex('by_activityStreamId_by_timestamp', (q) =>
         q
           .eq('activityStreamId', stream._id)
-          .gte('activity.timestamp', fromIso)
-          .lte('activity.timestamp', toIso)
+          .gte('activity.timestamp', fromMs)
+          .lte('activity.timestamp', toMs)
       )
       .order('asc')
       .collect();

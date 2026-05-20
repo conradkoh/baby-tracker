@@ -46,13 +46,13 @@ export interface IActivityRepository {
   ): Promise<PaginationResult<Activity>>;
 
   /**
-   * List activities whose timestamp falls within [fromIso, toIso] (inclusive),
+   * List activities whose timestamp falls within [fromMs, toMs] (inclusive),
    * ordered by timestamp ascending. Returns ALL matching activities (no pagination).
    * Intended for bounded windows like "last 24h".
    */
   listByTimestampRange(
     deviceId: string,
-    fromIso: string,
-    toIso: string
+    fromMs: number,
+    toMs: number
   ): Promise<Activity[]>;
 }

@@ -21,19 +21,19 @@ function referenceTime(iso: string, zone = 'local') {
 // ── Activity factories ───────────────────────────────────────────────────────
 
 function makeFeed(ts: string, subType: string, extras: Record<string, unknown> = {}) {
-  return { type: 'feed' as const, timestamp: ts, feed: { type: subType, ...extras } };
+  return { type: 'feed' as const, timestamp: Date.parse(ts), feed: { type: subType, ...extras } };
 }
 
 function makeDiaper(ts: string, diaperType: string) {
-  return { type: 'diaper_change' as const, timestamp: ts, diaperChange: { type: diaperType } };
+  return { type: 'diaper_change' as const, timestamp: Date.parse(ts), diaperChange: { type: diaperType } };
 }
 
 function makeTemp(ts: string, value: number) {
-  return { type: 'medical' as const, timestamp: ts, medical: { type: 'temperature' as const, temperature: { value } } };
+  return { type: 'medical' as const, timestamp: Date.parse(ts), medical: { type: 'temperature' as const, temperature: { value } } };
 }
 
 function makeMedicine(ts: string, name: string, unit: string, value: number) {
-  return { type: 'medical' as const, timestamp: ts, medical: { type: 'medicine' as const, medicine: { name, unit, value } } };
+  return { type: 'medical' as const, timestamp: Date.parse(ts), medical: { type: 'medicine' as const, medicine: { name, unit, value } } };
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────
@@ -137,9 +137,9 @@ describe('computeDailySummary', () => {
         lastWetAgoMs: expect.any(Number),
         lastDirtyAgoMs: expect.any(Number),
         lastMixedAgoMs: expect.any(Number),
-        lastWetAt: twoHoursAgo,
-        lastDirtyAt: eightHoursAgo,
-        lastMixedAt: sixHoursAgo,
+        lastWetAt: Date.parse(twoHoursAgo),
+        lastDirtyAt: Date.parse(eightHoursAgo),
+        lastMixedAt: Date.parse(sixHoursAgo),
       });
 
       const lastWetAgo = result.diapers!.lastWetAgoMs!;
@@ -177,7 +177,7 @@ describe('computeDailySummary', () => {
       expect(result.medical!.latestTemperature).toEqual({
         valueC: 37.5,
         agoMs: expect.any(Number),
-        at: nineAmJan15,
+        at: Date.parse(nineAmJan15),
       });
       expect(result.medical!.medicines).toHaveLength(2);
 
@@ -257,7 +257,7 @@ describe('computeDailySummary', () => {
         { type: 'feed' }, // completely malformed — missing timestamp, filtered out
         null,
         { type: 'diaper_change', timestamp: 'invalid-ts' }, // unparseable timestamp
-        { type: 'feed', timestamp: '2025-01-15T08:00:00.000Z', feed: { type: 'water' } }, // valid timestamp, water feed = bottle total 0, count 1
+        { type: 'feed', timestamp: Date.parse('2025-01-15T08:00:00.000Z'), feed: { type: 'water' } }, // valid timestamp, water feed = bottle total 0, count 1
       ];
 
       const result = computeDailySummary(activities as readonly unknown[], { ...range, referenceTime: ref });
@@ -402,7 +402,7 @@ describe('computeDailySummariesByDay', () => {
     expect(result[0].dayStart.toISO()).toBe('2025-01-15T00:00:00.000Z');
   });
 
-  it('latestTemperature.at is an ISO string when day has non-medical activity', () => {
+  it('latestTemperature.at is an epoch ms number when day has non-medical activity', () => {
     vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
     const ref = DateTime.utc();
 
@@ -415,7 +415,7 @@ describe('computeDailySummariesByDay', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].summary.hasAny).toBe(true);
-    expect(result[0].summary.medical?.latestTemperature?.at).toBe('2025-01-15T10:00:00.000Z');
+    expect(result[0].summary.medical?.latestTemperature?.at).toBe(Date.parse('2025-01-15T10:00:00.000Z'));
   });
 });
 

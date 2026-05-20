@@ -26,7 +26,7 @@ function AppIndexPage() {
   const lastFeedTimestamp = activities?.find(
     (v) =>
       v.activity.type === ActivityType.Feed &&
-      DateTime.fromISO(v.activity.timestamp).toMillis() <= curDate.toMillis()
+      DateTime.fromMillis(v.activity.timestamp).toMillis() <= curDate.toMillis()
   )?.activity?.timestamp;
   const isLoading = activities == undefined;
   //get feed stats
@@ -54,14 +54,14 @@ function AppIndexPage() {
         f.activity.type === ActivityType.Feed &&
         f.activity.feed.type !== FeedType.Latch &&
         f.activity.feed.type !== FeedType.Solids &&
-        DateTime.fromISO(f.activity.timestamp).toMillis() >
+        DateTime.fromMillis(f.activity.timestamp).toMillis() >
           last24HrRange.from.toMillis() &&
-        DateTime.fromISO(f.activity.timestamp).toMillis() <=
+        DateTime.fromMillis(f.activity.timestamp).toMillis() <=
           last24HrRange.to.toMillis()
       ) {
         last24HourFeedsWithVol.push({
           activity: {
-            dateTime: DateTime.fromISO(f.activity.timestamp),
+            dateTime: DateTime.fromMillis(f.activity.timestamp),
             feed: { volume: { ml: f.activity.feed.volume.ml } },
           },
         });
@@ -110,7 +110,7 @@ function AppIndexPage() {
     if (!lastFeedTimestamp) return undefined;
     return timeAgo({
       curDateTime: curDate,
-      dateTime: DateTime.fromISO(lastFeedTimestamp),
+      dateTime: DateTime.fromMillis(lastFeedTimestamp),
     }).toString();
   }, [curDate, lastFeedTimestamp]);
   return (

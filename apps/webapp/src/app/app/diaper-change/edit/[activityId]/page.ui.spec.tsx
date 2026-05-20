@@ -26,7 +26,7 @@ const EXISTING_DIRTY: Record<string, unknown> = {
   data: {
     _id: 'act-diaper-1',
     _creationTime: Date.now(),
-    timestamp: '2025-01-15T10:00:00.000Z',
+    timestamp: Date.parse('2025-01-15T10:00:00.000Z'),
     type: 'diaper_change',
     diaperChange: { type: 'dirty' },
   },

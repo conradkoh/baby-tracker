@@ -67,7 +67,7 @@ export default function DiaperEditPage() {
 
     const dc = activity.diaperChange as Record<string, unknown> | undefined;
     const existingType = dc?.type as string;
-    const ts = activity.timestamp as string;
+    const ts = activity.timestamp as string | number;
 
     const existingRemarks = dc?.remarks as string | undefined;
     setDiaperType((existingType as DiaperType) || 'wet');

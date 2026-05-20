@@ -63,7 +63,7 @@ export const setUserAccessLevelDefault = migrations.define({
 export const fixWebappTimestampsToUtcPlus8 = migrations.define({
   table: 'activities',
   migrateOne: async (_ctx, doc) => {
-    const ts = doc.activity.timestamp;
+    const ts = doc.activity.timestamp as unknown as string;
     // Skip records that already have a timezone offset (mobile-created or already migrated)
     if (!ts.endsWith('Z')) return;
 
@@ -81,6 +81,20 @@ export const fixWebappTimestampsToUtcPlus8 = migrations.define({
   },
 });
 
+/**
+ * Migration: Convert activity timestamps from ISO strings to epoch milliseconds.
+ * Handles both "Z" suffix and "+08:00" offset formats (mixed in DB).
+ */
+export const convertTimestampsToEpochMs = migrations.define({
+  table: 'activities',
+  migrateOne: async (_ctx, doc) => {
+    const ts = doc.activity.timestamp;
+    if (typeof ts === 'number') return;
+    const epochMs = DateTime.fromISO(ts as string).toMillis();
+    return { activity: { ...(doc.activity as any), timestamp: epochMs } };
+  },
+});
+
 
 /**
  * Run all migrations in order.
@@ -90,5 +104,6 @@ export const runAll = migrations.runner([
   internal.migrations.unsetSessionExpiration,
   internal.migrations.setUserAccessLevelDefault,
   internal.migrations.fixWebappTimestampsToUtcPlus8,
+  internal.migrations.convertTimestampsToEpochMs,
 ]);
 

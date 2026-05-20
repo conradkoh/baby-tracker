@@ -31,7 +31,7 @@ export default function EditFeedPage() {
         case 'formula': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Expressed | FeedType.Formula,
-            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            timestamp: DateTime.fromMillis(activity.activity.timestamp),
             volume: feed.volume.ml,
           });
           break;
@@ -39,7 +39,7 @@ export default function EditFeedPage() {
         case 'latch': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Latch,
-            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            timestamp: DateTime.fromMillis(activity.activity.timestamp),
             duration: {
               left: {
                 seconds: feed.duration.left?.seconds || 0,
@@ -54,7 +54,7 @@ export default function EditFeedPage() {
         case 'solids': {
           feedFormRef.current?.load({
             type: feed.type as FeedType.Solids,
-            timestamp: DateTime.fromISO(activity.activity.timestamp),
+            timestamp: DateTime.fromMillis(activity.activity.timestamp),
             description: feed.description,
           });
           break;

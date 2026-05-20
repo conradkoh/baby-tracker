@@ -12,12 +12,12 @@ export async function updateActivity(
   activityId: string,
   activity: Activity
 ): Promise<void> {
-  const ts = DateTime.fromISO(activity.timestamp);
+  const ts = DateTime.fromISO(String(activity.timestamp));
   if (!ts.isValid) {
     throw new Error(`invalid timestamp: ${activity.timestamp}`);
   }
   await repo.update(deviceId, activityId, {
     ...activity,
-    timestamp: ts.toUTC().toISO()!,
+    timestamp: ts.toMillis(),
   });
 }
