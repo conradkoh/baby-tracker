@@ -85,7 +85,7 @@ function makeLatchActivity(overrides?: Partial<Record<string, unknown>>) {
   return {
     _id: 'act-1',
     _creationTime: Date.now(),
-    timestamp: '2025-01-15T14:30:00.000Z',
+    timestamp: Date.parse('2025-01-15T14:30:00.000Z'),
     type: 'feed',
     feed: {
       type: 'latch',
@@ -100,7 +100,7 @@ function makeBottleActivity(overrides?: Partial<Record<string, unknown>>) {
   return {
     _id: 'act-2',
     _creationTime: Date.now() - 1000,
-    timestamp: '2025-01-15T12:00:00.000Z',
+    timestamp: Date.parse('2025-01-15T12:00:00.000Z'),
     type: 'feed',
     feed: {
       type: 'expressed',
@@ -115,7 +115,7 @@ function makeSolidsActivity(overrides?: Partial<Record<string, unknown>>) {
   return {
     _id: 'act-3',
     _creationTime: Date.now() - 2000,
-    timestamp: '2025-01-14T18:00:00.000Z',
+    timestamp: Date.parse('2025-01-14T18:00:00.000Z'),
     type: 'feed',
     feed: {
       type: 'solids',
@@ -130,7 +130,7 @@ function makeDiaperActivity(overrides?: Partial<Record<string, unknown>>) {
   return {
     _id: 'act-4',
     _creationTime: Date.now() - 3000,
-    timestamp: '2025-01-14T16:30:00.000Z',
+    timestamp: Date.parse('2025-01-14T16:30:00.000Z'),
     type: 'diaper_change',
     diaperChange: {
       type: 'wet',
@@ -144,7 +144,7 @@ function makeTemperatureActivity(overrides?: Partial<Record<string, unknown>>) {
   return {
     _id: 'act-5',
     _creationTime: Date.now() - 4000,
-    timestamp: '2025-01-14T09:00:00.000Z',
+    timestamp: Date.parse('2025-01-14T09:00:00.000Z'),
     type: 'medical',
     medical: {
       type: 'temperature',
@@ -159,7 +159,7 @@ function makeMedicineActivity(overrides?: Partial<Record<string, unknown>>) {
   return {
     _id: 'act-6',
     _creationTime: Date.now() - 5000,
-    timestamp: '2025-01-13T20:00:00.000Z',
+    timestamp: Date.parse('2025-01-13T20:00:00.000Z'),
     type: 'medical',
     medical: {
       type: 'medicine',
@@ -234,7 +234,7 @@ describe('App home page', () => {
         {
           _id: 'b1',
           _creationTime: Date.now() - 1000,
-          timestamp: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
+          timestamp: Date.now() - 1 * 3600 * 1000,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
@@ -316,10 +316,10 @@ describe('App home page', () => {
       // Jan 15 08:00 Z → SGT Jan 15 16:00 (afternoon) — local date = Jan 15.
       // Jan 15 12:00 Z → SGT Jan 15 20:00 (night) — local date = Jan 15.
       mockRangeResults = [
-        makeLatchActivity({ timestamp: '2025-01-14T15:59:59.000Z' }),
-        makeSolidsActivity({ timestamp: '2025-01-14T16:00:00.000Z' }),
-        makeBottleActivity({ timestamp: '2025-01-15T08:00:00.000Z' }),
-        makeDiaperActivity({ timestamp: '2025-01-15T12:00:00.000Z' }),
+        makeLatchActivity({ timestamp: Date.parse('2025-01-14T15:59:59.000Z') }),
+        makeSolidsActivity({ timestamp: Date.parse('2025-01-14T16:00:00.000Z') }),
+        makeBottleActivity({ timestamp: Date.parse('2025-01-15T08:00:00.000Z') }),
+        makeDiaperActivity({ timestamp: Date.parse('2025-01-15T12:00:00.000Z') }),
       ];
 
       render(<AppHomePage />);
@@ -523,7 +523,7 @@ describe('App home page', () => {
         {
           _id: 'act-yesterday',
           _creationTime: Date.now() - 86400000,
-          timestamp: '2025-05-18T10:00:00.000Z',
+          timestamp: Date.parse('2025-05-18T10:00:00.000Z'),
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
@@ -548,7 +548,7 @@ describe('App home page', () => {
         {
           _id: 'act-today',
           _creationTime: Date.now(),
-          timestamp: '2025-05-19T08:00:00.000Z',
+          timestamp: Date.parse('2025-05-19T08:00:00.000Z'),
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
@@ -569,21 +569,21 @@ describe('App home page', () => {
         {
           _id: 'b1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 60 } },
         },
         {
           _id: 'b2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 2 * hour).toISOString(),
+          timestamp: now - 2 * hour,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 90 } },
         },
         {
           _id: 'b3',
           _creationTime: now - 3000,
-          timestamp: new Date(now - 3 * hour).toISOString(),
+          timestamp: now - 3 * hour,
           type: 'feed',
           feed: { type: 'formula', volume: { ml: 120 } },
         },
@@ -607,14 +607,14 @@ describe('App home page', () => {
         {
           _id: 'b1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 60 } },
         },
         {
           _id: 'b2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 2 * hour).toISOString(),
+          timestamp: now - 2 * hour,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 90 } },
         },
@@ -636,14 +636,14 @@ describe('App home page', () => {
         {
           _id: 'l1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'feed',
           feed: { type: 'latch', duration: { left: { seconds: 600 }, right: { seconds: 300 } } },
         },
         {
           _id: 'l2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 3 * hour).toISOString(),
+          timestamp: now - 3 * hour,
           type: 'feed',
           feed: { type: 'latch', duration: { left: { seconds: 900 }, right: { seconds: 450 } } },
         },
@@ -665,21 +665,21 @@ describe('App home page', () => {
         {
           _id: 's1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'feed',
           feed: { type: 'solids', description: 'Banana' },
         },
         {
           _id: 's2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 2 * hour).toISOString(),
+          timestamp: now - 2 * hour,
           type: 'feed',
           feed: { type: 'solids', description: 'banana' },
         },
         {
           _id: 's3',
           _creationTime: now - 3000,
-          timestamp: new Date(now - 3 * hour).toISOString(),
+          timestamp: now - 3 * hour,
           type: 'feed',
           feed: { type: 'solids', description: 'Rice' },
         },
@@ -701,21 +701,21 @@ describe('App home page', () => {
         {
           _id: 'd1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'diaper_change',
           diaperChange: { type: 'wet' },
         },
         {
           _id: 'd2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 2 * hour).toISOString(),
+          timestamp: now - 2 * hour,
           type: 'diaper_change',
           diaperChange: { type: 'wet' },
         },
         {
           _id: 'd3',
           _creationTime: now - 3000,
-          timestamp: new Date(now - 3 * hour).toISOString(),
+          timestamp: now - 3 * hour,
           type: 'diaper_change',
           diaperChange: { type: 'mixed' },
         },
@@ -741,7 +741,7 @@ describe('App home page', () => {
         {
           _id: 'd1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 2 * hour).toISOString(),
+          timestamp: now - 2 * hour,
           type: 'diaper_change',
           diaperChange: { type: 'wet' },
         },
@@ -762,14 +762,14 @@ describe('App home page', () => {
         {
           _id: 'm1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 3 * hour).toISOString(),
+          timestamp: now - 3 * hour,
           type: 'medical',
           medical: { type: 'temperature', temperature: { value: 37.8 } },
         },
         {
           _id: 'm2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 5 * hour).toISOString(),
+          timestamp: now - 5 * hour,
           type: 'medical',
           medical: { type: 'temperature', temperature: { value: 37.0 } },
         },
@@ -792,14 +792,14 @@ describe('App home page', () => {
         {
           _id: 'med1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'medical',
           medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'ml', value: 5 } },
         },
         {
           _id: 'med2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 2 * hour).toISOString(),
+          timestamp: now - 2 * hour,
           type: 'medical',
           medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'ml', value: 5 } },
         },
@@ -821,14 +821,14 @@ describe('App home page', () => {
         {
           _id: 'med1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'medical',
           medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'ml', value: 5 } },
         },
         {
           _id: 'med2',
           _creationTime: now - 2000,
-          timestamp: new Date(now - 2 * hour).toISOString(),
+          timestamp: now - 2 * hour,
           type: 'medical',
           medical: { type: 'medicine', medicine: { name: 'Paracetamol', unit: 'g', value: 0.5 } },
         },
@@ -850,7 +850,7 @@ describe('App home page', () => {
         {
           _id: 'b1',
           _creationTime: now - 1000,
-          timestamp: new Date(now - 1 * hour).toISOString(),
+          timestamp: now - 1 * hour,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
@@ -881,7 +881,7 @@ describe('App home page', () => {
         {
           _id: 'b1',
           _creationTime: Date.now() - 1000,
-          timestamp: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
+          timestamp: Date.now() - 1 * 3600 * 1000,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
@@ -904,7 +904,7 @@ describe('App home page', () => {
         {
           _id: 'd-yesterday',
           _creationTime: now - 25 * hour,
-          timestamp: new Date(now - 25 * hour).toISOString(), // 25h ago = yesterday
+          timestamp: now - 25 * hour, // 25h ago = yesterday
           type: 'diaper_change',
           diaperChange: { type: 'wet' },
         },
@@ -912,7 +912,7 @@ describe('App home page', () => {
         {
           _id: 'b-today',
           _creationTime: now - hour,
-          timestamp: new Date(now - hour).toISOString(),
+          timestamp: now - hour,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 120 } },
         },
@@ -942,7 +942,7 @@ describe('App home page', () => {
         {
           _id: 'd-yesterday',
           _creationTime: Date.now() - 20 * 3600 * 1000,
-          timestamp: '2025-05-18T14:00:00.000Z',
+          timestamp: Date.parse('2025-05-18T14:00:00.000Z'),
           type: 'diaper_change',
           diaperChange: { type: 'wet' },
         },
@@ -968,7 +968,7 @@ describe('App home page', () => {
         {
           _id: 't-yesterday',
           _creationTime: Date.now() - 20 * 3600 * 1000,
-          timestamp: '2025-05-18T14:00:00.000Z',
+          timestamp: Date.parse('2025-05-18T14:00:00.000Z'),
           type: 'medical',
           medical: { type: 'temperature', temperature: { value: 37.5 } },
         },
@@ -1058,7 +1058,7 @@ describe('App home page', () => {
         {
           _id: 'feed-20h-ago',
           _creationTime: Date.now() - 20 * 3600 * 1000,
-          timestamp: new Date(Date.now() - 20 * 3600 * 1000).toISOString(),
+          timestamp: Date.now() - 20 * 3600 * 1000,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 150 } },
         },
@@ -1076,7 +1076,7 @@ describe('App home page', () => {
         {
           _id: 'feed-25h-ago',
           _creationTime: Date.now() - 25 * 3600 * 1000,
-          timestamp: new Date(Date.now() - 25 * 3600 * 1000).toISOString(),
+          timestamp: Date.now() - 25 * 3600 * 1000,
           type: 'feed',
           feed: { type: 'expressed', volume: { ml: 200 } },
         },
@@ -1096,7 +1096,7 @@ describe('App home page', () => {
         {
           _id: 'diaper-23h-ago',
           _creationTime: Date.now() - 23 * 3600 * 1000,
-          timestamp: new Date(Date.now() - 23 * 3600 * 1000).toISOString(),
+          timestamp: Date.now() - 23 * 3600 * 1000,
           type: 'diaper_change',
           diaperChange: { type: 'wet' },
         },

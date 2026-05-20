@@ -31,9 +31,11 @@ describe('useNowBucket5Min', () => {
     vi.useRealTimers();
   });
 
-  it('returns ISO string with UTC zone', () => {
+  it('returns epoch ms number rounded up to next 5-min boundary', () => {
     vi.setSystemTime(new Date('2025-01-15T12:03:00.000Z'));
     const { result } = renderHook(() => useNowBucket5Min());
-    expect(result.current).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00\.000Z$/);
+    expect(typeof result.current).toBe('number');
+    expect(result.current % 300_000).toBe(0);
+    expect(result.current).toBeGreaterThan(new Date('2025-01-15T12:03:00.000Z').getTime());
   });
 });

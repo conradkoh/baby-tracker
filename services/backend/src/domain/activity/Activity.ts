@@ -54,19 +54,22 @@ export type MedicalPayload = TemperaturePayload | MedicinePayload;
 export type ActivityType = 'feed' | 'diaper_change' | 'medical';
 
 export interface FeedActivity {
-  timestamp: string;
+  /** Epoch milliseconds (UTC). Converted to/from ISO strings by the repository layer. */
+  timestamp: number;
   type: 'feed';
   feed: FeedPayload;
 }
 
 export interface DiaperChangeActivity {
-  timestamp: string;
+  /** Epoch milliseconds (UTC). Converted to/from ISO strings by the repository layer. */
+  timestamp: number;
   type: 'diaper_change';
   diaperChange: DiaperChangePayload;
 }
 
 export interface MedicalActivity {
-  timestamp: string;
+  /** Epoch milliseconds (UTC). Converted to/from ISO strings by the repository layer. */
+  timestamp: number;
   type: 'medical';
   medical: MedicalPayload;
 }

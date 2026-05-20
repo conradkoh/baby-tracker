@@ -21,25 +21,25 @@ export default function EditMedicalPage() {
   const medicalFormRef = useRef<MedicalActivityFormRef>(null);
 
   useEffect(() => {
-    if (activity?.activity.type === 'medical') {
-      const medicalActivity = activity.activity.medical;
+    if (activity?.type === 'medical') {
+      const medicalActivity = activity.medical;
       if (medicalActivity.type === 'temperature') {
         medicalFormRef.current?.load({
           type: 'temperature',
-          timestamp: DateTime.fromISO(activity.activity.timestamp),
+          timestamp: DateTime.fromMillis(activity.timestamp),
           temperature: medicalActivity.temperature.value,
         });
       } else if (medicalActivity.type === 'medicine') {
         medicalFormRef.current?.load({
           type: 'medicine',
-          timestamp: DateTime.fromISO(activity.activity.timestamp),
+          timestamp: DateTime.fromMillis(activity.timestamp),
           name: medicalActivity.medicine.name,
           unit: medicalActivity.medicine.unit,
           value: medicalActivity.medicine.value,
         });
       }
     }
-  }, [activity?.activity]);
+  }, [activity]);
 
   return (
     <Page title="Edit Medical">
@@ -58,9 +58,7 @@ export default function EditMedicalPage() {
         mode="edit"
         ref={medicalFormRef}
         onSubmit={async (val) => {
-          const ts = val.timestamp.toISO();
-          if (ts === null)
-            throw new Error('invalid timestamp: ' + val.timestamp);
+          const ts = val.timestamp.toMillis();
           switch (val.type) {
             case 'temperature': {
               await updateActivity({

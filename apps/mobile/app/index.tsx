@@ -25,9 +25,9 @@ function AppIndexPage() {
   const curDate = useCurrentDateTime();
   const lastFeedTimestamp = activities?.find(
     (v) =>
-      v.activity.type === ActivityType.Feed &&
-      DateTime.fromISO(v.activity.timestamp).toMillis() <= curDate.toMillis()
-  )?.activity?.timestamp;
+      v.type === ActivityType.Feed &&
+      v.timestamp <= curDate.toMillis()
+  )?.timestamp;
   const isLoading = activities == undefined;
   //get feed stats
   const feedStats = useMemo<{
@@ -51,18 +51,18 @@ function AppIndexPage() {
     }[] = [];
     for (const f of activities) {
       if (
-        f.activity.type === ActivityType.Feed &&
-        f.activity.feed.type !== FeedType.Latch &&
-        f.activity.feed.type !== FeedType.Solids &&
-        DateTime.fromISO(f.activity.timestamp).toMillis() >
+        f.type === ActivityType.Feed &&
+        f.feed.type !== FeedType.Latch &&
+        f.feed.type !== FeedType.Solids &&
+        f.timestamp >
           last24HrRange.from.toMillis() &&
-        DateTime.fromISO(f.activity.timestamp).toMillis() <=
+        f.timestamp <=
           last24HrRange.to.toMillis()
       ) {
         last24HourFeedsWithVol.push({
           activity: {
-            dateTime: DateTime.fromISO(f.activity.timestamp),
-            feed: { volume: { ml: f.activity.feed.volume.ml } },
+            dateTime: DateTime.fromMillis(f.timestamp),
+            feed: { volume: { ml: f.feed.volume.ml } },
           },
         });
       }
@@ -85,7 +85,7 @@ function AppIndexPage() {
     //compute stats
     const last24HrFeedStats = last24HourFeedsWithVol.reduce(
       (state, f) => {
-        state.totalVol.ml += f.activity.feed.volume.ml;
+        state.totalVol.ml += f.feed.volume.ml;
         return state;
       },
       {
@@ -110,7 +110,7 @@ function AppIndexPage() {
     if (!lastFeedTimestamp) return undefined;
     return timeAgo({
       curDateTime: curDate,
-      dateTime: DateTime.fromISO(lastFeedTimestamp),
+      dateTime: DateTime.fromMillis(lastFeedTimestamp),
     }).toString();
   }, [curDate, lastFeedTimestamp]);
   return (
@@ -127,7 +127,7 @@ function AppIndexPage() {
         ) : null}
         <ActivityList
           onActivityPress={(a) => {
-            switch (a.activity.activity.type) {
+            switch (a.activity.type) {
               case ActivityType.Feed: {
                 router.push(`/feed/edit/${a.activity._id}`);
                 break;

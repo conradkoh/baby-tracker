@@ -17,7 +17,8 @@ type MedicalSubType = 'temperature' | 'medicine';
 
 interface FeedActivity {
   type: 'feed';
-  timestamp: string;
+  /** Epoch milliseconds (UTC) — matches the domain type and API return value. */
+  timestamp: number;
   feed: {
     type: FeedSubType;
     duration?: { left?: { seconds?: number }; right?: { seconds?: number } };
@@ -28,13 +29,15 @@ interface FeedActivity {
 
 interface DiaperActivity {
   type: 'diaper_change';
-  timestamp: string;
+  /** Epoch milliseconds (UTC) — matches the domain type and API return value. */
+  timestamp: number;
   diaperChange: { type: DiaperSubType };
 }
 
 interface MedicalActivity {
   type: 'medical';
-  timestamp: string;
+  /** Epoch milliseconds (UTC) — matches the domain type and API return value. */
+  timestamp: number;
   medical: {
     type: MedicalSubType;
     temperature?: { value?: number };
@@ -47,11 +50,16 @@ export type Activity = FeedActivity | DiaperActivity | MedicalActivity;
 // ── Date-key helper (shared with callers) ─────────────────────────────────────
 
 /**
- * Formats a DateTime or ISO timestamp string as `YYYY-MM-DD` in the local zone.
+ * Formats a DateTime, epoch ms number, or ISO timestamp string as `YYYY-MM-DD` in the local zone.
  * Used to derive `dateKey` for grouping activities by day.
  */
-export function toDateKey(input: string | DateTime, zone: string = 'local'): string {
-  const dt = typeof input === 'string' ? DateTime.fromISO(input, { zone }) : input.setZone(zone);
+export function toDateKey(input: number | string | DateTime, zone: string = 'local'): string {
+  const dt =
+    typeof input === 'number'
+      ? DateTime.fromMillis(input, { zone })
+      : typeof input === 'string'
+        ? DateTime.fromISO(input, { zone })
+        : input.setZone(zone);
   return dt.toLocal().toFormat('yyyy-MM-dd');
 }
 
@@ -72,16 +80,16 @@ export interface DailySummary {
     lastWetAgoMs: number | null;
     lastDirtyAgoMs: number | null;
     lastMixedAgoMs: number | null;
-    lastWetAt: string | null;
-    lastDirtyAt: string | null;
-    lastMixedAt: string | null;
+    lastWetAt: number | null;
+    lastDirtyAt: number | null;
+    lastMixedAt: number | null;
   } | null;
   /**
    * Medical aggregation is computed but NOT rendered by DailySummaryCard
    * (intentional — re-enabling the UI is a render-only change).
    */
   medical: {
-    latestTemperature: { valueC: number; agoMs: number; at: string } | null;
+    latestTemperature: { valueC: number; agoMs: number; at: number } | null;
     medicines: Array<{
       name: string;
       unit: string;
@@ -126,15 +134,15 @@ export function computeDailySummary(
     const act = parseActivity(a);
     if (!act) continue;
     const ts = act.timestamp;
-    if (!ts) continue;
-    const dt = DateTime.fromISO(ts, { zone });
+    if (ts == null) continue;
+    const dt = DateTime.fromMillis(ts, { zone });
     if (!dt.isValid) continue;
     if (dt < dayStart || dt > dayEnd) continue;
     todaysActivities.push(act);
   }
 
   // Sort by timestamp ascending (needed for stable "last seen" tracking)
-  todaysActivities.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  todaysActivities.sort((a, b) => a.timestamp - b.timestamp);
 
   // Aggregate feed
   let bottleTotalMl = 0;
@@ -148,13 +156,13 @@ export function computeDailySummary(
   let wetCount = 0;
   let dirtyCount = 0;
   let mixedCount = 0;
-  let lastWetTs: string | null = null;
-  let lastDirtyTs: string | null = null;
-  let lastMixedTs: string | null = null;
+  let lastWetTs: number | null = null;
+  let lastDirtyTs: number | null = null;
+  let lastMixedTs: number | null = null;
 
   // Aggregate medical
   let latestTempValue: number | null = null;
-  let latestTempTs: string | null = null;
+  let latestTempTs: number | null = null;
   const medicineMap = new Map<
     string,
     { name: string; unit: string; totalValue: number; count: number; mixedUnits: boolean }
@@ -249,15 +257,9 @@ export function computeDailySummary(
           dirty: dirtyCount,
           mixed: mixedCount,
           total: wetCount + dirtyCount + mixedCount,
-          lastWetAgoMs: lastWetTs
-            ? referenceTime.toMillis() - DateTime.fromISO(lastWetTs, { zone }).toMillis()
-            : null,
-          lastDirtyAgoMs: lastDirtyTs
-            ? referenceTime.toMillis() - DateTime.fromISO(lastDirtyTs, { zone }).toMillis()
-            : null,
-          lastMixedAgoMs: lastMixedTs
-            ? referenceTime.toMillis() - DateTime.fromISO(lastMixedTs, { zone }).toMillis()
-            : null,
+          lastWetAgoMs: lastWetTs !== null ? referenceTime.toMillis() - lastWetTs : null,
+          lastDirtyAgoMs: lastDirtyTs !== null ? referenceTime.toMillis() - lastDirtyTs : null,
+          lastMixedAgoMs: lastMixedTs !== null ? referenceTime.toMillis() - lastMixedTs : null,
           lastWetAt: lastWetTs,
           lastDirtyAt: lastDirtyTs,
           lastMixedAt: lastMixedTs,
@@ -268,7 +270,7 @@ export function computeDailySummary(
     latestTempValue !== null && latestTempTs !== null
       ? {
           valueC: latestTempValue,
-          agoMs: referenceTime.toMillis() - DateTime.fromISO(latestTempTs, { zone }).toMillis(),
+          agoMs: referenceTime.toMillis() - latestTempTs,
           at: latestTempTs,
         }
       : null;
@@ -323,8 +325,8 @@ export function computeDailySummariesByDay(
   const dayMap = new Map<string, unknown[]>();
   for (const a of activities) {
     const act = parseActivity(a);
-    if (!act || !act.timestamp) continue;
-    const dt = DateTime.fromISO(act.timestamp, { zone });
+    if (!act || act.timestamp == null) continue;
+    const dt = DateTime.fromMillis(act.timestamp, { zone });
     if (!dt.isValid) continue;
     const key = toDateKey(dt);
     if (!dayMap.has(key)) dayMap.set(key, []);
@@ -385,7 +387,7 @@ export function computeLast24hSummary(
   let wet = 0, dirty = 0, mixed = 0;
 
   for (const activity of activities) {
-    const tsMs = Date.parse(activity.timestamp);
+    const tsMs = activity.timestamp;
     if (tsMs <= nowMs && tsMs > windowStartMs) {
       if (activity.type === 'feed') {
         if (tsMs > (lastFeedAtMs ?? 0)) lastFeedAtMs = tsMs;

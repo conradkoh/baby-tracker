@@ -34,7 +34,7 @@ export function computeLast24hSummary(
   const threeHourBoundaryMs = nowMs - 3 * 60 * 60 * 1000;
 
   for (const activity of activities) {
-    const tsMs = Date.parse(activity.timestamp);
+    const tsMs = activity.timestamp;
     if (tsMs <= nowMs && tsMs > windowStartMs) {
       if (activity.type === 'feed') {
         if (tsMs > (lastFeedAtMs ?? 0)) {

@@ -109,7 +109,7 @@ function makeLatchQueryResult() {
     data: {
       _id: 'act-test-1',
       _creationTime: Date.now(),
-      timestamp: '2025-01-15T14:30:00.000Z',
+      timestamp: Date.parse('2025-01-15T14:30:00.000Z'),
       type: 'feed',
       feed: {
         type: 'latch',
@@ -129,7 +129,7 @@ function makeBottleQueryResult() {
     data: {
       _id: 'act-test-1',
       _creationTime: Date.now(),
-      timestamp: '2025-01-15T14:30:00.000Z',
+      timestamp: Date.parse('2025-01-15T14:30:00.000Z'),
       type: 'feed',
       feed: {
         type: 'expressed',
@@ -146,7 +146,7 @@ function makeSolidsQueryResult() {
     data: {
       _id: 'act-test-1',
       _creationTime: Date.now(),
-      timestamp: '2025-01-15T14:30:00.000Z',
+      timestamp: Date.parse('2025-01-15T14:30:00.000Z'),
       type: 'feed',
       feed: {
         type: 'solids',
@@ -320,7 +320,7 @@ describe('Feed edit page', () => {
         expect(mockMutate).toHaveBeenCalledWith({
           activityId: 'act-test-1',
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'feed',
             feed: {
               type: 'latch',

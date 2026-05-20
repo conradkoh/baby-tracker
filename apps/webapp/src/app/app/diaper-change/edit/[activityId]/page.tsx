@@ -67,11 +67,11 @@ export default function DiaperEditPage() {
 
     const dc = activity.diaperChange as Record<string, unknown> | undefined;
     const existingType = dc?.type as string;
-    const ts = activity.timestamp as string;
+    const ts = activity.timestamp;
 
     const existingRemarks = dc?.remarks as string | undefined;
     setDiaperType((existingType as DiaperType) || 'wet');
-    setDatetime(ts ? toLocalDatetimeString(ts) : '');
+    setDatetime(ts ? toLocalDatetimeString(ts as string | number) : '');
     setRemarks(existingRemarks || '');
     setInitialized(true);
   }, [activity, initialized]);

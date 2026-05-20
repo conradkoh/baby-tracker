@@ -31,8 +31,8 @@ export function viewModelFromActivities(
   return list.reduce(
     (state, activity) => {
       //insert sections
-      const activityDate = DateTime.fromISO(
-        activity.activity.timestamp
+      const activityDate = DateTime.fromMillis(
+        activity.timestamp
       ).toFormat('dd MMM yyyy');
       if (state.lastDate != activityDate) {
         state.lastDate = activityDate;

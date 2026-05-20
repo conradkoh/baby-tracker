@@ -75,10 +75,10 @@ export default function MedicalEditPage() {
 
     const med = activity.medical as Record<string, unknown> | undefined;
     const existingType = med?.type as string;
-    const ts = activity.timestamp as string;
+    const ts = activity.timestamp;
 
     setMedicalType((existingType as MedicalType) || 'temperature');
-    setDatetime(ts ? toLocalDatetimeString(ts) : '');
+    setDatetime(ts ? toLocalDatetimeString(ts as string | number) : '');
 
     if (existingType === 'temperature') {
       const temp = med?.temperature as { value: number } | undefined;

@@ -1,8 +1,10 @@
 /**
  * Usecase: Create a new activity for a device.
- * Validates the timestamp (business logic) before delegating to the repository.
+ * Delegates to the repository, which handles the timestamp format conversion.
+ *
+ * The domain operates on epoch milliseconds. The repository converts between
+ * epoch ms and ISO 8601 UTC strings for Convex storage.
  */
-import { DateTime } from 'luxon';
 import type { IActivityRepository } from '../../repositories/IActivityRepository';
 import type { Activity } from '../../activity/Activity';
 
@@ -11,12 +13,5 @@ export async function createActivity(
   deviceId: string,
   activity: Activity
 ): Promise<string> {
-  const ts = DateTime.fromISO(activity.timestamp);
-  if (!ts.isValid) {
-    throw new Error(`invalid timestamp: ${activity.timestamp}`);
-  }
-  return repo.create(deviceId, {
-    ...activity,
-    timestamp: ts.toUTC().toISO()!,
-  });
+  return repo.create(deviceId, activity);
 }

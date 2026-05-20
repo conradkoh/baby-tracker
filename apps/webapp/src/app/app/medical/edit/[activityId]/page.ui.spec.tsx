@@ -26,7 +26,7 @@ const EXISTING_TEMPERATURE: Record<string, unknown> = {
   data: {
     _id: 'act-med-1',
     _creationTime: Date.now(),
-    timestamp: '2025-01-15T10:00:00.000Z',
+    timestamp: Date.parse('2025-01-15T10:00:00.000Z'),
     type: 'medical',
     medical: { type: 'temperature', temperature: { value: 37.5 } },
   },
@@ -37,7 +37,7 @@ const EXISTING_MEDICINE: Record<string, unknown> = {
   data: {
     _id: 'act-med-2',
     _creationTime: Date.now(),
-    timestamp: '2025-01-15T10:00:00.000Z',
+    timestamp: Date.parse('2025-01-15T10:00:00.000Z'),
     type: 'medical',
     medical: { type: 'medicine', medicine: { name: 'Paracetamol', value: 5, unit: 'ml' } },
   },
@@ -233,7 +233,7 @@ describe('Medical edit page', () => {
         expect(mockMutate).toHaveBeenCalledWith({
           activityId: 'act-med-1',
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'medical',
             medical: {
               type: 'temperature',
@@ -262,7 +262,7 @@ describe('Medical edit page', () => {
         expect(mockMutate).toHaveBeenCalledWith({
           activityId: 'act-med-1',
           activity: {
-            timestamp: expect.any(String),
+            timestamp: expect.any(Number),
             type: 'medical',
             medical: {
               type: 'medicine',
