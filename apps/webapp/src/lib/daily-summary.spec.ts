@@ -427,6 +427,9 @@ describe('computeLast24hSummary', () => {
     expect(result.feed.last3hMl).toBe(0);
     expect(result.feed.total24hMl).toBe(0);
     expect(result.feed.bottleCount).toBe(0);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
     expect(result.diapers).toEqual({ wet: 0, dirty: 0, mixed: 0, total: 0 });
   });
 
@@ -441,6 +444,38 @@ describe('computeLast24hSummary', () => {
     expect(result.feed.bottleCount).toBe(3);
     expect(result.feed.total24hMl).toBe(180);
     expect(result.feed.last3hMl).toBe(30);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
+  });
+
+  it('aggregates latch duration over 3h and 24h windows', () => {
+    const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+    const activities = [
+      // 1h ago → 3h window
+      makeFeed('2025-01-15T11:00:00.000Z', 'latch', { duration: { left: { seconds: 300 }, right: { seconds: 200 } } }),
+      // 6h ago → 24h window but outside 3h
+      makeFeed('2025-01-15T06:00:00.000Z', 'latch', { duration: { left: { seconds: 600 }, right: { seconds: 0 } } }),
+      // 30h ago → outside 24h window
+      makeFeed('2025-01-14T06:00:00.000Z', 'latch', { duration: { left: { seconds: 100 }, right: { seconds: 100 } } }),
+    ] as Activity[];
+    const result = computeLast24hSummary(activities, nowMs);
+    expect(result.feed.last3hLatchSeconds).toBe(500);
+    expect(result.feed.total24hLatchSeconds).toBe(1100);
+    expect(result.feed.latchCount).toBe(2);
+  });
+
+  it('bottle feeds do not contribute to latch totals', () => {
+    const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+    const activities = [
+      makeFeed('2025-01-15T11:00:00.000Z', 'expressed', { volume: { ml: 90 } }),
+      makeFeed('2025-01-15T10:00:00.000Z', 'formula', { volume: { ml: 60 } }),
+    ] as Activity[];
+    const result = computeLast24hSummary(activities, nowMs);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
+    expect(result.feed.last3hMl).toBe(150);
   });
 
   it('excludes activities older than 24h', () => {
@@ -453,6 +488,10 @@ describe('computeLast24hSummary', () => {
     const result = computeLast24hSummary(activities, nowMs);
     expect(result.feed.bottleCount).toBe(1);
     expect(result.feed.total24hMl).toBe(120);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
     expect(result.diapers).toEqual({ wet: 0, dirty: 0, mixed: 0, total: 0 });
   });
 });
+

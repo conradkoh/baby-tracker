@@ -7,6 +7,25 @@ import type { Last24hSummary } from '@/lib/daily-summary';
 
 const DASH = '\u2014';
 
+/**
+ * Formats a volume value. Always returns the unit so the row keeps a stable shape.
+ * Examples: `90 ml`, `— ml`.
+ */
+function formatMl(ml: number, hasValue: boolean): string {
+  return hasValue ? `${ml} ml` : `${DASH} ml`;
+}
+
+/**
+ * Formats a latch duration. Always returns both units so the row keeps a stable shape.
+ * Examples: `8 min 0 sec`, `— min — sec`.
+ */
+function formatLatch(totalSeconds: number, hasValue: boolean): string {
+  if (!hasValue) return `${DASH} min ${DASH} sec`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes} min ${seconds} sec`;
+}
+
 interface Last24hSummaryCardProps {
   summary: Last24hSummary | undefined;
   nowMs: number;
@@ -57,18 +76,24 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Feed</p>
             <div className="text-xs text-muted-foreground">
-              <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+              <div className="grid grid-cols-[auto_auto_1fr] gap-x-2 gap-y-0.5">
                 <span>Last:</span>
-                <span className="text-foreground">
+                <span className="col-span-2 text-foreground">
                   {feed.lastFeedAtMs !== null ? timeAgoFromMs(nowMs - feed.lastFeedAtMs) : DASH}
                 </span>
                 <span>3h:</span>
                 <span className="font-medium text-foreground">
-                  {feed.last3hMl > 0 ? `${feed.last3hMl} ml` : DASH}
+                  {formatMl(feed.last3hMl, feed.last3hMl > 0)}
+                </span>
+                <span className="font-medium text-foreground">
+                  {`· ${formatLatch(feed.last3hLatchSeconds, feed.last3hLatchSeconds > 0)}`}
                 </span>
                 <span>24h:</span>
                 <span className="font-medium text-foreground">
-                  {feed.bottleCount >= 1 ? `${feed.total24hMl} ml` : DASH}
+                  {formatMl(feed.total24hMl, feed.bottleCount >= 1)}
+                </span>
+                <span className="font-medium text-foreground">
+                  {`· ${formatLatch(feed.total24hLatchSeconds, feed.latchCount >= 1)}`}
                 </span>
               </div>
             </div>
