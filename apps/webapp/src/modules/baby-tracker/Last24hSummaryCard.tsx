@@ -2,7 +2,7 @@
 
 import { Milk, Baby, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { timeAgoFromMs } from '@/lib/activity-form-utils';
+import { timeAgoFromMs, formatDuration } from '@/lib/activity-form-utils';
 import type { Last24hSummary } from '@/lib/daily-summary';
 
 const DASH = '\u2014';
@@ -28,12 +28,14 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="h-3 w-2/3" />
           </div>
           <div className="space-y-1.5">
             <Skeleton className="h-3 w-12" />
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="h-3 w-2/3" />
           </div>
         </div>
       </div>
@@ -62,13 +64,21 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
                 <span className="text-foreground">
                   {feed.lastFeedAtMs !== null ? timeAgoFromMs(nowMs - feed.lastFeedAtMs) : DASH}
                 </span>
-                <span>3h:</span>
+                <span>3h ml:</span>
                 <span className="font-medium text-foreground">
                   {feed.last3hMl > 0 ? `${feed.last3hMl} ml` : DASH}
                 </span>
-                <span>24h:</span>
+                <span>24h ml:</span>
                 <span className="font-medium text-foreground">
                   {feed.bottleCount >= 1 ? `${feed.total24hMl} ml` : DASH}
+                </span>
+                <span>3h latch:</span>
+                <span className="font-medium text-foreground">
+                  {feed.last3hLatchSeconds > 0 ? formatDuration(feed.last3hLatchSeconds) : DASH}
+                </span>
+                <span>24h latch:</span>
+                <span className="font-medium text-foreground">
+                  {feed.latchCount >= 1 ? formatDuration(feed.total24hLatchSeconds) : DASH}
                 </span>
               </div>
             </div>

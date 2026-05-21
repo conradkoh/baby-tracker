@@ -357,6 +357,9 @@ export interface Last24hSummary {
     last3hMl: number;
     total24hMl: number;
     bottleCount: number;
+    last3hLatchSeconds: number;
+    total24hLatchSeconds: number;
+    latchCount: number;
   };
   diapers: {
     wet: number;
@@ -384,6 +387,9 @@ export function computeLast24hSummary(
   let total24hMl = 0;
   let last3hMl = 0;
   let bottleCount = 0;
+  let total24hLatchSeconds = 0;
+  let last3hLatchSeconds = 0;
+  let latchCount = 0;
   let wet = 0, dirty = 0, mixed = 0;
 
   for (const activity of activities) {
@@ -397,6 +403,11 @@ export function computeLast24hSummary(
           total24hMl += vol;
           if (tsMs > threeHourBoundaryMs) last3hMl += vol;
           bottleCount++;
+        } else if (feedType === 'latch') {
+          const latchSeconds = ((activity.feed.duration?.left?.seconds ?? 0) + (activity.feed.duration?.right?.seconds ?? 0));
+          total24hLatchSeconds += latchSeconds;
+          if (tsMs > threeHourBoundaryMs) last3hLatchSeconds += latchSeconds;
+          latchCount++;
         }
       } else if (activity.type === 'diaper_change') {
         const dType = activity.diaperChange.type;
@@ -408,7 +419,7 @@ export function computeLast24hSummary(
   }
 
   return {
-    feed: { lastFeedAtMs, last3hMl, total24hMl, bottleCount },
+    feed: { lastFeedAtMs, last3hMl, total24hMl, bottleCount, last3hLatchSeconds, total24hLatchSeconds, latchCount },
     diapers: { wet, dirty, mixed, total: wet + dirty + mixed },
   };
 }

@@ -427,6 +427,9 @@ describe('computeLast24hSummary', () => {
     expect(result.feed.last3hMl).toBe(0);
     expect(result.feed.total24hMl).toBe(0);
     expect(result.feed.bottleCount).toBe(0);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
     expect(result.diapers).toEqual({ wet: 0, dirty: 0, mixed: 0, total: 0 });
   });
 
@@ -441,6 +444,9 @@ describe('computeLast24hSummary', () => {
     expect(result.feed.bottleCount).toBe(3);
     expect(result.feed.total24hMl).toBe(180);
     expect(result.feed.last3hMl).toBe(30);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
   });
 
   it('excludes activities older than 24h', () => {
@@ -453,6 +459,43 @@ describe('computeLast24hSummary', () => {
     const result = computeLast24hSummary(activities, nowMs);
     expect(result.feed.bottleCount).toBe(1);
     expect(result.feed.total24hMl).toBe(120);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
     expect(result.diapers).toEqual({ wet: 0, dirty: 0, mixed: 0, total: 0 });
+  });
+
+  it('aggregates latch duration over 3h and 24h windows', () => {
+    const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+    // 1h ago → within 3h window
+    const oneHourAgo = '2025-01-15T11:00:00.000Z';
+    // 6h ago → within 24h but outside 3h window
+    const sixHoursAgo = '2025-01-15T06:00:00.000Z';
+    // 30h ago → outside 24h window
+    const thirtyHoursAgo = '2025-01-14T06:00:00.000Z';
+    const activities = [
+      makeFeed(oneHourAgo, 'latch', { duration: { left: { seconds: 300 }, right: { seconds: 180 } } }),
+      makeFeed(sixHoursAgo, 'latch', { duration: { left: { seconds: 120 }, right: { seconds: 60 } } }),
+      makeFeed(thirtyHoursAgo, 'latch', { duration: { left: { seconds: 900 }, right: { seconds: 900 } } }),
+    ] as Activity[];
+    const result = computeLast24hSummary(activities, nowMs);
+    // 300+180 (1h ago) + 120+60 (6h ago) = 660s total24h
+    expect(result.feed.total24hLatchSeconds).toBe(660);
+    // Only 300+180 (1h ago) = 480s in last 3h
+    expect(result.feed.last3hLatchSeconds).toBe(480);
+    expect(result.feed.latchCount).toBe(2);
+  });
+
+  it('does not contribute bottle feed to latch totals', () => {
+    const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+    const oneHourAgo = '2025-01-15T11:00:00.000Z';
+    const activities = [
+      makeFeed(oneHourAgo, 'expressed', { volume: { ml: 90 } }),
+      makeFeed(oneHourAgo, 'formula', { volume: { ml: 60 } }),
+    ] as Activity[];
+    const result = computeLast24hSummary(activities, nowMs);
+    expect(result.feed.last3hLatchSeconds).toBe(0);
+    expect(result.feed.total24hLatchSeconds).toBe(0);
+    expect(result.feed.latchCount).toBe(0);
   });
 });
