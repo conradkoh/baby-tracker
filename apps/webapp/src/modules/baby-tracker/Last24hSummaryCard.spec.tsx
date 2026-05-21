@@ -30,7 +30,11 @@ describe('Last24hSummaryCard', () => {
     expect(screen.getByText('Wet:')).toBeInTheDocument();
     expect(screen.getByText('Mixed:')).toBeInTheDocument();
     expect(screen.getByText('Dirty:')).toBeInTheDocument();
-    expect(screen.getAllByText(/^\u2014$/)).toHaveLength(6);
+    // Last + 3 diapers render the dash standalone. 3h/24h cells embed the dash
+    // inside the formatted string (e.g. "— ml · — min — sec") so they are not
+    // standalone text-node matches.
+    expect(screen.getAllByText(/^\u2014$/)).toHaveLength(4);
+    expect(screen.getAllByText(/^\u2014 ml · \u2014 min \u2014 sec$/)).toHaveLength(2);
   });
 
   it('renders feed stats when values are non-zero', () => {
@@ -57,16 +61,18 @@ describe('Last24hSummaryCard', () => {
     expect(screen.getByText('1h ago')).toBeInTheDocument();
     expect(screen.getAllByText(/60 ml/)).toHaveLength(2);
     expect(screen.getByText(/^2$/)).toBeInTheDocument();
+    // Two standalone diaper dashes (dirty=0, mixed=0). Feed cells embed dashes
+    // inside the combined string, so they are not standalone matches.
     expect(screen.getAllByText(/^\u2014$/)).toHaveLength(2);
   });
 
-  it('renders no em-dashes when all values are non-zero', () => {
+  it('renders no standalone em-dashes when all values are non-zero', () => {
     const summary = {
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 2, dirty: 1, mixed: 3, total: 6 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    expect(screen.queryByText('\u2014')).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\u2014$/)).not.toBeInTheDocument();
   });
 
   it('renders diaper labels in DOM order', () => {
@@ -91,9 +97,9 @@ describe('Last24hSummaryCard', () => {
     const timeAgoEl = screen.getByText(/^\d+h( \d+min)? ago$/);
     expect(timeAgoEl.className).not.toMatch(/font-medium/);
     expect(timeAgoEl.className).toMatch(/text-foreground/);
-    const vol3h = screen.getByText(/^60 ml$/);
+    const vol3h = screen.getByText(/^60 ml · \u2014 min \u2014 sec$/);
     expect(vol3h.className).toMatch(/font-medium/);
-    const vol24h = screen.getByText(/^120 ml$/);
+    const vol24h = screen.getByText(/^120 ml · \u2014 min \u2014 sec$/);
     expect(vol24h.className).toMatch(/font-medium/);
   });
 
@@ -129,34 +135,32 @@ describe('Last24hSummaryCard', () => {
     expect(screen.getByText(/90 ml · 8 min 0 sec/)).toBeInTheDocument();
   });
 
-  it('renders only ml in 3h row when latch is absent', () => {
+  it('renders dashed latch part in 3h row when latch is absent', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    const el = screen.getByText(/^90 ml$/);
-    expect(el).toBeInTheDocument();
-    expect(el.textContent).not.toContain('·');
+    expect(screen.getByText(/^90 ml · \u2014 min \u2014 sec$/)).toBeInTheDocument();
   });
 
-  it('renders only latch in 3h row when ml is absent', () => {
+  it('renders dashed ml part in 3h row when ml is absent', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    expect(screen.getByText(/8 min 0 sec/)).toBeInTheDocument();
+    expect(screen.getByText(/^\u2014 ml · 8 min 0 sec$/)).toBeInTheDocument();
   });
 
-  it('renders single dash for 3h row when neither ml nor latch present', () => {
+  it('renders both parts dashed in 3h row when neither ml nor latch present', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    const dashes = screen.getAllByText(/^\u2014$/);
-    expect(dashes.length).toBe(6);
+    // Both 3h and 24h cells render the all-dashes combined string.
+    expect(screen.getAllByText(/^\u2014 ml · \u2014 min \u2014 sec$/)).toHaveLength(2);
   });
 
   it('renders both ml and latch in 24h row separated by middle dot', () => {
@@ -168,32 +172,22 @@ describe('Last24hSummaryCard', () => {
     expect(screen.getByText(/240 ml · 32 min 0 sec/)).toBeInTheDocument();
   });
 
-  it('renders only ml in 24h row when latch is absent', () => {
+  it('renders dashed latch part in 24h row when latch is absent', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    expect(screen.getByText(/^240 ml$/)).toBeInTheDocument();
+    expect(screen.getByText(/^240 ml · \u2014 min \u2014 sec$/)).toBeInTheDocument();
   });
 
-  it('renders only latch in 24h row when ml is absent', () => {
+  it('renders dashed ml part in 24h row when ml is absent', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    expect(screen.getByText(/32 min 0 sec/)).toBeInTheDocument();
-  });
-
-  it('renders single dash for 24h row when neither ml nor latch present', () => {
-    const summary = {
-      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
-      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
-    };
-    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-    const dashes = screen.getAllByText(/^\u2014$/);
-    expect(dashes.length).toBe(6);
+    expect(screen.getByText(/^\u2014 ml · 32 min 0 sec$/)).toBeInTheDocument();
   });
 
   it('skeleton renders 4 skeleton rows per column', () => {

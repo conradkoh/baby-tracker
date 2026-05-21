@@ -2,14 +2,28 @@
 
 import { Milk, Baby, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { timeAgoFromMs, formatDuration } from '@/lib/activity-form-utils';
+import { timeAgoFromMs } from '@/lib/activity-form-utils';
 import type { Last24hSummary } from '@/lib/daily-summary';
 
 const DASH = '\u2014';
 
-function joinFeedParts(ml: string | null, latch: string | null): string {
-  if (ml && latch) return `${ml} · ${latch}`;
-  return ml ?? latch ?? DASH;
+/**
+ * Formats a volume value. Always returns the unit so the row keeps a stable shape.
+ * Examples: `90 ml`, `— ml`.
+ */
+function formatMl(ml: number, hasValue: boolean): string {
+  return hasValue ? `${ml} ml` : `${DASH} ml`;
+}
+
+/**
+ * Formats a latch duration. Always returns both units so the row keeps a stable shape.
+ * Examples: `8 min 0 sec`, `— min — sec`.
+ */
+function formatLatch(totalSeconds: number, hasValue: boolean): string {
+  if (!hasValue) return `${DASH} min ${DASH} sec`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes} min ${seconds} sec`;
 }
 
 interface Last24hSummaryCardProps {
@@ -69,17 +83,11 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
                 </span>
                 <span>3h:</span>
                 <span className="font-medium text-foreground">
-                  {joinFeedParts(
-                    feed.last3hMl > 0 ? `${feed.last3hMl} ml` : null,
-                    feed.last3hLatchSeconds > 0 ? formatDuration(feed.last3hLatchSeconds) : null
-                  )}
+                  {`${formatMl(feed.last3hMl, feed.last3hMl > 0)} · ${formatLatch(feed.last3hLatchSeconds, feed.last3hLatchSeconds > 0)}`}
                 </span>
                 <span>24h:</span>
                 <span className="font-medium text-foreground">
-                  {joinFeedParts(
-                    feed.bottleCount >= 1 ? `${feed.total24hMl} ml` : null,
-                    feed.latchCount >= 1 ? formatDuration(feed.total24hLatchSeconds) : null
-                  )}
+                  {`${formatMl(feed.total24hMl, feed.bottleCount >= 1)} · ${formatLatch(feed.total24hLatchSeconds, feed.latchCount >= 1)}`}
                 </span>
               </div>
             </div>
