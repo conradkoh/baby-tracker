@@ -2,10 +2,15 @@
 
 import { Milk, Baby, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { timeAgoFromMs } from '@/lib/activity-form-utils';
+import { timeAgoFromMs, formatDuration } from '@/lib/activity-form-utils';
 import type { Last24hSummary } from '@/lib/daily-summary';
 
 const DASH = '\u2014';
+
+function joinFeedParts(ml: string | null, latch: string | null): string {
+  if (ml && latch) return `${ml} · ${latch}`;
+  return ml ?? latch ?? DASH;
+}
 
 interface Last24hSummaryCardProps {
   summary: Last24hSummary | undefined;
@@ -64,11 +69,17 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
                 </span>
                 <span>3h:</span>
                 <span className="font-medium text-foreground">
-                  {feed.last3hMl > 0 ? `${feed.last3hMl} ml` : DASH}
+                  {joinFeedParts(
+                    feed.last3hMl > 0 ? `${feed.last3hMl} ml` : null,
+                    feed.last3hLatchSeconds > 0 ? formatDuration(feed.last3hLatchSeconds) : null
+                  )}
                 </span>
                 <span>24h:</span>
                 <span className="font-medium text-foreground">
-                  {feed.bottleCount >= 1 ? `${feed.total24hMl} ml` : DASH}
+                  {joinFeedParts(
+                    feed.bottleCount >= 1 ? `${feed.total24hMl} ml` : null,
+                    feed.latchCount >= 1 ? formatDuration(feed.total24hLatchSeconds) : null
+                  )}
                 </span>
               </div>
             </div>

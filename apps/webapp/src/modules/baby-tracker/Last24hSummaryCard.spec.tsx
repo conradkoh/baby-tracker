@@ -17,7 +17,7 @@ describe('Last24hSummaryCard', () => {
 
   it('renders all 6 rows even when all values are empty or zero', () => {
     const summary = {
-      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     const { container } = render(
@@ -35,7 +35,7 @@ describe('Last24hSummaryCard', () => {
 
   it('renders feed stats when values are non-zero', () => {
     const summary = {
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -50,7 +50,7 @@ describe('Last24hSummaryCard', () => {
 
   it('renders non-zero values alongside em-dashes for zero values', () => {
     const summary = {
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 60, bottleCount: 1 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 60, bottleCount: 1, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 2, dirty: 0, mixed: 0, total: 2 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -62,7 +62,7 @@ describe('Last24hSummaryCard', () => {
 
   it('renders no em-dashes when all values are non-zero', () => {
     const summary = {
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 2, dirty: 1, mixed: 3, total: 6 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -71,7 +71,7 @@ describe('Last24hSummaryCard', () => {
 
   it('renders diaper labels in DOM order', () => {
     const summary = {
-      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 2, mixed: 1, dirty: 3, total: 6 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -84,7 +84,7 @@ describe('Last24hSummaryCard', () => {
 
   it('applies font-medium only to volume values, not time-ago', () => {
     const summary = {
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -99,7 +99,7 @@ describe('Last24hSummaryCard', () => {
 
   it('renders large diaper counts correctly', () => {
     const summary = {
-      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 99, mixed: 99, dirty: 99, total: 297 },
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
@@ -111,12 +111,94 @@ describe('Last24hSummaryCard', () => {
 
   it('applies dark mode classes via semantic color tokens', () => {
     const summary = {
-      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0 },
+      feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
     };
     const { container } = render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     const root = container.firstChild as Element;
     expect(root.className).toMatch(/bg-rose-50/);
     expect(root.className).toMatch(/dark:bg-rose-950/);
+  });
+
+  it('renders both ml and latch in 3h row separated by middle dot', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    expect(screen.getByText(/90 ml · 8 min 0 sec/)).toBeInTheDocument();
+  });
+
+  it('renders only ml in 3h row when latch is absent', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    const el = screen.getByText(/^90 ml$/);
+    expect(el).toBeInTheDocument();
+    expect(el.textContent).not.toContain('·');
+  });
+
+  it('renders only latch in 3h row when ml is absent', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    expect(screen.getByText(/8 min 0 sec/)).toBeInTheDocument();
+  });
+
+  it('renders single dash for 3h row when neither ml nor latch present', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    const dashes = screen.getAllByText(/^\u2014$/);
+    expect(dashes.length).toBe(6);
+  });
+
+  it('renders both ml and latch in 24h row separated by middle dot', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 1920, latchCount: 4 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    expect(screen.getByText(/240 ml · 32 min 0 sec/)).toBeInTheDocument();
+  });
+
+  it('renders only ml in 24h row when latch is absent', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    expect(screen.getByText(/^240 ml$/)).toBeInTheDocument();
+  });
+
+  it('renders only latch in 24h row when ml is absent', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 1920, latchCount: 4 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    expect(screen.getByText(/32 min 0 sec/)).toBeInTheDocument();
+  });
+
+  it('renders single dash for 24h row when neither ml nor latch present', () => {
+    const summary = {
+      feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
+      diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    };
+    render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+    const dashes = screen.getAllByText(/^\u2014$/);
+    expect(dashes.length).toBe(6);
+  });
+
+  it('skeleton renders 4 skeleton rows per column', () => {
+    const { container } = render(<Last24hSummaryCard summary={undefined} nowMs={Date.now()} />);
+    const skeletons = container.querySelectorAll('.animate-pulse');
+    expect(skeletons.length).toBe(8);
   });
 });
