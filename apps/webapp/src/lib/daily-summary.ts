@@ -42,6 +42,7 @@ interface MedicalActivity {
     type: MedicalSubType;
     temperature?: { value?: number };
     medicine?: { name?: string; unit?: string; value?: number };
+    vitamin?: { name?: string; value?: number; unit?: string };
   };
 }
 
@@ -368,6 +369,7 @@ export interface Last24hSummary {
     total: number;
   };
   allFeedsAreBreastMilk: boolean;
+  hasVitaminDInLast24h: boolean;
 }
 
 const BOTTLE_FEED_TYPES = ['expressed', 'formula', 'water'] as const;
@@ -394,6 +396,7 @@ export function computeLast24hSummary(
   let wet = 0, dirty = 0, mixed = 0;
   let feedCount24h = 0;
   let breastMilkFeedCount24h = 0;
+  let hasVitaminDInLast24h = false;
 
   for (const activity of activities) {
     const tsMs = activity.timestamp;
@@ -424,6 +427,13 @@ export function computeLast24hSummary(
         if (dType === 'wet') wet++;
         else if (dType === 'dirty') dirty++;
         else if (dType === 'mixed') mixed++;
+      } else if (activity.type === 'medical') {
+        if (activity.medical.type === 'vitamin') {
+          const name = activity.medical.vitamin?.name ?? '';
+          if (name.trim().toLowerCase() === 'vitamin d') {
+            hasVitaminDInLast24h = true;
+          }
+        }
       }
     }
   }
@@ -432,5 +442,6 @@ export function computeLast24hSummary(
     feed: { lastFeedAtMs, last3hMl, total24hMl, bottleCount, last3hLatchSeconds, total24hLatchSeconds, latchCount },
     diapers: { wet, dirty, mixed, total: wet + dirty + mixed },
     allFeedsAreBreastMilk: feedCount24h > 0 && feedCount24h === breastMilkFeedCount24h,
+    hasVitaminDInLast24h,
   };
 }

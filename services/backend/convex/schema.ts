@@ -122,6 +122,11 @@ export default defineSchema({
         deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
       })
     ),
+    settings: v.optional(
+      v.object({
+        vitaminDTipEnabled: v.optional(v.boolean()),
+      })
+    ),
   }),
 
   //TABLE: Family Join Requests

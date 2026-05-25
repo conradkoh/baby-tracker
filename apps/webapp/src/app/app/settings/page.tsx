@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AccountCard } from '@/features/settings/components/AccountCard';
 import { FamilyCard } from '@/features/settings/components/FamilyCard';
+import { TipsCard } from '@/features/settings/components/TipsCard';
 import { useSettingsViewModel } from '@/features/settings/models/useSettingsViewModel';
 
 // ── Page Component ──────────────────────────────────────────────
@@ -86,6 +87,14 @@ export default function SettingsPage() {
         currentUserId={vm.currentUserId}
         onRemoveMember={vm.handleRemoveMember}
       />
+
+      {vm.inFamily && (
+        <TipsCard
+          vitaminDTipEnabled={vm.vitaminDTipEnabled}
+          onToggleVitaminDTip={vm.handleToggleVitaminDTip}
+          disabled={vm.togglingVitaminDTip}
+        />
+      )}
     </div>
   );
 }

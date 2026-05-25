@@ -232,6 +232,9 @@ export default function AppHomePage() {
     [results, nowMs]
   );
 
+  const family = useSessionQuery(api.web.babyTracker.family.get);
+  const vitaminDTipEnabled = family?.settings?.vitaminDTipEnabled;
+
   // ── Per-day summary computation ──────────────────────────────
   const dailySummariesByDay = useMemo(() => computeDailySummariesByDay(results), [results]);
 
@@ -361,7 +364,7 @@ export default function AppHomePage() {
       <QuickActionGrid router={router} />
 
       {/* Last 24h summary */}
-      <Last24hSummaryCard summary={last24h} nowMs={nowMs} />
+      <Last24hSummaryCard summary={last24h} nowMs={nowMs} vitaminDTipEnabled={vitaminDTipEnabled} />
 
       {/* Grouped activity list */}
       {groupedByDate.map((dateGroup) => {

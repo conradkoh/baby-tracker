@@ -31,9 +31,10 @@ function formatLatch(totalSeconds: number, hasValue: boolean): string {
 interface Last24hSummaryCardProps {
   summary: Last24hSummary | undefined;
   nowMs: number;
+  vitaminDTipEnabled?: boolean;
 }
 
-export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) {
+export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last24hSummaryCardProps) {
   const router = useRouter();
 
   if (!summary) {
@@ -63,7 +64,8 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
     );
   }
 
-  const { feed, diapers, allFeedsAreBreastMilk } = summary;
+  const { feed, diapers, allFeedsAreBreastMilk, hasVitaminDInLast24h } = summary;
+  const showVitaminDTip = allFeedsAreBreastMilk && !hasVitaminDInLast24h && vitaminDTipEnabled !== false;
 
   return (
     <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
@@ -122,7 +124,7 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
         </div>
       </div>
 
-      {allFeedsAreBreastMilk && (
+      {showVitaminDTip && (
         <div className="mx-4 mb-2 p-3 flex items-center justify-between bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
           <div className="flex items-center gap-1.5">
             <Pill className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
