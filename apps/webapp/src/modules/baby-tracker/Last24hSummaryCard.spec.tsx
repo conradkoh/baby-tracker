@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Last24hSummaryCard } from './Last24hSummaryCard';
 
 vi.mock('next/navigation', () => ({
@@ -284,7 +284,7 @@ describe('Last24hSummaryCard', () => {
   });
 
   describe('Vitamin D tip visibility', () => {
-    it('shows the Vitamin D tip when all conditions hold and setting is undefined', () => {
+    it('shows expander button when all conditions hold and setting is undefined', () => {
       const summary = {
         feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
         diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
@@ -292,12 +292,21 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+
+      const expander = screen.getByRole('button', { name: '1 recommendation available' });
+      expect(expander).toBeInTheDocument();
+      expect(expander).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
+
+      fireEvent.click(expander);
+
+      expect(expander).toHaveAttribute('aria-expanded', 'true');
       expect(screen.getByText(/Consider a Vitamin D supplement/)).toBeInTheDocument();
       expect(screen.getByText(/Log Vitamin D now/)).toBeInTheDocument();
       expect(screen.getByText(/Exclusively breastfed babies don't get enough Vitamin D/)).toBeInTheDocument();
     });
 
-    it('hides the tip when not all feeds are breast milk', () => {
+    it('hides expander when not all feeds are breast milk', () => {
       const summary = {
         feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 60, bottleCount: 1, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
         diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
@@ -305,10 +314,10 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /recommendation/i })).not.toBeInTheDocument();
     });
 
-    it('hides the tip when vitamin D was logged in last 24h', () => {
+    it('hides expander when vitamin D was logged in last 24h', () => {
       const summary = {
         feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
         diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
@@ -316,10 +325,10 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: true,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /recommendation/i })).not.toBeInTheDocument();
     });
 
-    it('hides the tip when family setting disables it', () => {
+    it('hides expander when family setting disables it', () => {
       const summary = {
         feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
         diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
@@ -327,10 +336,10 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} vitaminDTipEnabled={false} />);
-      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /recommendation/i })).not.toBeInTheDocument();
     });
 
-    it('shows the tip when family setting explicitly enables it and other conditions hold', () => {
+    it('shows expander when family setting explicitly enables it and other conditions hold', () => {
       const summary = {
         feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
         diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
@@ -338,7 +347,41 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} vitaminDTipEnabled={true} />);
+
+      const expander = screen.getByRole('button', { name: '1 recommendation available' });
+      expect(expander).toBeInTheDocument();
+
+      fireEvent.click(expander);
       expect(screen.getByText(/Consider a Vitamin D supplement/)).toBeInTheDocument();
+    });
+
+    it('collapses again when expander is clicked twice', () => {
+      const summary = {
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+        allFeedsAreBreastMilk: true,
+        hasVitaminDInLast24h: false,
+      };
+      render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+
+      const expander = screen.getByRole('button', { name: '1 recommendation available' });
+
+      fireEvent.click(expander);
+      expect(screen.getByText(/Consider a Vitamin D supplement/)).toBeInTheDocument();
+
+      fireEvent.click(expander);
+      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
+    });
+
+    it('button label uses singular form', () => {
+      const summary = {
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+        allFeedsAreBreastMilk: true,
+        hasVitaminDInLast24h: false,
+      };
+      render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+      expect(screen.getByRole('button', { name: '1 recommendation available' })).toBeInTheDocument();
     });
   });
 });

@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Milk, Baby, Clock, Pill, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { Milk, Baby, Clock, Pill, ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { timeAgoFromMs } from '@/lib/activity-form-utils';
@@ -34,6 +35,63 @@ interface Last24hSummaryCardProps {
   vitaminDTipEnabled?: boolean;
 }
 
+type Recommendation = {
+  key: string;
+  title: string;
+  body: string;
+  ctaLabel: string;
+  ctaRoute: string;
+};
+
+function getRecommendations(
+  summary: Last24hSummary,
+  vitaminDTipEnabled: boolean | undefined,
+): Recommendation[] {
+  const recs: Recommendation[] = [];
+  const { allFeedsAreBreastMilk, hasVitaminDInLast24h } = summary;
+  if (allFeedsAreBreastMilk && !hasVitaminDInLast24h && vitaminDTipEnabled !== false) {
+    recs.push({
+      key: 'vitamin-d',
+      title: 'Consider a Vitamin D supplement',
+      body: "Exclusively breastfed babies don't get enough Vitamin D from milk alone. Health authorities recommend 400 IU/day from birth. We noticed all feeds in the last 24h were breast milk and no Vitamin D was logged.",
+      ctaLabel: 'Log Vitamin D now',
+      ctaRoute: '/app/medical/create?tab=vitamin',
+    });
+  }
+  return recs;
+}
+
+function RecommendationCard({
+  rec,
+  onCtaClick,
+}: {
+  rec: Recommendation;
+  onCtaClick: () => void;
+}) {
+  return (
+    <div className="p-3 flex flex-col gap-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
+      <div className="flex items-center gap-2">
+        <Pill className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+        <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+          {rec.title}
+        </h3>
+      </div>
+      <p className="text-xs leading-relaxed text-amber-900/85 dark:text-amber-200/85">
+        {rec.body}
+      </p>
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full h-8 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950/50 gap-1.5"
+        onClick={onCtaClick}
+      >
+        <span>{rec.ctaLabel}</span>
+        <ArrowRight className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
 export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last24hSummaryCardProps) {
   const router = useRouter();
 
@@ -64,8 +122,9 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
     );
   }
 
-  const { feed, diapers, allFeedsAreBreastMilk, hasVitaminDInLast24h } = summary;
-  const showVitaminDTip = allFeedsAreBreastMilk && !hasVitaminDInLast24h && vitaminDTipEnabled !== false;
+  const { feed, diapers } = summary;
+  const recommendations = getRecommendations(summary, vitaminDTipEnabled);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
@@ -124,26 +183,39 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
         </div>
       </div>
 
-      {showVitaminDTip && (
-        <div className="mx-4 mb-3 p-3 flex flex-col gap-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
-          <div className="flex items-center gap-2">
-            <Pill className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-            <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-              Consider a Vitamin D supplement
-            </h3>
-          </div>
-          <p className="text-xs leading-relaxed text-amber-900/85 dark:text-amber-200/85">
-            Exclusively breastfed babies don&apos;t get enough Vitamin D from milk alone. Health authorities recommend 400 IU/day from birth. We noticed all feeds in the last 24h were breast milk and no Vitamin D was logged.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full h-8 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950/50 gap-1.5"
-            onClick={() => router.push('/app/medical/create?tab=vitamin')}
+      {recommendations.length > 0 && (
+        <div className="border-t border-rose-200 dark:border-rose-900">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-rose-900 dark:text-rose-200 hover:bg-rose-100/60 dark:hover:bg-rose-950/40 transition-colors"
+            aria-expanded={isExpanded}
+            aria-controls="last24h-recommendations-list"
           >
-            <span>Log Vitamin D now</span>
-            <ArrowRight className="h-3 w-3" />
-          </Button>
+            <span>
+              {recommendations.length}{' '}
+              {recommendations.length === 1 ? 'recommendation' : 'recommendations'}{' '}
+              available
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {isExpanded && (
+            <div
+              id="last24h-recommendations-list"
+              className="px-4 pb-3 pt-1 flex flex-col gap-2"
+            >
+              {recommendations.map((rec) => (
+                <RecommendationCard
+                  key={rec.key}
+                  rec={rec}
+                  onCtaClick={() => router.push(rec.ctaRoute)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
