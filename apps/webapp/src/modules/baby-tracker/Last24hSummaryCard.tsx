@@ -41,8 +41,8 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
             Last 24h
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-3 px-4 pb-2">
-          <div className="space-y-1.5">
+        <div className="grid grid-cols-3 gap-3 px-4 pb-2">
+          <div className="col-span-2 space-y-1.5">
             <Skeleton className="h-3 w-12" />
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-3/4" />
@@ -70,8 +70,8 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 px-4 pb-2">
-        <div className="flex items-start gap-2">
+      <div className="grid grid-cols-3 gap-3 px-4 pb-2">
+        <div className="col-span-2 flex items-start gap-2">
           <Milk className="h-3 w-3 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Feed</p>
