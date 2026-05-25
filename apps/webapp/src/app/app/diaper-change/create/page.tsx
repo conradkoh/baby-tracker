@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { getDefaultDatetime, toTimestamp } from '@/lib/activity-form-utils';
+import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
 
 // ── Diaper types ────────────────────────────────────────────────
 
@@ -37,11 +38,6 @@ export default function DiaperCreatePage() {
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Unauthenticated guard — after all hooks
-  if (!isAuthenticated) {
-    return null;
-  }
-
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -60,6 +56,13 @@ export default function DiaperCreatePage() {
       setSaving(false);
     }
   };
+
+  useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
+
+  // Unauthenticated guard — after all hooks
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">

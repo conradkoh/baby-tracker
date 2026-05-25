@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { getDefaultDatetime, toTimestamp } from '@/lib/activity-form-utils';
+import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
 
 // ── Medical types ───────────────────────────────────────────────
 
@@ -54,11 +55,6 @@ export default function MedicalCreatePage() {
   const [vitaminName, setVitaminName] = useState('Vitamin D');
   const [vitaminValue, setVitaminValue] = useState('2');
   const [vitaminUnit, setVitaminUnit] = useState('drops');
-
-  // Unauthenticated guard — after all hooks
-  if (!isAuthenticated) {
-    return null;
-  }
 
   const handleSave = async () => {
     setSaving(true);
@@ -104,6 +100,13 @@ export default function MedicalCreatePage() {
       setSaving(false);
     }
   };
+
+  useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
+
+  // Unauthenticated guard — after all hooks
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
