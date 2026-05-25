@@ -125,20 +125,23 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
       </div>
 
       {showVitaminDTip && (
-        <div className="mx-4 mb-2 p-3 flex items-center justify-between bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
-          <div className="flex items-center gap-1.5">
-            <Pill className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-            <span className="text-xs font-medium text-amber-900 dark:text-amber-200">
-              Breast milk lacks Vitamin D — consider supplements
-            </span>
+        <div className="mx-4 mb-3 p-3 flex flex-col gap-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
+          <div className="flex items-center gap-2">
+            <Pill className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+              Consider a Vitamin D supplement
+            </h3>
           </div>
+          <p className="text-xs leading-relaxed text-amber-900/85 dark:text-amber-200/85">
+            Exclusively breastfed babies don&apos;t get enough Vitamin D from milk alone. Health authorities recommend 400 IU/day from birth. We noticed all feeds in the last 24h were breast milk and no Vitamin D was logged.
+          </p>
           <Button
             variant="outline"
             size="sm"
-            className="h-7 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/50 shrink-0 gap-1"
+            className="w-full h-8 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950/50 gap-1.5"
             onClick={() => router.push('/app/medical/create?tab=vitamin')}
           >
-            <span>Log Vitamin D</span>
+            <span>Log Vitamin D now</span>
             <ArrowRight className="h-3 w-3" />
           </Button>
         </div>

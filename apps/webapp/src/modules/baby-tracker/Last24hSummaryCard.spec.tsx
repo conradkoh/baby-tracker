@@ -292,8 +292,9 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-      expect(screen.getByText(/Breast milk lacks Vitamin D/)).toBeInTheDocument();
-      expect(screen.getByText(/Log Vitamin D/)).toBeInTheDocument();
+      expect(screen.getByText(/Consider a Vitamin D supplement/)).toBeInTheDocument();
+      expect(screen.getByText(/Log Vitamin D now/)).toBeInTheDocument();
+      expect(screen.getByText(/Exclusively breastfed babies don't get enough Vitamin D/)).toBeInTheDocument();
     });
 
     it('hides the tip when not all feeds are breast milk', () => {
@@ -304,7 +305,7 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-      expect(screen.queryByText(/Breast milk lacks Vitamin D/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
     });
 
     it('hides the tip when vitamin D was logged in last 24h', () => {
@@ -315,7 +316,7 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: true,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-      expect(screen.queryByText(/Breast milk lacks Vitamin D/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
     });
 
     it('hides the tip when family setting disables it', () => {
@@ -326,7 +327,7 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} vitaminDTipEnabled={false} />);
-      expect(screen.queryByText(/Breast milk lacks Vitamin D/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
     });
 
     it('shows the tip when family setting explicitly enables it and other conditions hold', () => {
@@ -337,7 +338,7 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} vitaminDTipEnabled={true} />);
-      expect(screen.getByText(/Breast milk lacks Vitamin D/)).toBeInTheDocument();
+      expect(screen.getByText(/Consider a Vitamin D supplement/)).toBeInTheDocument();
     });
   });
 });
