@@ -134,6 +134,11 @@ function ActivityItem(props: {
             subContent = `${medical.medicine.value} ${medical.medicine.unit}`;
             break;
           }
+          case 'vitamin': {
+            mainContent = `${medical.vitamin.name}`;
+            subContent = `${medical.vitamin.value} ${medical.vitamin.unit}`;
+            break;
+          }
         }
         break;
       }

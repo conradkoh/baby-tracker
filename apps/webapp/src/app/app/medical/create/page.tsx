@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Stethoscope, ChevronLeft } from 'lucide-react';
 import { useSessionMutation } from 'convex-helpers/react/sessions';
@@ -16,24 +16,29 @@ import { getDefaultDatetime, toTimestamp } from '@/lib/activity-form-utils';
 
 // ── Medical types ───────────────────────────────────────────────
 
-const MEDICAL_TYPES = ['temperature', 'medicine'] as const;
+const MEDICAL_TYPES = ['temperature', 'medicine', 'vitamin'] as const;
 type MedicalType = (typeof MEDICAL_TYPES)[number];
 
 const MEDICAL_LABELS: Record<MedicalType, string> = {
   temperature: 'Temperature',
   medicine: 'Medicine',
+  vitamin: 'Vitamins',
 };
 
 // ── Page Component ──────────────────────────────────────────────
 
 export default function MedicalCreatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
 
   const createActivity = useSessionMutation(api.web.babyTracker.activities.create);
 
-  const [medicalType, setMedicalType] = useState<MedicalType>('temperature');
+  const initialTab = searchParams.get('tab');
+  const isValidTab = initialTab === 'temperature' || initialTab === 'medicine' || initialTab === 'vitamin';
+
+  const [medicalType, setMedicalType] = useState<MedicalType>(isValidTab ? initialTab : 'temperature');
   const [datetime, setDatetime] = useState(getDefaultDatetime());
   const [saving, setSaving] = useState(false);
 
@@ -44,6 +49,11 @@ export default function MedicalCreatePage() {
   const [medName, setMedName] = useState('');
   const [medValue, setMedValue] = useState('');
   const [medUnit, setMedUnit] = useState('');
+
+  // Vitamin
+  const [vitaminName, setVitaminName] = useState('Vitamin D');
+  const [vitaminValue, setVitaminValue] = useState('2');
+  const [vitaminUnit, setVitaminUnit] = useState('drops');
 
   // Unauthenticated guard — after all hooks
   if (!isAuthenticated) {
@@ -61,13 +71,22 @@ export default function MedicalCreatePage() {
           type: 'temperature',
           temperature: { value: Number(tempValue) || 0 },
         };
-      } else {
+      } else if (medicalType === 'medicine') {
         medical = {
           type: 'medicine',
           medicine: {
             name: medName || '',
             value: Number(medValue) || 0,
             unit: medUnit || '',
+          },
+        };
+      } else {
+        medical = {
+          type: 'vitamin',
+          vitamin: {
+            name: vitaminName || '',
+            value: Number(vitaminValue) || 0,
+            unit: vitaminUnit || 'drops',
           },
         };
       }
@@ -181,6 +200,49 @@ export default function MedicalCreatePage() {
                       className="h-11"
                       value={medUnit}
                       onChange={(e) => setMedUnit(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Vitamin fields */}
+            {medicalType === 'vitamin' && (
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="vitamin-name">Vitamin Name</Label>
+                  <Input
+                    id="vitamin-name"
+                    type="text"
+                    placeholder="e.g. Vitamin D"
+                    className="h-11"
+                    value={vitaminName}
+                    onChange={(e) => setVitaminName(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <div className="space-y-1.5 flex-1">
+                    <Label htmlFor="vitamin-value">Drops</Label>
+                    <Input
+                      id="vitamin-value"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="e.g. 2"
+                      className="h-11"
+                      value={vitaminValue}
+                      onChange={(e) => setVitaminValue(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 flex-1">
+                    <Label htmlFor="vitamin-unit">Unit</Label>
+                    <Input
+                      id="vitamin-unit"
+                      type="text"
+                      placeholder="drops"
+                      className="h-11"
+                      value={vitaminUnit}
+                      onChange={(e) => setVitaminUnit(e.target.value)}
                     />
                   </div>
                 </div>

@@ -47,6 +47,7 @@ const mockInitUser = vi.fn().mockResolvedValue({ familyId: 'fam-new' });
 const mockRequestJoin = vi.fn().mockResolvedValue(undefined);
 const mockApproveJoin = vi.fn().mockResolvedValue(undefined);
 const mockLeaveFamily = vi.fn().mockResolvedValue(undefined);
+const mockSetVitaminDTipEnabled = vi.fn().mockResolvedValue({ enabled: false });
 
 // Track which mutation is requested — tests will configure
 let mockCreateMutation = mockInitUser;
@@ -470,6 +471,56 @@ describe('Settings page', () => {
 
       expect(screen.queryByText('Account')).not.toBeInTheDocument();
       expect(screen.queryByText('Family')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── 6. TipsCard ───────────────────────────────────────────────
+
+  describe('Vitamin D tip toggle', () => {
+    beforeEach(() => {
+      mockIsLoading = false;
+      mockQueryResult = makeFamilyResult();
+    });
+
+    it('renders TipsCard when in a family', async () => {
+      render(<SettingsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Tips')).toBeInTheDocument();
+      });
+      expect(screen.getByText('Vitamin D reminder')).toBeInTheDocument();
+      expect(screen.getByText(/Show a daily tip/)).toBeInTheDocument();
+    });
+
+    it('does not render TipsCard when not in a family', async () => {
+      mockQueryResult = null;
+      render(<SettingsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Account')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Tips')).not.toBeInTheDocument();
+    });
+
+    it('toggles the switch off and calls the mutation', async () => {
+      mockCreateMutation = mockSetVitaminDTipEnabled;
+      render(<SettingsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Vitamin D reminder')).toBeInTheDocument();
+      });
+
+      const switchEl = document.querySelector('[data-slot="switch"]');
+      expect(switchEl).toBeInTheDocument();
+      expect(switchEl).toHaveAttribute('data-state', 'checked');
+
+      await userEvent.click(switchEl!);
+
+      await waitFor(() => {
+        expect(mockSetVitaminDTipEnabled).toHaveBeenCalledWith(
+          expect.objectContaining({ enabled: false })
+        );
+      });
     });
   });
 });

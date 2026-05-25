@@ -76,6 +76,14 @@ export default defineSchema({
               unit: v.string(),
               value: v.number(),
             }),
+          }),
+          v.object({
+            type: v.literal('vitamin'),
+            vitamin: v.object({
+              name: v.string(),
+              unit: v.string(),
+              value: v.number(),
+            }),
           })
         ),
       })
@@ -112,6 +120,11 @@ export default defineSchema({
     devices: v.array(
       v.object({
         deviceId: v.string(), // DEPRECATED_DEVICE_SESSION
+      })
+    ),
+    settings: v.optional(
+      v.object({
+        vitaminDTipEnabled: v.optional(v.boolean()),
       })
     ),
   }),

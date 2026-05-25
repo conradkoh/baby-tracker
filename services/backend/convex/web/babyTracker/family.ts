@@ -215,6 +215,46 @@ export const switchFamily = mutation({
   },
 });
 
+/**
+ * Toggle the Vitamin D tip setting for the authenticated user's family.
+ * When disabled, the tip is hidden from the dashboard for all family members.
+ * Default (undefined) = enabled — families opt out explicitly.
+ */
+export const setVitaminDTipEnabled = mutation({
+  args: {
+    ...SessionIdArg,
+    enabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx, args.sessionId);
+
+    // Verify user is a member of a family
+    const membership = await ctx.db
+      .query('userFamily')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .first();
+    if (!membership) {
+      throw new ConvexError({ code: 'FORBIDDEN', message: 'Not a family member' });
+    }
+
+    const family = await ctx.db.get(membership.familyId);
+    if (!family) {
+      throw new ConvexError({ code: 'NOT_FOUND', message: 'Family not found' });
+    }
+
+    // Preserve any existing settings fields while updating vitaminDTipEnabled
+    const existingSettings = family.settings ?? {};
+    await ctx.db.patch(membership.familyId, {
+      settings: {
+        ...existingSettings,
+        vitaminDTipEnabled: args.enabled,
+      },
+    });
+
+    return { enabled: args.enabled };
+  },
+});
+
 // ── Queries ────────────────────────────────────────────────────
 
 /**

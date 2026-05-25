@@ -48,6 +48,9 @@ export type Activity = {
   } | {
     type: 'medicine';
     medicine: { name: string; unit: string; value: number };
+  } | {
+    type: 'vitamin';
+    vitamin: { name: string; unit: string; value: number };
   };
   _id?: string;
 };
@@ -122,6 +125,14 @@ export const create = mutation({
           v.object({
             type: v.literal('medicine'),
             medicine: v.object({
+              name: v.string(),
+              unit: v.string(),
+              value: v.number(),
+            }),
+          }),
+          v.object({
+            type: v.literal('vitamin'),
+            vitamin: v.object({
               name: v.string(),
               unit: v.string(),
               value: v.number(),
@@ -201,6 +212,14 @@ export const update = mutation({
           v.object({
             type: v.literal('medicine'),
             medicine: v.object({
+              name: v.string(),
+              unit: v.string(),
+              value: v.number(),
+            }),
+          }),
+          v.object({
+            type: v.literal('vitamin'),
+            vitamin: v.object({
               name: v.string(),
               unit: v.string(),
               value: v.number(),

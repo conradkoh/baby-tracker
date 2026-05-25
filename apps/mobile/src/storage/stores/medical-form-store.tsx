@@ -18,6 +18,13 @@ interface MedicalFormStoreState {
   setMedicineName: (v: string) => void;
   setMedicineValue: (v: string) => void;
   setMedicineUnit: (v: string) => void;
+  // vitamin
+  vitaminName: string;
+  vitaminValue: string;
+  vitaminUnit: string;
+  setVitaminName: (v: string) => void;
+  setVitaminValue: (v: string) => void;
+  setVitaminUnit: (v: string) => void;
   // others
   reset: () => void;
 }
@@ -29,6 +36,9 @@ const initialState: Pick<
   | 'medicineName'
   | 'medicineValue'
   | 'medicineUnit'
+  | 'vitaminName'
+  | 'vitaminValue'
+  | 'vitaminUnit'
 > = {
   medicalType: MedicalType.Temperature as MedicalType,
   // temperature
@@ -37,6 +47,10 @@ const initialState: Pick<
   medicineName: '' as string,
   medicineValue: '0' as string,
   medicineUnit: 'ml' as string,
+  // vitamin
+  vitaminName: 'Vitamin D' as string,
+  vitaminValue: '2' as string,
+  vitaminUnit: 'drops' as string,
 };
 
 export const useMedicalFormStore = create<MedicalFormStoreState>()(
@@ -55,6 +69,13 @@ export const useMedicalFormStore = create<MedicalFormStoreState>()(
       setMedicineName: (v: string) => set(() => ({ medicineName: v })),
       setMedicineValue: (v: string) => set(() => ({ medicineValue: v })),
       setMedicineUnit: (v: string) => set(() => ({ medicineUnit: v })),
+      // vitamin
+      vitaminName: 'Vitamin D' as string,
+      vitaminValue: '2' as string,
+      vitaminUnit: 'drops' as string,
+      setVitaminName: (v: string) => set(() => ({ vitaminName: v })),
+      setVitaminValue: (v: string) => set(() => ({ vitaminValue: v })),
+      setVitaminUnit: (v: string) => set(() => ({ vitaminUnit: v })),
       // others
       reset: () => set(() => ({ ...initialState })),
     }),

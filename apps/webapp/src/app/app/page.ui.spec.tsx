@@ -301,6 +301,38 @@ describe('App home page', () => {
       expect(screen.getByText('Medicine')).toBeInTheDocument();
       expect(screen.getByText(/5 ml Paracetamol/)).toBeInTheDocument();
     });
+
+    it('renders medical activity icon bubble with rose tint', () => {
+      // Supply only a temperature activity (medical) so the medical row is scoped tightly
+      mockRangeResults = [makeTemperatureActivity()];
+
+      render(<AppHomePage />);
+
+      const link = screen.getByText('Temperature').closest('a') as HTMLElement;
+      const bubble = link.querySelector('.rounded-full') as HTMLElement;
+      expect(bubble.className).toContain('bg-rose-100');
+      expect(bubble.className).toContain('dark:bg-rose-950/40');
+      const icon = bubble.querySelector('svg') as SVGElement;
+      const iconClass = icon.getAttribute('class') ?? '';
+      expect(iconClass).toContain('text-rose-600');
+      expect(iconClass).toContain('dark:text-rose-400');
+    });
+
+    it('renders non-medical activity icon bubble without rose tint', () => {
+      // Supply a feed activity (non-medical) — should have default muted classes
+      mockRangeResults = [makeLatchActivity()];
+
+      render(<AppHomePage />);
+
+      const link = screen.getByText('Latch Feed').closest('a') as HTMLElement;
+      const bubble = link.querySelector('.rounded-full') as HTMLElement;
+      expect(bubble.className).toContain('bg-muted');
+      expect(bubble.className).not.toContain('bg-rose-100');
+      const icon = bubble.querySelector('svg') as SVGElement;
+      const iconClass = icon.getAttribute('class') ?? '';
+      expect(iconClass).toContain('text-muted-foreground');
+      expect(iconClass).not.toContain('text-rose-600');
+    });
   });
 
   // ── 5. Date grouping ──────────────────────────────────────────

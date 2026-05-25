@@ -36,6 +36,10 @@ function makeMedicine(ts: string, name: string, unit: string, value: number) {
   return { type: 'medical' as const, timestamp: Date.parse(ts), medical: { type: 'medicine' as const, medicine: { name, unit, value } } };
 }
 
+function makeVitamin(ts: string, name: string) {
+  return { type: 'medical' as const, timestamp: Date.parse(ts), medical: { type: 'vitamin' as const, vitamin: { name } } };
+}
+
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('computeDailySummary', () => {
@@ -492,6 +496,69 @@ describe('computeLast24hSummary', () => {
     expect(result.feed.total24hLatchSeconds).toBe(0);
     expect(result.feed.latchCount).toBe(0);
     expect(result.diapers).toEqual({ wet: 0, dirty: 0, mixed: 0, total: 0 });
+  });
+
+  describe('hasVitaminDInLast24h', () => {
+    it('is false when input is empty', () => {
+      const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+      const result = computeLast24hSummary([], nowMs);
+      expect(result.hasVitaminDInLast24h).toBe(false);
+    });
+
+    it('is true when a vitamin D entry is within the 24h window', () => {
+      const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+      const activities = [
+        makeVitamin('2025-01-15T08:00:00.000Z', 'Vitamin D'),
+      ] as Activity[];
+      const result = computeLast24hSummary(activities, nowMs);
+      expect(result.hasVitaminDInLast24h).toBe(true);
+    });
+
+    it('is false when a vitamin D entry is outside the 24h window', () => {
+      const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+      const activities = [
+        makeVitamin('2025-01-13T08:00:00.000Z', 'Vitamin D'),
+      ] as Activity[];
+      const result = computeLast24hSummary(activities, nowMs);
+      expect(result.hasVitaminDInLast24h).toBe(false);
+    });
+
+    it('matches "Vitamin D" case-insensitively', () => {
+      const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+      const activities = [
+        makeVitamin('2025-01-15T08:00:00.000Z', 'VITAMIN D'),
+      ] as Activity[];
+      const result = computeLast24hSummary(activities, nowMs);
+      expect(result.hasVitaminDInLast24h).toBe(true);
+    });
+
+    it('matches "vitamin d" (lowercase) case-insensitively', () => {
+      const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+      const activities = [
+        makeVitamin('2025-01-15T08:00:00.000Z', 'vitamin d'),
+      ] as Activity[];
+      const result = computeLast24hSummary(activities, nowMs);
+      expect(result.hasVitaminDInLast24h).toBe(true);
+    });
+
+    it('is false for non-D vitamins (e.g. "Vitamin C")', () => {
+      const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+      const activities = [
+        makeVitamin('2025-01-15T08:00:00.000Z', 'Vitamin C'),
+      ] as Activity[];
+      const result = computeLast24hSummary(activities, nowMs);
+      expect(result.hasVitaminDInLast24h).toBe(false);
+    });
+
+    it('is false for other medical types (temperature/medicine)', () => {
+      const nowMs = Date.parse('2025-01-15T12:00:00.000Z');
+      const activities = [
+        makeTemp('2025-01-15T08:00:00.000Z', 37.0),
+        makeMedicine('2025-01-15T09:00:00.000Z', 'Paracetamol', 'ml', 5),
+      ] as Activity[];
+      const result = computeLast24hSummary(activities, nowMs);
+      expect(result.hasVitaminDInLast24h).toBe(false);
+    });
   });
 });
 

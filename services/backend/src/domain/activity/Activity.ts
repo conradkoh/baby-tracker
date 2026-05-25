@@ -47,7 +47,12 @@ export interface MedicinePayload {
   medicine: { name: string; unit: string; value: number };
 }
 
-export type MedicalPayload = TemperaturePayload | MedicinePayload;
+export interface VitaminPayload {
+  type: 'vitamin';
+  vitamin: { name: string; unit: string; value: number };
+}
+
+export type MedicalPayload = TemperaturePayload | MedicinePayload | VitaminPayload;
 
 // ── Top-level activity union ────────────────────────────────────
 

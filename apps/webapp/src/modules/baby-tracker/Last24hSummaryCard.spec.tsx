@@ -2,6 +2,30 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Last24hSummaryCard } from './Last24hSummaryCard';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  useSearchParams: () => ({
+    get: vi.fn().mockReturnValue(null),
+    getAll: vi.fn().mockReturnValue([]),
+    has: vi.fn().mockReturnValue(false),
+    forEach: vi.fn(),
+    entries: vi.fn().mockReturnValue([]),
+    keys: vi.fn().mockReturnValue([]),
+    values: vi.fn().mockReturnValue([]),
+    toString: vi.fn().mockReturnValue(''),
+    size: 0,
+  }),
+  usePathname: () => '/',
+  useParams: () => ({}),
+}));
+
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2025-01-15T12:00:00.000Z'));
@@ -19,6 +43,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     const { container } = render(
       <Last24hSummaryCard summary={summary} nowMs={Date.now()} />
@@ -42,6 +68,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 2, dirty: 1, mixed: 0, total: 3 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText('Last 24h')).toBeInTheDocument();
@@ -57,6 +85,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 60, bottleCount: 1, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 2, dirty: 0, mixed: 0, total: 2 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText('1h ago')).toBeInTheDocument();
@@ -71,6 +101,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 2, dirty: 1, mixed: 3, total: 6 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.queryByText(/^\u2014$/)).not.toBeInTheDocument();
@@ -80,6 +112,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 2, mixed: 1, dirty: 3, total: 6 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     const labels = screen.getAllByText(/^(Wet|Mixed|Dirty):$/);
@@ -93,6 +127,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 120, bottleCount: 2, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     const timeAgoEl = screen.getByText(/^\d+h( \d+min)? ago$/);
@@ -114,6 +150,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 99, mixed: 99, dirty: 99, total: 297 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText('Wet:')).toBeInTheDocument();
@@ -126,6 +164,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     const { container } = render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     const root = container.firstChild as Element;
@@ -137,6 +177,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText(/^90 ml$/)).toBeInTheDocument();
@@ -147,6 +189,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText(/^90 ml$/)).toBeInTheDocument();
@@ -158,6 +202,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getAllByText(/^\u2014 ml$/)).toHaveLength(2);
@@ -168,6 +214,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getAllByText(/^\u2014 ml$/)).toHaveLength(2);
@@ -178,6 +226,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText(/^240 ml$/)).toBeInTheDocument();
@@ -188,6 +238,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText(/^240 ml$/)).toBeInTheDocument();
@@ -197,6 +249,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 0, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     expect(screen.getByText(/^· 32 min 0 sec$/)).toBeInTheDocument();
@@ -206,6 +260,8 @@ describe('Last24hSummaryCard', () => {
     const summary = {
       feed: { lastFeedAtMs: null, last3hMl: 90, total24hMl: 240, bottleCount: 3, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
       diapers: { wet: 0, dirty: 0, mixed: 0, total: 0 },
+    allFeedsAreBreastMilk: false,
+    hasVitaminDInLast24h: false,
     };
     const { container } = render(
       <Last24hSummaryCard summary={summary} nowMs={Date.now()} />
@@ -225,5 +281,63 @@ describe('Last24hSummaryCard', () => {
     const { container } = render(<Last24hSummaryCard summary={undefined} nowMs={Date.now()} />);
     const skeletons = container.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBe(8);
+  });
+
+  describe('Vitamin D tip visibility', () => {
+    it('shows the Vitamin D tip when all conditions hold and setting is undefined', () => {
+      const summary = {
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+        allFeedsAreBreastMilk: true,
+        hasVitaminDInLast24h: false,
+      };
+      render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+      expect(screen.getByText(/Breast milk lacks Vitamin D/)).toBeInTheDocument();
+      expect(screen.getByText(/Log Vitamin D/)).toBeInTheDocument();
+    });
+
+    it('hides the tip when not all feeds are breast milk', () => {
+      const summary = {
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 60, total24hMl: 60, bottleCount: 1, last3hLatchSeconds: 0, total24hLatchSeconds: 0, latchCount: 0 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+        allFeedsAreBreastMilk: false,
+        hasVitaminDInLast24h: false,
+      };
+      render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+      expect(screen.queryByText(/Breast milk lacks Vitamin D/)).not.toBeInTheDocument();
+    });
+
+    it('hides the tip when vitamin D was logged in last 24h', () => {
+      const summary = {
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+        allFeedsAreBreastMilk: true,
+        hasVitaminDInLast24h: true,
+      };
+      render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
+      expect(screen.queryByText(/Breast milk lacks Vitamin D/)).not.toBeInTheDocument();
+    });
+
+    it('hides the tip when family setting disables it', () => {
+      const summary = {
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+        allFeedsAreBreastMilk: true,
+        hasVitaminDInLast24h: false,
+      };
+      render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} vitaminDTipEnabled={false} />);
+      expect(screen.queryByText(/Breast milk lacks Vitamin D/)).not.toBeInTheDocument();
+    });
+
+    it('shows the tip when family setting explicitly enables it and other conditions hold', () => {
+      const summary = {
+        feed: { lastFeedAtMs: Date.now() - 3_600_000, last3hMl: 0, total24hMl: 0, bottleCount: 0, last3hLatchSeconds: 480, total24hLatchSeconds: 1920, latchCount: 4 },
+        diapers: { wet: 1, dirty: 0, mixed: 0, total: 1 },
+        allFeedsAreBreastMilk: true,
+        hasVitaminDInLast24h: false,
+      };
+      render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} vitaminDTipEnabled={true} />);
+      expect(screen.getByText(/Breast milk lacks Vitamin D/)).toBeInTheDocument();
+    });
   });
 });

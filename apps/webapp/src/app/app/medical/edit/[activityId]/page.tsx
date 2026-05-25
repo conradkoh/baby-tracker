@@ -24,12 +24,13 @@ import { toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
 
 // ── Medical types ───────────────────────────────────────────────
 
-const MEDICAL_TYPES = ['temperature', 'medicine'] as const;
+const MEDICAL_TYPES = ['temperature', 'medicine', 'vitamin'] as const;
 type MedicalType = (typeof MEDICAL_TYPES)[number];
 
 const MEDICAL_LABELS: Record<MedicalType, string> = {
   temperature: 'Temperature',
   medicine: 'Medicine',
+  vitamin: 'Vitamins',
 };
 
 // ── Page Component ──────────────────────────────────────────────
@@ -69,6 +70,11 @@ export default function MedicalEditPage() {
   const [medValue, setMedValue] = useState('');
   const [medUnit, setMedUnit] = useState('');
 
+  // Vitamin
+  const [vitaminName, setVitaminName] = useState('');
+  const [vitaminValue, setVitaminValue] = useState('');
+  const [vitaminUnit, setVitaminUnit] = useState('');
+
   // Pre-populate from loaded activity
   useEffect(() => {
     if (!activity || initialized) return;
@@ -88,6 +94,11 @@ export default function MedicalEditPage() {
       setMedName(medicine?.name ?? '');
       setMedValue(String(medicine?.value ?? ''));
       setMedUnit(medicine?.unit ?? '');
+    } else if (existingType === 'vitamin') {
+      const vitamin = med?.vitamin as { name: string; value: number; unit: string } | undefined;
+      setVitaminName(vitamin?.name ?? '');
+      setVitaminValue(String(vitamin?.value ?? ''));
+      setVitaminUnit(vitamin?.unit ?? '');
     }
 
     setInitialized(true);
@@ -146,13 +157,22 @@ export default function MedicalEditPage() {
           type: 'temperature',
           temperature: { value: Number(tempValue) || 0 },
         };
-      } else {
+      } else if (medicalType === 'medicine') {
         medical = {
           type: 'medicine',
           medicine: {
             name: medName || '',
             value: Number(medValue) || 0,
             unit: medUnit || '',
+          },
+        };
+      } else {
+        medical = {
+          type: 'vitamin',
+          vitamin: {
+            name: vitaminName || '',
+            value: Number(vitaminValue) || 0,
+            unit: vitaminUnit || 'drops',
           },
         };
       }
@@ -296,6 +316,49 @@ export default function MedicalEditPage() {
                       className="h-11"
                       value={medUnit}
                       onChange={(e) => setMedUnit(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Vitamin fields */}
+            {medicalType === 'vitamin' && (
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="vitamin-name">Vitamin Name</Label>
+                  <Input
+                    id="vitamin-name"
+                    type="text"
+                    placeholder="e.g. Vitamin D"
+                    className="h-11"
+                    value={vitaminName}
+                    onChange={(e) => setVitaminName(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <div className="space-y-1.5 flex-1">
+                    <Label htmlFor="vitamin-value">Drops</Label>
+                    <Input
+                      id="vitamin-value"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="e.g. 2"
+                      className="h-11"
+                      value={vitaminValue}
+                      onChange={(e) => setVitaminValue(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 flex-1">
+                    <Label htmlFor="vitamin-unit">Unit</Label>
+                    <Input
+                      id="vitamin-unit"
+                      type="text"
+                      placeholder="drops"
+                      className="h-11"
+                      value={vitaminUnit}
+                      onChange={(e) => setVitaminUnit(e.target.value)}
                     />
                   </div>
                 </div>

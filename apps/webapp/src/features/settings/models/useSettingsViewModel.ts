@@ -23,6 +23,7 @@ export interface FamilyData {
   _id: string;
   creatorId?: string;
   joinRequests?: JoinRequest[];
+  settings?: { vitaminDTipEnabled?: boolean };
   [key: string]: unknown;
 }
 
@@ -42,6 +43,10 @@ export interface SettingsViewModel {
   inFamily: boolean;
   /** True if the current user is the family creator. */
   isCreator: boolean;
+  /** Whether the Vitamin D dashboard tip is enabled (per-family setting). */
+  vitaminDTipEnabled: boolean;
+  /** True while the setVitaminDTipEnabled mutation is in-flight. */
+  togglingVitaminDTip: boolean;
 
   // ── Family join requests ────────────────────────────────
   /** Pending join requests for this family. */
@@ -104,6 +109,8 @@ export interface SettingsViewModel {
   handleRevokeInvite: (inviteId: string) => Promise<void>;
   /** Remove a member from the family. */
   handleRemoveMember: (memberUserId: string) => Promise<void>;
+  /** Toggle the Vitamin D dashboard tip for the family. */
+  handleToggleVitaminDTip: (next: boolean) => Promise<void>;
 }
 
 // ── Hook ────────────────────────────────────────────────────────
@@ -140,6 +147,7 @@ export function useSettingsViewModel(): SettingsViewModel {
   const createInvite = useSessionMutation(api.web.babyTracker.family.createInvite);
   const revokeInvite = useSessionMutation(api.web.babyTracker.family.revokeInvite);
   const removeMember = useSessionMutation(api.web.babyTracker.family.removeMember);
+  const setVitaminDTipEnabled = useSessionMutation(api.web.babyTracker.family.setVitaminDTipEnabled);
 
   // ── Local UI state ───────────────────────────────────────
   const [joinFamilyId, setJoinFamilyId] = useState('');
@@ -150,6 +158,7 @@ export function useSettingsViewModel(): SettingsViewModel {
   const [creatingInvite, setCreatingInvite] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [togglingVitaminDTip, setTogglingVitaminDTip] = useState(false);
 
   // ── Derived ─────────────────────────────────────────────
   const inFamily = !!family;
@@ -158,6 +167,7 @@ export function useSettingsViewModel(): SettingsViewModel {
   const isCreator = !!familyData?.creatorId && familyData.creatorId === userId;
   const joinRequests: JoinRequest[] = familyData?.joinRequests ?? [];
   const pendingRequests = joinRequests.filter((r) => r.status === 'pending');
+  const vitaminDTipEnabled = familyData?.settings?.vitaminDTipEnabled ?? true;
 
   // ── Actions ─────────────────────────────────────────────
 
@@ -256,6 +266,15 @@ export function useSettingsViewModel(): SettingsViewModel {
     }
   };
 
+  const handleToggleVitaminDTip = async (next: boolean) => {
+    setTogglingVitaminDTip(true);
+    try {
+      await setVitaminDTipEnabled({ enabled: next });
+    } finally {
+      setTogglingVitaminDTip(false);
+    }
+  };
+
   return {
     // Auth
     isAuthenticated,
@@ -266,6 +285,8 @@ export function useSettingsViewModel(): SettingsViewModel {
     family: familyData,
     inFamily,
     isCreator,
+    vitaminDTipEnabled,
+    togglingVitaminDTip,
 
     // Join requests
     pendingRequests,
@@ -302,5 +323,6 @@ export function useSettingsViewModel(): SettingsViewModel {
     handleCreateInvite,
     handleRevokeInvite,
     handleRemoveMember,
+    handleToggleVitaminDTip,
   };
 }
