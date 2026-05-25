@@ -69,20 +69,20 @@ function RecommendationCard({
   onCtaClick: () => void;
 }) {
   return (
-    <div className="p-3 flex flex-col gap-2.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md">
+    <div className="p-3 flex flex-col gap-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
       <div className="flex items-center gap-2">
-        <Pill className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
-        <h3 className="text-sm font-semibold text-red-900 dark:text-red-100">
+        <Pill className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+        <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
           {rec.title}
         </h3>
       </div>
-      <p className="text-xs leading-relaxed text-red-900/85 dark:text-red-200/85">
+      <p className="text-xs leading-relaxed text-amber-900/85 dark:text-amber-200/85">
         {rec.body}
       </p>
       <Button
         variant="outline"
         size="sm"
-        className="w-full h-8 text-xs border-red-300 dark:border-red-700 text-red-800 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-950/50 gap-1.5"
+        className="w-full h-8 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950/50 gap-1.5"
         onClick={onCtaClick}
       >
         <span>{rec.ctaLabel}</span>
@@ -184,11 +184,11 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
       </div>
 
       {recommendations.length > 0 && (
-        <div className="border-t border-blue-200 dark:border-blue-900">
+        <div className="border-t border-red-200 dark:border-red-900">
           <button
             type="button"
             onClick={() => setIsExpanded((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-blue-900 dark:text-blue-200 hover:bg-blue-100/60 dark:hover:bg-blue-950/40 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
             aria-expanded={isExpanded}
             aria-controls="last24h-recommendations-list"
           >
