@@ -16,6 +16,7 @@ import { useAuthState } from '@/modules/auth/AuthProvider';
 import { computeDailySummariesByDay, computeLast24hSummary, DailySummary } from '@/lib/daily-summary';
 import { DailySummaryCard } from '@/modules/baby-tracker/DailySummaryCard';
 import { Last24hSummaryCard } from '@/modules/baby-tracker/Last24hSummaryCard';
+import { FeedSkeleton } from '@/modules/baby-tracker/FeedSkeleton';
 import { useNowBucket5Min } from '@/lib/use-now-bucket';
 import {
   formatTime,
@@ -309,44 +310,15 @@ export default function AppHomePage() {
   if (isInitialLoading && results.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Quick action grid — skeleton */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <Skeleton className="h-24 rounded-2xl" />
-          <Skeleton className="h-24 rounded-2xl" />
-          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-[88px] rounded-2xl" />
+          <Skeleton className="h-[88px] rounded-2xl" />
+          <Skeleton className="h-[88px] rounded-2xl" />
         </div>
 
-        <div className="mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <Skeleton className="h-6 w-40 mb-3" />
-              <div className="flex justify-between">
-                <div className="flex flex-col items-center gap-1">
-                  <Skeleton className="h-5 w-5 rounded-full" />
-                  <Skeleton className="h-3 w-16" />
-                  <Skeleton className="h-4 w-12" />
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <Skeleton className="h-5 w-5 rounded-full" />
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <Skeleton className="h-5 w-5 rounded-full" />
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Last24hSummaryCard summary={undefined} nowMs={nowMs} />
 
-        <div className="space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-        <p className="text-center text-muted-foreground mt-4">Loading...</p>
+        <FeedSkeleton />
       </div>
     );
   }
