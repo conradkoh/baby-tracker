@@ -107,6 +107,19 @@ const ACTIVITY_ICON_MAP: Record<string, React.ComponentType<{ className?: string
   medical: Stethoscope,
 };
 
+function getIconBubbleClasses(activityType: string): { wrapper: string; icon: string } {
+  if (activityType === 'medical') {
+    return {
+      wrapper: 'bg-rose-100 dark:bg-rose-950/40',
+      icon: 'text-rose-600 dark:text-rose-400',
+    };
+  }
+  return {
+    wrapper: 'bg-muted',
+    icon: 'text-muted-foreground',
+  };
+}
+
 // ── Time-of-day grouping ───────────────────────────────────────
 
 export type TimeOfDay = 'midnight' | 'morning' | 'afternoon' | 'night';
@@ -404,6 +417,7 @@ export default function AppHomePage() {
                       const IconComponent = ACTIVITY_ICON_MAP[activity.type];
                       const isLastInGroup = idx === timeGroup.activities.length - 1;
                       const isLastOverall = isLastTimeGroup && isLastInGroup;
+                      const { wrapper: bubbleClass, icon: iconClass } = getIconBubbleClasses(activity.type);
 
                       return (
                         <Link
@@ -412,9 +426,9 @@ export default function AppHomePage() {
                           prefetch={true}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors ${!isLastOverall ? 'border-b border-border' : ''}`}
                         >
-                          <span className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-muted">
+                          <span className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full ${bubbleClass}`}>
                             {IconComponent ? (
-                              <IconComponent className="h-5 w-5 text-muted-foreground" />
+                              <IconComponent className={`h-5 w-5 ${iconClass}`} />
                             ) : (
                               <span className="text-lg">📋</span>
                             )}
