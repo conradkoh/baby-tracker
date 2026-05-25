@@ -205,7 +205,7 @@ describe('App home page', () => {
       render(<AppHomePage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/no activities yet/i)).toBeInTheDocument();
+        expect(screen.getByText(/welcome!/i)).toBeInTheDocument();
       });
     });
 
