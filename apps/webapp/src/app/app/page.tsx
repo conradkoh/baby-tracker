@@ -338,10 +338,16 @@ export default function AppHomePage() {
         <QuickActionGrid router={router} />
 
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground text-lg">No activities yet</p>
-            <p className="text-muted-foreground text-sm mt-2">
-              Log your first activity using the buttons above.
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="rounded-full bg-primary/10 p-6 mb-6">
+              <Baby className="h-12 w-12 text-primary" />
+            </div>
+            <h2 className="text-foreground text-xl font-semibold">Welcome!</h2>
+            <p className="text-muted-foreground text-sm mt-2 max-w-sm">
+              Track feedings, diaper changes, and medical events for your little one.
+            </p>
+            <p className="text-muted-foreground text-sm mt-1">
+              Tap a button above to log your first activity.
             </p>
           </CardContent>
         </Card>
