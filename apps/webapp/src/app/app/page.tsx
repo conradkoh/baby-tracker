@@ -74,6 +74,11 @@ function getActivityDisplay(activity: ActivityItem): { label: string; sub: strin
           label: 'Medicine',
           sub: `${med.medicine.value} ${med.medicine.unit} ${med.medicine.name}`,
         };
+      case 'vitamin':
+        return {
+          label: 'Vitamin',
+          sub: `${med.vitamin.value} ${med.vitamin.unit} ${med.vitamin.name}`,
+        };
     }
   }
 

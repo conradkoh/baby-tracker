@@ -79,6 +79,14 @@ const activityValidator = v.union(
           unit: v.string(),
           value: v.number(),
         }),
+      }),
+      v.object({
+        type: v.literal('vitamin'),
+        vitamin: v.object({
+          name: v.string(),
+          unit: v.string(),
+          value: v.number(),
+        }),
       })
     ),
   })

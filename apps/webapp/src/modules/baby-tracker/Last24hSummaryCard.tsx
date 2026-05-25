@@ -1,6 +1,8 @@
 'use client';
 
-import { Milk, Baby, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Milk, Baby, Clock, Pill, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { timeAgoFromMs } from '@/lib/activity-form-utils';
 import type { Last24hSummary } from '@/lib/daily-summary';
@@ -32,6 +34,8 @@ interface Last24hSummaryCardProps {
 }
 
 export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) {
+  const router = useRouter();
+
   if (!summary) {
     return (
       <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
@@ -59,7 +63,7 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
     );
   }
 
-  const { feed, diapers } = summary;
+  const { feed, diapers, allFeedsAreBreastMilk } = summary;
 
   return (
     <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
@@ -117,6 +121,26 @@ export function Last24hSummaryCard({ summary, nowMs }: Last24hSummaryCardProps) 
           </div>
         </div>
       </div>
+
+      {allFeedsAreBreastMilk && (
+        <div className="mx-4 mb-2 p-3 flex items-center justify-between bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
+          <div className="flex items-center gap-1.5">
+            <Pill className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+            <span className="text-xs font-medium text-amber-900 dark:text-amber-200">
+              Breast milk lacks Vitamin D — consider supplements
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/50 shrink-0 gap-1"
+            onClick={() => router.push('/app/medical/create?tab=vitamin')}
+          >
+            <span>Log Vitamin D</span>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

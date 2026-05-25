@@ -21,7 +21,7 @@ import { useMedicalFormStore } from '../../../storage/stores/medical-form-store'
 import { TextInput } from '../../atoms/TextInput/TextInput';
 
 // Define the types for medical activities
-type ActivityType = 'temperature' | 'medicine';
+type ActivityType = 'temperature' | 'medicine' | 'vitamin';
 
 type MedicalFormData =
   | {
@@ -31,6 +31,13 @@ type MedicalFormData =
     }
   | {
       type: 'medicine';
+      timestamp: DateTime;
+      name: string;
+      unit: string;
+      value: number;
+    }
+  | {
+      type: 'vitamin';
       timestamp: DateTime;
       name: string;
       unit: string;
@@ -63,6 +70,13 @@ const MedicalActivityForm = forwardRef<
     setMedicineName,
     setMedicineUnit,
     setMedicineValue,
+    // vitamin
+    vitaminName,
+    vitaminUnit,
+    vitaminValue,
+    setVitaminName,
+    setVitaminUnit,
+    setVitaminValue,
   } = useMedicalFormStore();
   const [date, setDate] = useState(new Date());
   const [isReady, setReady] = useState(false);
@@ -123,6 +137,20 @@ const MedicalActivityForm = forwardRef<
           });
           break;
         }
+        case 'vitamin': {
+          const val = parseFloat(vitaminValue);
+          if (isNaN(val)) {
+            Alert.alert('Invalid vitamin value');
+          }
+          onSubmit({
+            type: 'vitamin',
+            timestamp: DateTime.fromJSDate(date),
+            name: vitaminName,
+            unit: vitaminUnit,
+            value: val,
+          });
+          break;
+        }
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'An error occurred');
@@ -138,6 +166,9 @@ const MedicalActivityForm = forwardRef<
     medicineName,
     medicineUnit,
     medicineValue,
+    vitaminName,
+    vitaminUnit,
+    vitaminValue,
   ]);
 
   useEffect(() => {
@@ -158,6 +189,7 @@ const MedicalActivityForm = forwardRef<
                 options={[
                   { value: 'temperature', label: 'Temperature' },
                   { value: 'medicine', label: 'Medicine' },
+                  { value: 'vitamin', label: 'Vitamins' },
                 ]}
                 value={medicalType}
                 onChange={(v) => setActivityType(v as ActivityType)}
@@ -193,7 +225,7 @@ const MedicalActivityForm = forwardRef<
                 <View className="border-r border-gray-400" />
                 <Text className="pl-2">°C</Text>
               </View>
-            ) : (
+            ) : medicalType === 'medicine' ? (
               <>
                 {/* Medicine Input */}
                 <View
@@ -233,6 +265,47 @@ const MedicalActivityForm = forwardRef<
                       ]}
                       value={medicineUnit}
                       onChange={setMedicineUnit}
+                    />
+                  </View>
+                </View>
+              </>
+            ) : (
+              <>
+                {/* Vitamin Input */}
+                <View
+                  className="mt-2 p-2 w-1/2 flex-row justify-center rounded-lg"
+                  style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+                >
+                  <TextInput
+                    className="flex-grow text-center"
+                    placeholder="Vitamin Name"
+                    value={vitaminName}
+                    onChangeText={setVitaminName}
+                    selectTextOnFocus={true}
+                  />
+                </View>
+                {/* Vitamin Value and Unit Input */}
+                <View
+                  className="mt-2 p-2 w-1/2 font-bold flex-row justify-center rounded-lg"
+                  style={{ backgroundColor: 'rgba(184, 207, 237, 255)' }}
+                >
+                  <TextInput
+                    className="text-center flex-1"
+                    keyboardType="numeric"
+                    placeholder="Value"
+                    value={vitaminValue}
+                    onChangeText={setVitaminValue}
+                    selectTextOnFocus={true}
+                  />
+                  <View className="border-r border-gray-400" />
+                  <View className="flex-grow flex-1">
+                    <SelectPicker
+                      options={[
+                        { value: 'drops', label: 'drops' },
+                        { value: 'ml', label: 'ml' },
+                      ]}
+                      value={vitaminUnit}
+                      onChange={setVitaminUnit}
                     />
                   </View>
                 </View>
