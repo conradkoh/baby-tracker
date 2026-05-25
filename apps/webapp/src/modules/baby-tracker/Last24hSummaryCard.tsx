@@ -97,10 +97,10 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
 
   if (!summary) {
     return (
-      <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
+      <div className="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg mb-6">
         <div className="flex items-center gap-1.5 px-4 pt-2 pb-1">
-          <Clock className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
-          <span className="text-xs font-semibold text-rose-900 dark:text-rose-200 uppercase tracking-wide">
+          <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+          <span className="text-xs font-semibold text-blue-900 dark:text-blue-200 uppercase tracking-wide">
             Last 24h
           </span>
         </div>
@@ -127,17 +127,17 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg mb-6">
+    <div className="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg mb-6">
       <div className="flex items-center gap-1.5 px-4 pt-2 pb-1">
-        <Clock className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
-        <span className="text-xs font-semibold text-rose-900 dark:text-rose-200 uppercase tracking-wide">
+        <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+        <span className="text-xs font-semibold text-blue-900 dark:text-blue-200 uppercase tracking-wide">
           Last 24h
         </span>
       </div>
 
       <div className="grid grid-cols-3 gap-3 px-4 pb-2">
         <div className="col-span-2 flex items-start gap-2">
-          <Milk className="h-3 w-3 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+          <Milk className="h-3 w-3 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground mb-0.5">Feed</p>
             <div className="text-xs text-muted-foreground">
@@ -184,11 +184,11 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
       </div>
 
       {recommendations.length > 0 && (
-        <div className="border-t border-rose-200 dark:border-rose-900">
+        <div className="border-t border-blue-200 dark:border-blue-900">
           <button
             type="button"
             onClick={() => setIsExpanded((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-rose-900 dark:text-rose-200 hover:bg-rose-100/60 dark:hover:bg-rose-950/40 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-blue-900 dark:text-blue-200 hover:bg-blue-100/60 dark:hover:bg-blue-950/40 transition-colors"
             aria-expanded={isExpanded}
             aria-controls="last24h-recommendations-list"
           >

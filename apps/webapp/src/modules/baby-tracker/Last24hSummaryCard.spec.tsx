@@ -169,8 +169,8 @@ describe('Last24hSummaryCard', () => {
     };
     const { container } = render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
     const root = container.firstChild as Element;
-    expect(root.className).toMatch(/bg-rose-50/);
-    expect(root.className).toMatch(/dark:bg-rose-950/);
+    expect(root.className).toMatch(/bg-blue-50/);
+    expect(root.className).toMatch(/dark:bg-blue-950/);
   });
 
   it('renders 3h ml and latch in separate aligned grid cells', () => {
