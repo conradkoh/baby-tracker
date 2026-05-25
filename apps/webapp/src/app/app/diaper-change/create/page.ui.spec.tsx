@@ -214,6 +214,28 @@ describe('Diaper change create page', () => {
         expect(mockRouterPush).toHaveBeenCalledWith('/app');
       });
     });
+
+    it('calls create mutation on Cmd+Enter', async () => {
+      render(<DiaperCreatePage />);
+
+      const event = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        metaKey: true,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(event);
+
+      await waitFor(() => {
+        expect(mockCreateActivity).toHaveBeenCalledWith({
+          activity: {
+            timestamp: expect.any(Number),
+            type: 'diaper_change',
+            diaperChange: { type: 'wet' },
+          },
+        });
+      });
+    });
   });
 
   // ── 5. Cancel navigation ──────────────────────────────────────

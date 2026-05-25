@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { toSeconds, toMinutesSeconds, toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
+import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -112,48 +113,6 @@ export default function FeedEditPage() {
     setInitialized(true);
   }, [activity, initialized]);
 
-  // Unauthenticated guard — must be after all hooks
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // 404 — activity not found
-  if (isNotFound) {
-    return (
-      <div className="container mx-auto px-4 pt-8 max-w-xl flex flex-col items-center gap-4 text-center">
-        <p className="text-muted-foreground">Activity not found.</p>
-        <Button variant="outline" onClick={() => router.push('/app')}>
-          Go to Home
-        </Button>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (!initialized) {
-    return (
-      <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
-        <div className="flex items-center gap-2 mb-6">
-          <button
-            onClick={() => router.push('/app')}
-            className="p-2 -ml-2 rounded-full hover:bg-accent transition-colors"
-            aria-label="Back"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <Milk className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          <h1 className="text-xl font-bold">Edit Feed</h1>
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-        <p className="text-center text-muted-foreground mt-4">Loading...</p>
-      </div>
-    );
-  }
-
   // ── Handlers ─────────────────────────────────────────────────
 
   const handleSave = async () => {
@@ -214,6 +173,50 @@ export default function FeedEditPage() {
       setDeleting(false);
     }
   };
+
+  useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
+
+  // Unauthenticated guard — must be after all hooks
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // 404 — activity not found
+  if (isNotFound) {
+    return (
+      <div className="container mx-auto px-4 pt-8 max-w-xl flex flex-col items-center gap-4 text-center">
+        <p className="text-muted-foreground">Activity not found.</p>
+        <Button variant="outline" onClick={() => router.push('/app')}>
+          Go to Home
+        </Button>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (!initialized) {
+    return (
+      <div className="container mx-auto px-4 pt-4 pb-8 max-w-xl">
+        <div className="flex items-center gap-2 mb-6">
+          <button
+            onClick={() => router.push('/app')}
+            className="p-2 -ml-2 rounded-full hover:bg-accent transition-colors"
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <Milk className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-xl font-bold">Edit Feed</h1>
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+        <p className="text-center text-muted-foreground mt-4">Loading...</p>
+      </div>
+    );
+  }
 
   // ── Render ──────────────────────────────────────────────────
 

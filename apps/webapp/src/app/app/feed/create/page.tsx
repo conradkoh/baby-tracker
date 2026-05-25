@@ -15,6 +15,7 @@ import { useAuthState } from '@/modules/auth/AuthProvider';
 import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp } from '@/lib/activity-form-utils';
 import { BreastTimer } from '@/components/BreastTimer';
 import { BREAST_TIMER_STORAGE_KEY } from '@/hooks/useBreastTimer';
+import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -56,11 +57,6 @@ export default function FeedCreatePage() {
 
   // Submit state
   const [saving, setSaving] = useState(false);
-
-  // Unauthenticated guard — must be after all hooks
-  if (!isAuthenticated) {
-    return null;
-  }
 
   /** Build the activity payload and submit. */
   const handleSave = async () => {
@@ -115,6 +111,13 @@ export default function FeedCreatePage() {
       setSaving(false);
     }
   };
+
+  useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
+
+  // Unauthenticated guard — must be after all hooks
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // ── Render ──────────────────────────────────────────────────
 
