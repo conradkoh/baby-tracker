@@ -38,10 +38,19 @@ interface Last24hSummaryCardProps {
 type Recommendation = {
   key: string;
   title: string;
+  shortLabel: string;
   body: string;
   ctaLabel: string;
   ctaRoute: string;
 };
+
+function formatRecommendationsExpanderLabel(recommendations: Recommendation[]): string {
+  const previews = recommendations.map((r) => r.shortLabel).join(', ');
+  if (recommendations.length === 1) {
+    return `1 recommendation available - ${previews}`;
+  }
+  return `${recommendations.length} recommendations available - ${previews}`;
+}
 
 function getRecommendations(
   summary: Last24hSummary,
@@ -53,6 +62,7 @@ function getRecommendations(
     recs.push({
       key: 'vitamin-d',
       title: 'Consider a Vitamin D supplement',
+      shortLabel: 'Vit D supplement',
       body: "Exclusively breastfed babies don't get enough Vitamin D from milk alone. Health authorities recommend 400 IU/day from birth. We noticed all feeds in the last 24h were breast milk and no Vitamin D was logged.",
       ctaLabel: 'Log Vitamin D now',
       ctaRoute: '/app/medical/create?tab=vitamin',
@@ -194,11 +204,7 @@ export function Last24hSummaryCard({ summary, nowMs, vitaminDTipEnabled }: Last2
             aria-expanded={isExpanded}
             aria-controls="last24h-recommendations-list"
           >
-            <span>
-              {recommendations.length}{' '}
-              {recommendations.length === 1 ? 'recommendation' : 'recommendations'}{' '}
-              available
-            </span>
+            <span>{formatRecommendationsExpanderLabel(recommendations)}</span>
             <ChevronDown
               className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
             />
