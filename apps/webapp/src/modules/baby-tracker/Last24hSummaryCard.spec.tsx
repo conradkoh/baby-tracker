@@ -293,7 +293,7 @@ describe('Last24hSummaryCard', () => {
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
 
-      const expander = screen.getByRole('button', { name: '1 recommendation available' });
+      const expander = screen.getByRole('button', { name: '1 recommendation available - Vit D supplement' });
       expect(expander).toBeInTheDocument();
       expect(expander).toHaveAttribute('aria-expanded', 'false');
       expect(screen.queryByText(/Consider a Vitamin D supplement/)).not.toBeInTheDocument();
@@ -348,7 +348,7 @@ describe('Last24hSummaryCard', () => {
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} vitaminDTipEnabled={true} />);
 
-      const expander = screen.getByRole('button', { name: '1 recommendation available' });
+      const expander = screen.getByRole('button', { name: '1 recommendation available - Vit D supplement' });
       expect(expander).toBeInTheDocument();
 
       fireEvent.click(expander);
@@ -364,7 +364,7 @@ describe('Last24hSummaryCard', () => {
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
 
-      const expander = screen.getByRole('button', { name: '1 recommendation available' });
+      const expander = screen.getByRole('button', { name: '1 recommendation available - Vit D supplement' });
 
       fireEvent.click(expander);
       expect(screen.getByText(/Consider a Vitamin D supplement/)).toBeInTheDocument();
@@ -381,7 +381,7 @@ describe('Last24hSummaryCard', () => {
         hasVitaminDInLast24h: false,
       };
       render(<Last24hSummaryCard summary={summary} nowMs={Date.now()} />);
-      expect(screen.getByRole('button', { name: '1 recommendation available' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '1 recommendation available - Vit D supplement' })).toBeInTheDocument();
     });
   });
 });
