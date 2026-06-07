@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
+import { toLocalDatetimeString, toTimestamp, isFutureTimestamp } from '@/lib/activity-form-utils';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
 
 // ── Medical types ───────────────────────────────────────────────
@@ -62,6 +62,7 @@ export default function MedicalEditPage() {
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [datetimeError, setDatetimeError] = useState<string | null>(null);
 
   // Temperature
   const [tempValue, setTempValue] = useState('');
@@ -106,6 +107,10 @@ export default function MedicalEditPage() {
   }, [activity, initialized]);
 
   const handleSave = async () => {
+    if (isFutureTimestamp(datetime)) {
+      setDatetimeError('Time cannot be in the future.');
+      return;
+    }
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -374,10 +379,13 @@ export default function MedicalEditPage() {
               <Input
                 id="datetime"
                 type="datetime-local"
-                className="h-11 w-auto max-w-full"
+                className={`h-11 w-auto max-w-full${datetimeError ? ' border-destructive' : ''}`}
                 value={datetime}
-                onChange={(e) => setDatetime(e.target.value)}
+                onChange={(e) => { setDatetime(e.target.value); setDatetimeError(null); }}
               />
+              {datetimeError && (
+                <p className="text-sm text-destructive">{datetimeError}</p>
+              )}
             </div>
           </CardContent>
         </Card>

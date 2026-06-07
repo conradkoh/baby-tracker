@@ -30,6 +30,14 @@ export function toTimestamp(datetimeLocalValue: string): number {
   return DateTime.fromISO(datetimeLocalValue).toMillis();
 }
 
+/**
+ * Returns true if the datetime-local input value represents a time in the future.
+ * Used for inline form validation before submitting an activity.
+ */
+export function isFutureTimestamp(datetimeLocalValue: string): boolean {
+  return toTimestamp(datetimeLocalValue) > Date.now();
+}
+
 /** Converts minutes + seconds to total seconds. */
 export function toSeconds(min: number, sec: number): number {
   return min * 60 + sec;

@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp } from '@/lib/activity-form-utils';
+import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp, isFutureTimestamp } from '@/lib/activity-form-utils';
 import { BreastTimer } from '@/components/BreastTimer';
 import { BREAST_TIMER_STORAGE_KEY } from '@/hooks/useBreastTimer';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
@@ -57,9 +57,14 @@ export default function FeedCreatePage() {
 
   // Submit state
   const [saving, setSaving] = useState(false);
+  const [datetimeError, setDatetimeError] = useState<string | null>(null);
 
   /** Build the activity payload and submit. */
   const handleSave = async () => {
+    if (isFutureTimestamp(datetime)) {
+      setDatetimeError('Time cannot be in the future.');
+      return;
+    }
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -279,10 +284,13 @@ export default function FeedCreatePage() {
               <Input
                 id="datetime"
                 type="datetime-local"
-                className="h-11 w-auto max-w-full"
+                className={`h-11 w-auto max-w-full${datetimeError ? ' border-destructive' : ''}`}
                 value={datetime}
-                onChange={(e) => setDatetime(e.target.value)}
+                onChange={(e) => { setDatetime(e.target.value); setDatetimeError(null); }}
               />
+              {datetimeError && (
+                <p className="text-sm text-destructive">{datetimeError}</p>
+              )}
             </div>
           </CardContent>
         </Card>
