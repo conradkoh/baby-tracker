@@ -105,7 +105,14 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
-    const activityId = await createActivityUseCase(repo, userId.toString(), args.activity);
+    // Clamp timestamp to the current server time so future-dated activities are never stored.
+    // Without this guard, a future timestamp falls outside the home-page query window
+    // (toMs: nowMs) and the event becomes invisible until real time catches up.
+    const clampedActivity = {
+      ...args.activity,
+      timestamp: Math.min(args.activity.timestamp, Date.now()),
+    };
+    const activityId = await createActivityUseCase(repo, userId.toString(), clampedActivity);
     return { activityId };
   },
 });
@@ -122,7 +129,12 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
-    await updateActivityUseCase(repo, userId.toString(), args.activityId.toString(), args.activity);
+    // Clamp timestamp to the current server time (same guard as create).
+    const clampedActivity = {
+      ...args.activity,
+      timestamp: Math.min(args.activity.timestamp, Date.now()),
+    };
+    await updateActivityUseCase(repo, userId.toString(), args.activityId.toString(), clampedActivity);
   },
 });
 
