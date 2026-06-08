@@ -11,8 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { getDefaultDatetime, toTimestamp } from '@/lib/activity-form-utils';
+import { getDefaultDatetime, toTimestamp, isFutureTimestamp } from '@/lib/activity-form-utils';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
+import { FutureDateConfirmDialog } from '@/components/FutureDateConfirmDialog';
 
 // ── Diaper types ────────────────────────────────────────────────
 
@@ -37,8 +38,10 @@ export default function DiaperCreatePage() {
   const [datetime, setDatetime] = useState(getDefaultDatetime());
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showFutureConfirm, setShowFutureConfirm] = useState(false);
 
-  const handleSave = async () => {
+  /** Actual save — called after any future-date confirmation. */
+  const doSave = async () => {
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -55,6 +58,15 @@ export default function DiaperCreatePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  /** Guard: show confirmation if timestamp is in the future, otherwise save directly. */
+  const handleSave = () => {
+    if (isFutureTimestamp(datetime)) {
+      setShowFutureConfirm(true);
+      return;
+    }
+    doSave();
   };
 
   useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
@@ -139,6 +151,12 @@ export default function DiaperCreatePage() {
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>
+
+      <FutureDateConfirmDialog
+        open={showFutureConfirm}
+        onConfirm={() => { setShowFutureConfirm(false); doSave(); }}
+        onCancel={() => setShowFutureConfirm(false)}
+      />
     </div>
   );
 }

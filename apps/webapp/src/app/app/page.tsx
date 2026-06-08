@@ -211,9 +211,13 @@ export default function AppHomePage() {
     return (requestedFrom < minFrom ? requestedFrom : minFrom).toMillis();
   }, [daysBack]);
 
+  // Extend the upper bound by 24 h beyond "now" so that any activity accidentally
+  // saved with a future timestamp is still visible in the feed (and can be deleted).
+  // The mutation layer now clamps new writes to Date.now(), but this window handles
+  // events that were already stored before that guard was in place.
   const rangeResult = useSessionQuery(
     api.web.babyTracker.activities.getActivitiesByDateRange,
-    { fromMs, toMs: nowMs }
+    { fromMs, toMs: nowMs + 24 * 60 * 60 * 1000 }
   );
 
   // Stale-while-revalidate: keep the last confirmed results so "Load More"

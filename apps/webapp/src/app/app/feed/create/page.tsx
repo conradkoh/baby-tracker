@@ -12,10 +12,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp } from '@/lib/activity-form-utils';
+import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp, isFutureTimestamp } from '@/lib/activity-form-utils';
 import { BreastTimer } from '@/components/BreastTimer';
 import { BREAST_TIMER_STORAGE_KEY } from '@/hooks/useBreastTimer';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
+import { FutureDateConfirmDialog } from '@/components/FutureDateConfirmDialog';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -57,9 +58,10 @@ export default function FeedCreatePage() {
 
   // Submit state
   const [saving, setSaving] = useState(false);
+  const [showFutureConfirm, setShowFutureConfirm] = useState(false);
 
-  /** Build the activity payload and submit. */
-  const handleSave = async () => {
+  /** Actual save — called after any future-date confirmation. */
+  const doSave = async () => {
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -110,6 +112,15 @@ export default function FeedCreatePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  /** Guard: show confirmation if timestamp is in the future, otherwise save directly. */
+  const handleSave = () => {
+    if (isFutureTimestamp(datetime)) {
+      setShowFutureConfirm(true);
+      return;
+    }
+    doSave();
   };
 
   useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
@@ -295,6 +306,12 @@ export default function FeedCreatePage() {
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>
+
+      <FutureDateConfirmDialog
+        open={showFutureConfirm}
+        onConfirm={() => { setShowFutureConfirm(false); doSave(); }}
+        onCancel={() => setShowFutureConfirm(false)}
+      />
     </div>
   );
 }

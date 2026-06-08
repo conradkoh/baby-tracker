@@ -12,8 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { getDefaultDatetime, toTimestamp } from '@/lib/activity-form-utils';
+import { getDefaultDatetime, toTimestamp, isFutureTimestamp } from '@/lib/activity-form-utils';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
+import { FutureDateConfirmDialog } from '@/components/FutureDateConfirmDialog';
 
 // ── Medical types ───────────────────────────────────────────────
 
@@ -42,6 +43,7 @@ export default function MedicalCreatePage() {
   const [medicalType, setMedicalType] = useState<MedicalType>(isValidTab ? initialTab : 'temperature');
   const [datetime, setDatetime] = useState(getDefaultDatetime());
   const [saving, setSaving] = useState(false);
+  const [showFutureConfirm, setShowFutureConfirm] = useState(false);
 
   // Temperature
   const [tempValue, setTempValue] = useState('');
@@ -56,7 +58,8 @@ export default function MedicalCreatePage() {
   const [vitaminValue, setVitaminValue] = useState('2');
   const [vitaminUnit, setVitaminUnit] = useState('drops');
 
-  const handleSave = async () => {
+  /** Actual save — called after any future-date confirmation. */
+  const doSave = async () => {
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -99,6 +102,15 @@ export default function MedicalCreatePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  /** Guard: show confirmation if timestamp is in the future, otherwise save directly. */
+  const handleSave = () => {
+    if (isFutureTimestamp(datetime)) {
+      setShowFutureConfirm(true);
+      return;
+    }
+    doSave();
   };
 
   useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
@@ -274,6 +286,12 @@ export default function MedicalCreatePage() {
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>
+
+      <FutureDateConfirmDialog
+        open={showFutureConfirm}
+        onConfirm={() => { setShowFutureConfirm(false); doSave(); }}
+        onCancel={() => setShowFutureConfirm(false)}
+      />
     </div>
   );
 }

@@ -19,8 +19,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthState } from '@/modules/auth/AuthProvider';
-import { toLocalDatetimeString, toTimestamp } from '@/lib/activity-form-utils';
+import { toLocalDatetimeString, toTimestamp, isFutureTimestamp } from '@/lib/activity-form-utils';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
+import { FutureDateConfirmDialog } from '@/components/FutureDateConfirmDialog';
 
 // ── Diaper types ────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ export default function DiaperEditPage() {
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showFutureConfirm, setShowFutureConfirm] = useState(false);
 
   // Pre-populate form when activity loads
   useEffect(() => {
@@ -77,7 +79,8 @@ export default function DiaperEditPage() {
     setInitialized(true);
   }, [activity, initialized]);
 
-  const handleSave = async () => {
+  /** Actual save — called after any future-date confirmation. */
+  const doSave = async () => {
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -95,6 +98,15 @@ export default function DiaperEditPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  /** Guard: show confirmation if timestamp is in the future, otherwise save directly. */
+  const handleSave = () => {
+    if (isFutureTimestamp(datetime)) {
+      setShowFutureConfirm(true);
+      return;
+    }
+    doSave();
   };
 
   const handleDelete = async () => {
@@ -245,6 +257,12 @@ export default function DiaperEditPage() {
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>
+
+      <FutureDateConfirmDialog
+        open={showFutureConfirm}
+        onConfirm={() => { setShowFutureConfirm(false); doSave(); }}
+        onCancel={() => setShowFutureConfirm(false)}
+      />
     </div>
   );
 }
