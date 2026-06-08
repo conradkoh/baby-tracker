@@ -22,6 +22,7 @@ import {
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { toSeconds, toMinutesSeconds, toLocalDatetimeString, toTimestamp, isFutureTimestamp } from '@/lib/activity-form-utils';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
+import { FutureDateConfirmDialog } from '@/components/FutureDateConfirmDialog';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ export default function FeedEditPage() {
   // Action states
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [datetimeError, setDatetimeError] = useState<string | null>(null);
+  const [showFutureConfirm, setShowFutureConfirm] = useState(false);
 
   // Pre-populate form when activity loads
   useEffect(() => {
@@ -116,11 +117,8 @@ export default function FeedEditPage() {
 
   // ── Handlers ─────────────────────────────────────────────────
 
-  const handleSave = async () => {
-    if (isFutureTimestamp(datetime)) {
-      setDatetimeError('Time cannot be in the future.');
-      return;
-    }
+  /** Actual save — called after any future-date confirmation. */
+  const doSave = async () => {
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -167,6 +165,15 @@ export default function FeedEditPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  /** Guard: show confirmation if timestamp is in the future, otherwise save directly. */
+  const handleSave = () => {
+    if (isFutureTimestamp(datetime)) {
+      setShowFutureConfirm(true);
+      return;
+    }
+    doSave();
   };
 
   const handleDelete = async () => {
@@ -388,13 +395,10 @@ export default function FeedEditPage() {
               <Input
                 id="datetime"
                 type="datetime-local"
-                className={`h-11 w-auto max-w-full${datetimeError ? ' border-destructive' : ''}`}
+                className="h-11 w-auto max-w-full"
                 value={datetime}
-                onChange={(e) => { setDatetime(e.target.value); setDatetimeError(null); }}
+                onChange={(e) => setDatetime(e.target.value)}
               />
-              {datetimeError && (
-                <p className="text-sm text-destructive">{datetimeError}</p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -407,6 +411,12 @@ export default function FeedEditPage() {
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>
+
+      <FutureDateConfirmDialog
+        open={showFutureConfirm}
+        onConfirm={() => { setShowFutureConfirm(false); doSave(); }}
+        onCancel={() => setShowFutureConfirm(false)}
+      />
     </div>
   );
 }

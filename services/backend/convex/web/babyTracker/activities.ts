@@ -3,7 +3,7 @@
  * Auth is session-based (no device IDs).
  * Pattern: sessionId → userId → family → activityStream → activities
  */
-import { ConvexError, v } from 'convex/values';
+import { v } from 'convex/values';
 import { paginationOptsValidator } from 'convex/server';
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { mutation, query } from '../../_generated/server';
@@ -104,13 +104,6 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
-    // Reject future-dated activities explicitly so the client receives a clear error.
-    if (args.activity.timestamp > Date.now()) {
-      throw new ConvexError({
-        code: 'FUTURE_TIMESTAMP',
-        message: 'Activity time cannot be in the future.',
-      });
-    }
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
     const activityId = await createActivityUseCase(repo, userId.toString(), args.activity);
     return { activityId };
@@ -128,13 +121,6 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { userId, activityStreamId } = await requireAuthAndFamily(ctx, args.sessionId);
-    // Reject future-dated activities explicitly (same guard as create).
-    if (args.activity.timestamp > Date.now()) {
-      throw new ConvexError({
-        code: 'FUTURE_TIMESTAMP',
-        message: 'Activity time cannot be in the future.',
-      });
-    }
     const repo = new ConvexWebActivityRepository(ctx, activityStreamId);
     await updateActivityUseCase(repo, userId.toString(), args.activityId.toString(), args.activity);
   },

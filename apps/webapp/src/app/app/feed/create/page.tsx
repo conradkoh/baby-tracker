@@ -16,6 +16,7 @@ import { getDefaultDatetime, toSeconds, toMinutesSeconds, toTimestamp, isFutureT
 import { BreastTimer } from '@/components/BreastTimer';
 import { BREAST_TIMER_STORAGE_KEY } from '@/hooks/useBreastTimer';
 import { useSubmitOnCmdEnter } from '@/hooks/useSubmitOnCmdEnter';
+import { FutureDateConfirmDialog } from '@/components/FutureDateConfirmDialog';
 
 // ── Feed types ──────────────────────────────────────────────────
 
@@ -57,14 +58,10 @@ export default function FeedCreatePage() {
 
   // Submit state
   const [saving, setSaving] = useState(false);
-  const [datetimeError, setDatetimeError] = useState<string | null>(null);
+  const [showFutureConfirm, setShowFutureConfirm] = useState(false);
 
-  /** Build the activity payload and submit. */
-  const handleSave = async () => {
-    if (isFutureTimestamp(datetime)) {
-      setDatetimeError('Time cannot be in the future.');
-      return;
-    }
+  /** Actual save — called after any future-date confirmation. */
+  const doSave = async () => {
     setSaving(true);
     try {
       const timestamp = toTimestamp(datetime);
@@ -115,6 +112,15 @@ export default function FeedCreatePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  /** Guard: show confirmation if timestamp is in the future, otherwise save directly. */
+  const handleSave = () => {
+    if (isFutureTimestamp(datetime)) {
+      setShowFutureConfirm(true);
+      return;
+    }
+    doSave();
   };
 
   useSubmitOnCmdEnter({ onSubmit: handleSave, disabled: saving });
@@ -284,13 +290,10 @@ export default function FeedCreatePage() {
               <Input
                 id="datetime"
                 type="datetime-local"
-                className={`h-11 w-auto max-w-full${datetimeError ? ' border-destructive' : ''}`}
+                className="h-11 w-auto max-w-full"
                 value={datetime}
-                onChange={(e) => { setDatetime(e.target.value); setDatetimeError(null); }}
+                onChange={(e) => setDatetime(e.target.value)}
               />
-              {datetimeError && (
-                <p className="text-sm text-destructive">{datetimeError}</p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -303,6 +306,12 @@ export default function FeedCreatePage() {
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </div>
+
+      <FutureDateConfirmDialog
+        open={showFutureConfirm}
+        onConfirm={() => { setShowFutureConfirm(false); doSave(); }}
+        onCancel={() => setShowFutureConfirm(false)}
+      />
     </div>
   );
 }
